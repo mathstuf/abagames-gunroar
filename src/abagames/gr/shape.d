@@ -6,7 +6,7 @@
 module abagames.gr.shape;
 
 private import std.math;
-private import opengl;
+private import derelict.opengl3.gl;
 private import abagames.util.vector;
 private import abagames.util.rand;
 private import abagames.util.sdl.shape;
@@ -36,7 +36,7 @@ public class BaseShape: DrawableShape {
   Vector[] _pointPos;
   float[] _pointDeg;
 
-  invariant {
+  invariant() {
     assert(wakePos.x < 15 && wakePos.x > -15);
     assert(wakePos.y < 60 && wakePos.y > -40);
     assert(size > 0 && size < 20);
@@ -46,11 +46,11 @@ public class BaseShape: DrawableShape {
     assert(r >= 0 && r <= 1);
     assert(g >= 0 && g <= 1);
     assert(b >= 0 && b <= 1);
-    foreach (Vector p; pillarPos) {
+    foreach (const(Vector) p; pillarPos) {
       assert(p.x < 20 && p.x > -20);
       assert(p.y < 20 && p.x > -20);
     }
-    foreach (Vector p; _pointPos) {
+    foreach (const(Vector) p; _pointPos) {
       assert(p.x < 20 && p.x > -20);
       assert(p.y < 20 && p.x > -20);
     }
@@ -151,6 +151,8 @@ public class BaseShape: DrawableShape {
       break;
     case ShapeType.TURRET_DESTROYED:
       break;
+    default:
+      assert(0);
     }
   }
 
@@ -266,6 +268,7 @@ public class BaseShape: DrawableShape {
           dist(x, y, -sin(deg) * ofs, -cos(deg) * ofs) < cs)
         return true;
     }
+    assert(0);
   }
 
   private float dist(float x, float y, float px, float py) {

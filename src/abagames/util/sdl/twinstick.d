@@ -8,7 +8,7 @@ module abagames.util.sdl.twinstick;
 private import std.string;
 private import std.stream;
 private import std.math;
-private import SDL;
+private import derelict.sdl2.sdl;
 private import abagames.util.vector;
 private import abagames.util.sdl.input;
 private import abagames.util.sdl.recordableinput;
@@ -43,7 +43,7 @@ public class TwinStick: Input {
   }
 
   public void handleEvent(SDL_Event *event) {
-    keys = SDL_GetKeyState(null);
+    keys = SDL_GetKeyboardState(null);
   }
 
   public TwinStickState getState() {
@@ -60,7 +60,7 @@ public class TwinStick: Input {
         state.right.x = state.right.y = 0;
       } else {
         ry = -ry;
-        float rd = atan2(rx, ry) * reverse + rotate;
+        float rd = atan2(cast(float) rx, cast(float) ry) * reverse + rotate;
         assert(rd <>= 0);
         float rl = sqrt(cast(float) rx * rx + cast(float) ry * ry);
         assert(rl <>= 0);
@@ -70,21 +70,21 @@ public class TwinStick: Input {
     } else {
       state.left.x = state.left.y = state.right.x = state.right.y = 0;
     }
-    if (keys[SDLK_d] == SDL_PRESSED)
+    if (keys[SDL_SCANCODE_D] == SDL_PRESSED)
       state.left.x = 1;
-    if (keys[SDLK_l] == SDL_PRESSED)
+    if (keys[SDL_SCANCODE_L] == SDL_PRESSED)
       state.right.x = 1;
-    if (keys[SDLK_a] == SDL_PRESSED)
+    if (keys[SDL_SCANCODE_A] == SDL_PRESSED)
       state.left.x = -1;
-    if (keys[SDLK_j] == SDL_PRESSED)
+    if (keys[SDL_SCANCODE_J] == SDL_PRESSED)
       state.right.x = -1;
-    if (keys[SDLK_s] == SDL_PRESSED)
+    if (keys[SDL_SCANCODE_S] == SDL_PRESSED)
       state.left.y = -1;
-    if (keys[SDLK_k] == SDL_PRESSED)
+    if (keys[SDL_SCANCODE_K] == SDL_PRESSED)
       state.right.y = -1;
-    if (keys[SDLK_w] == SDL_PRESSED)
+    if (keys[SDL_SCANCODE_W] == SDL_PRESSED)
       state.left.y = 1;
-    if (keys[SDLK_i] == SDL_PRESSED)
+    if (keys[SDL_SCANCODE_I] == SDL_PRESSED)
       state.right.y = 1;
     return state;
   }
@@ -116,7 +116,7 @@ public class TwinStickState {
   Vector left, right;
  private:
 
-  invariant {
+  invariant() {
     assert(left.x >= -1 && left.x <= 1);
     assert(left.y >= -1 && left.y <= 1);
     assert(right.x >= -1 && right.x <= 1);
@@ -176,7 +176,8 @@ public class RecordableTwinStick: TwinStick {
   mixin RecordableInput!(TwinStickState);
  private:
 
-  public TwinStickState getState(bool doRecord = true) {
+  alias TwinStick.getState getState;
+  public TwinStickState getState(bool doRecord) {
     TwinStickState s = super.getState();
     if (doRecord)
       record(s);

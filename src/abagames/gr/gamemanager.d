@@ -6,8 +6,8 @@
 module abagames.gr.gamemanager;
 
 private import std.math;
-private import opengl;
-private import SDL;
+private import derelict.opengl3.gl;
+private import derelict.sdl2.sdl;
 private import abagames.util.vector;
 private import abagames.util.rand;
 private import abagames.util.sdl.gamemanager;
@@ -202,13 +202,13 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
   private void saveLastReplay() {
     try {
       inGameState.saveReplay("last.rpl");
-    } catch (Object o) {}
+    } catch (Throwable o) {}
   }
 
   private void loadLastReplay() {
     try {
       inGameState.loadReplay("last.rpl");
-    } catch (Object o) {
+    } catch (Throwable o) {
       inGameState.resetReplay();
     }
   }
@@ -216,7 +216,7 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
   private void loadErrorReplay() {
     try {
       inGameState.loadReplay("error.rpl");
-    } catch (Object o) {
+    } catch (Throwable o) {
       inGameState.resetReplay();
     }
   }
@@ -230,7 +230,7 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
   }
 
   public override void move() {
-    if (pad.keys[SDLK_ESCAPE] == SDL_PRESSED) {
+    if (pad.keys[SDL_SCANCODE_ESCAPE] == SDL_PRESSED) {
       if (!escPressed) {
         escPressed = true;
         if (state == inGameState) {
@@ -248,10 +248,12 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
 
   public override void draw() {
     SDL_Event e = mainLoop.event;
-    if (e.type == SDL_VIDEORESIZE) {
-      SDL_ResizeEvent re = e.resize;
-      if (re.w > 150 && re.h > 100)
-        screen.resized(re.w, re.h);
+    if (e.type == SDL_WINDOWEVENT_RESIZED) {
+      SDL_WindowEvent we = e.window;
+      Sint32 w = we.data1;
+      Sint32 h = we.data2;
+      if (w > 150 && h > 100)
+        screen.resized(w, h);
    }
    if (screen.startRenderToLuminousScreen()) {
       glPushMatrix();
@@ -369,7 +371,7 @@ public class InGameState: GameState {
     NORMAL, TWIN_STICK, DOUBLE_PLAY, MOUSE,
   };
   static int GAME_MODE_NUM = 4;
-  static char[][] gameModeText = ["NORMAL", "TWIN STICK", "DOUBLE PLAY", "MOUSE"];
+  static string[] gameModeText = ["NORMAL", "TWIN STICK", "DOUBLE PLAY", "MOUSE"];
   bool isGameOver;
  private:
   static const float SCORE_REEL_SIZE_DEFAULT = 0.5f;
@@ -385,7 +387,7 @@ public class InGameState: GameState {
   float scoreReelSize;
   int _gameMode;
 
-  invariant {
+  invariant() {
     assert(left >= -1 && left < 10);
     assert(gameOverCnt >= 0);
     assert(pauseCnt >= 0);
@@ -432,6 +434,8 @@ public class InGameState: GameState {
       mouseAndPad.startRecord();
       _replayData.mouseAndPadInputRecord = mouseAndPad.inputRecord;
       break;
+    default:
+      assert(0);
     }
     _replayData.seed = rand.nextInt32();
     _replayData.shipTurnSpeed = GameManager.shipTurnSpeed;
@@ -481,7 +485,7 @@ public class InGameState: GameState {
   }
 
   public override void move() {
-    if (pad.keys[SDLK_p] == SDL_PRESSED) {
+    if (pad.keys[SDL_SCANCODE_P] == SDL_PRESSED) {
       if (!pausePressed) {
         if (pauseCnt <= 0 && !isGameOver)
           pauseCnt = 1;
@@ -561,7 +565,7 @@ public class InGameState: GameState {
     bullets.draw();
   }
 
-  public void drawFront() {
+  public override void drawFront() {
     ship.drawFront();
     scoreReel.draw(11.5f + (SCORE_REEL_SIZE_DEFAULT - scoreReelSize) * 3,
                    -8.2f - (SCORE_REEL_SIZE_DEFAULT - scoreReelSize) * 3,
@@ -582,7 +586,7 @@ public class InGameState: GameState {
     stageManager.draw();
   }
 
-  public void drawOrtho() {
+  public override void drawOrtho() {
     drawGameParams();
     if (isGameOver)
       Letter.drawString("GAME OVER", 190, 180, 15);
@@ -626,11 +630,11 @@ public class InGameState: GameState {
     scoreReelSize += (SCORE_REEL_SIZE_SMALL - scoreReelSize) * 0.08f;
   }
 
-  public void saveReplay(char[] fileName) {
+  public void saveReplay(string fileName) {
     _replayData.save(fileName);
   }
 
-  public void loadReplay(char[] fileName) {
+  public void loadReplay(string fileName) {
     _replayData = new ReplayData;
     _replayData.load(fileName);
   }
@@ -654,7 +658,7 @@ public class TitleState: GameState {
   InGameState inGameState;
   int gameOverCnt;
 
-  invariant {
+  invariant() {
     assert(gameOverCnt >= 0);
   }
 
@@ -705,6 +709,8 @@ public class TitleState: GameState {
     case InGameState.GameMode.MOUSE:
       mouseAndPad.startReplay(_replayData.mouseAndPadInputRecord);
       break;
+    default:
+      assert(0);
     }
     titleManager.replayData = _replayData;
     inGameState.gameMode = _replayData.gameMode;
@@ -731,7 +737,7 @@ public class TitleState: GameState {
     }
   }
 
-  public void drawFront() {
+  public override void drawFront() {
     if (_replayData)
       inGameState.drawFront();
   }

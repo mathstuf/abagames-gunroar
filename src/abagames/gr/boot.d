@@ -5,6 +5,7 @@
  */
 module abagames.gr.boot;
 
+private import core.stdc.stdlib;
 private import std.string;
 private import std.stream;
 private import std.math;
@@ -48,9 +49,9 @@ version (Win32_release) {
 
   extern (Windows)
   public int WinMain(HINSTANCE hInstance,
-		     HINSTANCE hPrevInstance,
-		     LPSTR lpCmdLine,
-		     int nCmdShow) {
+                     HINSTANCE hPrevInstance,
+                     LPSTR lpCmdLine,
+                     int nCmdShow) {
     int result;
     gc_init();
     _minit();
@@ -61,7 +62,7 @@ version (Win32_release) {
       char[][1] prog;
       prog[0] = std.string.toString(exe);
       result = boot(prog ~ std.string.split(std.string.toString(lpCmdLine)));
-    } catch (Object o) {
+    } catch (Throwable o) {
       Logger.error("Exception: " ~ o.toString());
       result = EXIT_FAILURE;
     }
@@ -94,11 +95,11 @@ public int boot(char[][] args) {
   }
   try {
     mainLoop.loop();
-  } catch (Object o) {
+  } catch (Throwable o) {
     Logger.info(o.toString());
     try {
       gameManager.saveErrorReplay();
-    } catch (Object o1) {}
+    } catch (Throwable o1) {}
     throw o;
   }
   return EXIT_SUCCESS;
@@ -117,7 +118,7 @@ private void parseArgs(char[][] commandArgs) {
         throw new Exception("Invalid options");
       }
       i++;
-      float b = cast(float) std.string.atoi(args[i]) / 100;
+      float b = cast(float) atoi(args[i].ptr) / 100;
       if (b < 0 || b > 1) {
         usage(args[0]);
         throw new Exception("Invalid options");
@@ -131,7 +132,7 @@ private void parseArgs(char[][] commandArgs) {
         throw new Exception("Invalid options");
       }
       i++;
-      float l = cast(float) std.string.atoi(args[i]) / 100;
+      float l = cast(float) atoi(args[i].ptr) / 100;
       if (l < 0 || l > 1) {
         usage(progName);
         throw new Exception("Invalid options");
@@ -147,9 +148,9 @@ private void parseArgs(char[][] commandArgs) {
         throw new Exception("Invalid options");
       }
       i++;
-      int w = std.string.atoi(args[i]);
+      int w = atoi(args[i].ptr);
       i++;
-      int h = std.string.atoi(args[i]);
+      int h = atoi(args[i].ptr);
       screen.width = w;
       screen.height = h;
       break;
@@ -171,7 +172,7 @@ private void parseArgs(char[][] commandArgs) {
         throw new Exception("Invalid options");
       }
       i++;
-      float s = cast(float) std.string.atoi(args[i]) / 100;
+      float s = cast(float) atoi(args[i].ptr) / 100;
       if (s < 0 || s > 5) {
         usage(progName);
         throw new Exception("Invalid options");
@@ -188,7 +189,7 @@ private void parseArgs(char[][] commandArgs) {
         throw new Exception("Invalid options");
       }
       i++;
-      twinStick.rotate = cast(float) std.string.atoi(args[i]) * PI / 180.0f;
+      twinStick.rotate = cast(float) atoi(args[i].ptr) * PI / 180.0f;
       break;
     case "-reversestick2":
     case "-reverserightstick":
@@ -217,12 +218,12 @@ private void parseArgs(char[][] commandArgs) {
   }
 }
 
-private final const char[] OPTIONS_INI_FILE = "options.ini";
+private const string OPTIONS_INI_FILE = "options.ini";
 
 private char[][] readOptionsIniFile() {
   try {
-    return Tokenizer.readFile(OPTIONS_INI_FILE, " ");
-  } catch (Object e) {
+    return Tokenizer.readFile(OPTIONS_INI_FILE.dup, " ");
+  } catch (Throwable e) {
     return null;
   }
 }

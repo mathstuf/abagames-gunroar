@@ -7,7 +7,7 @@ module abagames.util.sdl.pad;
 
 private import std.string;
 private import std.stream;
-private import SDL;
+private import derelict.sdl2.sdl;
 private import abagames.util.sdl.input;
 private import abagames.util.sdl.recordableinput;
 
@@ -39,7 +39,7 @@ public class Pad: Input {
   }
 
   public void handleEvent(SDL_Event *event) {
-    keys = SDL_GetKeyState(null);
+    keys = SDL_GetKeyboardState(null);
   }
 
   public PadState getState() {
@@ -49,20 +49,20 @@ public class Pad: Input {
       x = SDL_JoystickGetAxis(stick, 0);
       y = SDL_JoystickGetAxis(stick, 1);
     }
-    if (keys[SDLK_RIGHT] == SDL_PRESSED || keys[SDLK_KP6] == SDL_PRESSED ||
-        keys[SDLK_d] == SDL_PRESSED || keys[SDLK_l] == SDL_PRESSED ||
+    if (keys[SDL_SCANCODE_RIGHT] == SDL_PRESSED || keys[SDL_SCANCODE_KP_6] == SDL_PRESSED ||
+        keys[SDL_SCANCODE_D] == SDL_PRESSED || keys[SDL_SCANCODE_L] == SDL_PRESSED ||
         x > JOYSTICK_AXIS)
       state.dir |= PadState.Dir.RIGHT;
-    if (keys[SDLK_LEFT] == SDL_PRESSED || keys[SDLK_KP4] == SDL_PRESSED ||
-        keys[SDLK_a] == SDL_PRESSED || keys[SDLK_j] == SDL_PRESSED ||
+    if (keys[SDL_SCANCODE_LEFT] == SDL_PRESSED || keys[SDL_SCANCODE_KP_4] == SDL_PRESSED ||
+        keys[SDL_SCANCODE_A] == SDL_PRESSED || keys[SDL_SCANCODE_J] == SDL_PRESSED ||
         x < -JOYSTICK_AXIS)
       state.dir |= PadState.Dir.LEFT;
-    if (keys[SDLK_DOWN] == SDL_PRESSED || keys[SDLK_KP2] == SDL_PRESSED ||
-        keys[SDLK_s] == SDL_PRESSED || keys[SDLK_k] == SDL_PRESSED ||
+    if (keys[SDL_SCANCODE_DOWN] == SDL_PRESSED || keys[SDL_SCANCODE_KP_2] == SDL_PRESSED ||
+        keys[SDL_SCANCODE_S] == SDL_PRESSED || keys[SDL_SCANCODE_K] == SDL_PRESSED ||
         y > JOYSTICK_AXIS)
       state.dir |= PadState.Dir.DOWN;
-    if (keys[SDLK_UP] == SDL_PRESSED ||  keys[SDLK_KP8] == SDL_PRESSED ||
-        keys[SDLK_w] == SDL_PRESSED || keys[SDLK_i] == SDL_PRESSED ||
+    if (keys[SDL_SCANCODE_UP] == SDL_PRESSED ||  keys[SDL_SCANCODE_KP_8] == SDL_PRESSED ||
+        keys[SDL_SCANCODE_W] == SDL_PRESSED || keys[SDL_SCANCODE_I] == SDL_PRESSED ||
         y < -JOYSTICK_AXIS)
       state.dir |= PadState.Dir.UP;
     state.button = 0;
@@ -76,18 +76,18 @@ public class Pad: Input {
              SDL_JoystickGetButton(stick, 5) + SDL_JoystickGetButton(stick, 6) +
              SDL_JoystickGetButton(stick, 9) + SDL_JoystickGetButton(stick, 10);
     }
-    if (keys[SDLK_z] == SDL_PRESSED || keys[SDLK_PERIOD] == SDL_PRESSED ||
-        keys[SDLK_LCTRL] == SDL_PRESSED || keys[SDLK_RCTRL] == SDL_PRESSED ||
+    if (keys[SDL_SCANCODE_Z] == SDL_PRESSED || keys[SDL_SCANCODE_PERIOD] == SDL_PRESSED ||
+        keys[SDL_SCANCODE_LCTRL] == SDL_PRESSED || keys[SDL_SCANCODE_RCTRL] == SDL_PRESSED ||
         btn1) {
       if (!buttonReversed)
         state.button |= PadState.Button.A;
       else
         state.button |= PadState.Button.B;
     }
-    if (keys[SDLK_x] == SDL_PRESSED || keys[SDLK_SLASH] == SDL_PRESSED ||
-        keys[SDLK_LALT] == SDL_PRESSED || keys[SDLK_RALT] == SDL_PRESSED ||
-        keys[SDLK_LSHIFT] == SDL_PRESSED || keys[SDLK_RSHIFT] == SDL_PRESSED ||
-        keys[SDLK_RETURN] == SDL_PRESSED ||
+    if (keys[SDL_SCANCODE_X] == SDL_PRESSED || keys[SDL_SCANCODE_SLASH] == SDL_PRESSED ||
+        keys[SDL_SCANCODE_LALT] == SDL_PRESSED || keys[SDL_SCANCODE_RALT] == SDL_PRESSED ||
+        keys[SDL_SCANCODE_LSHIFT] == SDL_PRESSED || keys[SDL_SCANCODE_RSHIFT] == SDL_PRESSED ||
+        keys[SDL_SCANCODE_RETURN] == SDL_PRESSED ||
         btn2) {
       if (!buttonReversed)
         state.button |= PadState.Button.B;
@@ -164,7 +164,8 @@ public class RecordablePad: Pad {
   mixin RecordableInput!(PadState);
  private:
 
-  public PadState getState(bool doRecord = true) {
+  alias Pad.getState getState;
+  public PadState getState(bool doRecord) {
     PadState s = super.getState();
     if (doRecord)
       record(s);

@@ -6,7 +6,7 @@
 module abagames.gr.particle;
 
 private import std.math;
-private import opengl;
+private import derelict.opengl3.gl;
 private import abagames.util.actor;
 private import abagames.util.vector;
 private import abagames.util.rand;
@@ -26,7 +26,7 @@ public class Spark: LuminousActor {
   float r, g, b;
   int cnt;
 
-  invariant {
+  invariant() {
     assert(pos.x < 40 && pos.x > -40);
     assert(pos.y < 60 && pos.y > -60);
     assert(ppos.x < 40 && ppos.x > -40);
@@ -138,7 +138,7 @@ public class Smoke: LuminousActor {
   float size;
   float r, g, b, a;
 
-  invariant {
+  invariant() {
     assert(windVel.x < 1 && windVel.x > -1);
     assert(windVel.y < 1 && windVel.y > -1);
     assert(wakePos.x < 15 && wakePos.x > -15);
@@ -248,6 +248,8 @@ public class Smoke: LuminousActor {
       b = rand.nextFloat(0.2f) + 0.7f;
       a = 1;
       break;
+    default:
+      assert(0);
     }
     exists = true;
   }
@@ -298,6 +300,8 @@ public class Smoke: LuminousActor {
       a *= 0.95f;
       size *= 0.97f;
       break;
+    default:
+      assert(0);
     }
     if (size > 5)
       size = 5;
@@ -370,7 +374,7 @@ public class Fragment: Actor {
   float size;
   float d2, md2;
 
-  invariant {
+  invariant() {
     assert(pos.x < 15 && pos.x > -15);
     assert(pos.y < 20 && pos.y > -20);
     assert(pos.z < 20 && pos.z > -10);
@@ -494,7 +498,7 @@ public class SparkFragment: LuminousActor {
   int cnt;
   bool hasSmoke;
 
-  invariant {
+  invariant() {
     assert(pos.x < 15 && pos.x > -15);
     assert(pos.y < 20 && pos.y > -20);
     assert(pos.z < 20 && pos.z > -10);
@@ -632,7 +636,7 @@ public class Wake: Actor {
   int cnt;
   bool revShape;
 
-  invariant {
+  invariant() {
     assert(pos.x < 15 && pos.x > -15);
     assert(pos.y < 20 && pos.y > -20);
     assert(vel.x < 10 && vel.x > -10);

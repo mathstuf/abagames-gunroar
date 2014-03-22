@@ -6,9 +6,8 @@
 module abagames.util.sdl.texture;
 
 private import std.string;
-private import opengl;
-private import openglu;
-private import SDL;
+private import derelict.opengl3.gl;
+private import derelict.sdl2.sdl;
 private import abagames.util.sdl.sdlexception;
 
 /**
@@ -16,19 +15,19 @@ private import abagames.util.sdl.sdlexception;
  */
 public class Texture {
  public:
-  static char[] imagesDir = "images/";
-  static SDL_Surface*[char[]] surface;
+  static string imagesDir = "images/";
+  static SDL_Surface*[string] surface;
  private:
   GLuint num, maskNum;
   int textureNum, maskTextureNum;
   Uint32[128 * 128] pixels;
   Uint32[128 * 128] maskPixels;
 
-  public static SDL_Surface* loadBmp(char[] name) {
+  public static SDL_Surface* loadBmp(string name) {
     if (name in surface) {
       return surface[name];
     } else {
-      char[] fileName = imagesDir ~ name;
+      string fileName = imagesDir ~ name;
       SDL_Surface *s = SDL_LoadBMP(std.string.toStringz(fileName));
       if (!s)
         throw new SDLInitFailedException("Unable to load: " ~ fileName);
@@ -48,24 +47,27 @@ public class Texture {
       format.Gloss = 0;
       format.Bloss = 0;
       format.Aloss = 0;
-      format.alpha = 0;
+      //format.alpha = 0;
       SDL_Surface *cs = SDL_ConvertSurface(s, &format, SDL_SWSURFACE);
       surface[name] = cs;
       return cs;
     }
   }
 
-  public this(char[] name) {
+  public this(string name) {
     SDL_Surface *s = loadBmp(name);
     glGenTextures(1, &num);
     glBindTexture(GL_TEXTURE_2D, num);
-    gluBuild2DMipmaps(GL_TEXTURE_2D, 4, s.w, s.h,
-                      GL_RGBA, GL_UNSIGNED_BYTE, s.pixels);
+    glTexStorage2D(GL_TEXTURE_2D, 4, GL_RGBA8, s.w, s.h);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, s.w, s.h, GL_BGRA, GL_UNSIGNED_BYTE, s.pixels);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   }
 
-  public this(char[] name, int sx, int sy, int xn, int yn, int panelWidth, int panelHeight,
+  public this(string name, int sx, int sy, int xn, int yn, int panelWidth, int panelHeight,
               Uint32 maskColor = 0xffffffffu) {
     SDL_Surface *s = loadBmp(name);
     Uint32* surfacePixels = cast(Uint32*) s.pixels;
@@ -102,14 +104,20 @@ public class Texture {
           }
         }
         glBindTexture(GL_TEXTURE_2D, num + ti);
-        gluBuild2DMipmaps(GL_TEXTURE_2D, 4, panelWidth, panelHeight,
-                          GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+        glTexStorage2D(GL_TEXTURE_2D, 4, GL_RGBA8, panelWidth, panelHeight);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, panelWidth, panelHeight, GL_BGRA, GL_UNSIGNED_BYTE, pixels.ptr);
+        glGenerateMipmap(GL_TEXTURE_2D);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST);
         glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
         if (maskColor != 0xffffffffu) {
           glBindTexture(GL_TEXTURE_2D, maskNum + ti);
-          gluBuild2DMipmaps(GL_TEXTURE_2D, 4, panelWidth, panelHeight,
-                            GL_RGBA, GL_UNSIGNED_BYTE, maskPixels);
+          glTexStorage2D(GL_TEXTURE_2D, 4, GL_RGBA8, panelWidth, panelHeight);
+          glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, panelWidth, panelHeight, GL_BGRA, GL_UNSIGNED_BYTE, maskPixels.ptr);
+          glGenerateMipmap(GL_TEXTURE_2D);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+          glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
           glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST);
           glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
         }

@@ -5,6 +5,7 @@
  */
 module abagames.gr.replay;
 
+private import std.conv;
 private import std.stream;
 private import abagames.util.sdl.recordableinput;
 private import abagames.util.sdl.pad;
@@ -30,9 +31,9 @@ public class ReplayData {
   int gameMode;
  private:
 
-  public void save(char[] fileName) {
-    auto File fd = new File;
-    fd.create(dir ~ "/" ~ fileName);
+  public void save(string fileName) {
+    scope File fd = new File;
+    fd.create(to!string(dir ~ "/" ~ fileName));
     fd.write(VERSION_NUM);
     fd.write(seed);
     fd.write(score);
@@ -53,13 +54,15 @@ public class ReplayData {
     case InGameState.GameMode.MOUSE:
       mouseAndPadInputRecord.save(fd);
       break;
+    default:
+      assert(0);
     }
     fd.close();
   }
 
-  public void load(char[] fileName) {
-    auto File fd = new File;
-    fd.open(dir ~ "/" ~ fileName);
+  public void load(string fileName) {
+    scope File fd = new File;
+    fd.open(to!string(dir ~ "/" ~ fileName));
     int ver;
     fd.read(ver);
     if (ver != VERSION_NUM)
@@ -88,6 +91,8 @@ public class ReplayData {
       mouseAndPadInputRecord = new InputRecord!(MouseAndPadState);
       mouseAndPadInputRecord.load(fd);
       break;
+    default:
+      assert(0);
     }
     fd.close();
   }

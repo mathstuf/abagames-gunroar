@@ -45,7 +45,7 @@ public class StageManager {
   int bossAppTime, bossAppTimeBase;
   int bgmStartCnt;
 
-  invariant {
+  invariant() {
     assert(rank >= 1);
     assert(baseRank >= 1);
     assert(addRank >= 0);
@@ -67,7 +67,7 @@ public class StageManager {
     this.wakes = wakes;
     rand = new Rand;
     enemyApp = new EnemyAppearance[3];
-    foreach (inout EnemyAppearance ea; enemyApp)
+    foreach (ref EnemyAppearance ea; enemyApp)
       ea = new EnemyAppearance;
     PlatformEnemySpec platformEnemySpec =
       new PlatformEnemySpec(field, ship, sparks, smokes, fragments, wakes);
@@ -261,11 +261,11 @@ public class StageManager {
         (cast(int) platformPos[ppi].pos.x, cast(int) platformPos[ppi].pos.y);
       if (!platformEnemySpec.setFirstState(en.state, p.x, p.y, platformPos[ppi].deg))
         continue;
-      for (int i = 0; i < platformPosNum; i++) {
-        if (fabs(platformPos[ppi].pos.x - platformPos[i].pos.x) <= 1 &&
-            fabs(platformPos[ppi].pos.y - platformPos[i].pos.y) <= 1 &&
-            !platformPos[i].used) {
-          platformPos[i].used = true;
+      for (int j = 0; j < platformPosNum; j++) {
+        if (fabs(platformPos[ppi].pos.x - platformPos[j].pos.x) <= 1 &&
+            fabs(platformPos[ppi].pos.y - platformPos[j].pos.y) <= 1 &&
+            !platformPos[j].used) {
+          platformPos[j].used = true;
           ppn--;
         }
       }
@@ -298,7 +298,7 @@ public class EnemyAppearance {
   float nextAppDist, nextAppDistInterval;
   int appType;
 
-  invariant {
+  invariant() {
     assert(nextAppDist <>= 0);
     assert(nextAppDistInterval > 0);
     assert(appType >= 0);

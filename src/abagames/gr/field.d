@@ -5,7 +5,7 @@
  */
 module abagames.gr.field;
 
-private import opengl;
+private import derelict.opengl3.gl;
 private import std.math;
 private import abagames.util.vector;
 private import abagames.util.rand;
@@ -34,7 +34,7 @@ public class Field {
   static const float SIDEWALL_X1 = 18;
   static const float SIDEWALL_X2 = 9.3f;
   static const float SIDEWALL_Y = 15;
-  static const float TIME_COLOR_INDEX = 5;
+  static const uint TIME_COLOR_INDEX = 5;
   static const float TIME_CHANGE_RATIO = 0.00033f;
   StageManager stageManager;
   Ship ship;
@@ -73,7 +73,7 @@ public class Field {
   float[3][6] baseColor;
   float time;
 
-  invariant {
+  invariant() {
     assert(_lastScrollY >= 0 && _lastScrollY < 10);
     assert(screenPos.x < 15 && screenPos.x > -15);
     assert(screenPos.y < 40 && screenPos.y > -20);
@@ -86,7 +86,7 @@ public class Field {
     _size = new Vector(SCREEN_BLOCK_SIZE_X / 2 * 0.9f, SCREEN_BLOCK_SIZE_Y / 2 * 0.8f);
     _outerSize = new Vector(SCREEN_BLOCK_SIZE_X / 2, SCREEN_BLOCK_SIZE_Y / 2);
     screenPos = new Vector;
-    foreach (inout PlatformPos pp; platformPos)
+    foreach (ref PlatformPos pp; platformPos)
       pp.pos = new Vector;
     _lastScrollY = 0;
     platformPosNum = 0;
@@ -199,6 +199,8 @@ public class Field {
           case 4:
             b = 2;
             break;
+          default:
+            assert(0);
           }
         } else {
           switch (c) {
@@ -211,6 +213,8 @@ public class Field {
           case 4:
             b = -1;
             break;
+          default:
+            assert(0);
           }
         }
         block[bx][by] = b;
@@ -256,6 +260,8 @@ public class Field {
       else
         cx = rand.nextInt(cast(int) (BLOCK_SIZE_X * 0.4f)) + cast(int) (BLOCK_SIZE_X * 0.8f);
       break;
+    default:
+      assert(0);
     }
     int cy = rand.nextInt(cast(int) (NEXT_BLOCK_AREA_SIZE * 0.6f)) + cast(int) (NEXT_BLOCK_AREA_SIZE * 0.2f);
     cy += nextBlockY;

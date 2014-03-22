@@ -32,7 +32,7 @@ public class ActorPool(T) {
  public:
   T[] actor;
  protected:
-  int actorIdx = 0;
+  ulong actorIdx = 0;
  private:
 
   public this() {}
@@ -43,7 +43,7 @@ public class ActorPool(T) {
 
   protected void createActors(int n, Object[] args = null) {
     actor = new T[n];
-    foreach (inout T a; actor) {
+    foreach (ref T a; actor) {
       a = new T;
       a.exists = false;
       a.init(args);

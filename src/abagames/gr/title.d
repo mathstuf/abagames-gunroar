@@ -6,8 +6,7 @@
 module abagames.gr.title;
 
 private import std.math;
-private import opengl;
-private import openglu;
+private import derelict.opengl3.gl;
 private import abagames.util.vector;
 private import abagames.util.sdl.displaylist;
 private import abagames.util.sdl.texture;

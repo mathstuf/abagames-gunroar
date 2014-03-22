@@ -13,13 +13,13 @@ private import std.math;
 public class Math {
  private:
 
-  public static void normalizeDeg(inout float d) {
+  public static void normalizeDeg(ref float d) {
     if (d < -PI)
       d = PI * 2 - (-d % (PI * 2));
     d = (d + PI) % (PI * 2) - PI;
   }
 
-  public static void normalizeDeg360(inout float d) {
+  public static void normalizeDeg360(ref float d) {
     if (d < -180)
       d = 360 - (-d % 360);
     d = (d + 180) % 360 - 180;

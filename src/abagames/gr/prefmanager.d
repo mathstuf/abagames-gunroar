@@ -16,7 +16,7 @@ public class PrefManager: abagames.util.prefmanager.PrefManager {
  private:
   static const int VERSION_NUM = 14;
   static const int VERSION_NUM_13 = 13;
-  static const char[] PREF_FILE = "gr.prf";
+  static const string PREF_FILE = "gr.prf";
   PrefData _prefData;
 
   public this() {
@@ -24,7 +24,7 @@ public class PrefManager: abagames.util.prefmanager.PrefManager {
   }
 
   public void load() {
-    auto File fd = new File;
+    scope File fd = new File;
     try {
       int ver;
       fd.open(PREF_FILE);
@@ -35,7 +35,7 @@ public class PrefManager: abagames.util.prefmanager.PrefManager {
         throw new Error("Wrong version num");
       else
         _prefData.load(fd);
-    } catch (Object e) {
+    } catch (Throwable e) {
       _prefData.init();
     } finally {
       if (fd.isOpen())
@@ -44,7 +44,7 @@ public class PrefManager: abagames.util.prefmanager.PrefManager {
   }
 
   public void save() {
-    auto File fd = new File;
+    scope File fd = new File;
     fd.create(PREF_FILE);
     fd.write(VERSION_NUM);
     _prefData.save(fd);
@@ -63,28 +63,28 @@ public class PrefData {
   int _gameMode;
 
   public void init() {
-    foreach (inout int hs; _highScore)
+    foreach (ref int hs; _highScore)
       hs = 0;
     _gameMode = 0;
   }
 
   public void load(File fd) {
-    foreach (inout int hs; _highScore)
-      fd.read(hs);
-    fd.read(_gameMode);
+    foreach (ref int hs; _highScore)
+      fd.readf("%d", &hs);
+    fd.readf("%d", &_gameMode);
   }
 
   public void loadVer13(File fd) {
     init();
     for (int i = 0; i < 3; i++)
-      fd.read(_highScore[i]);
-    fd.read(_gameMode);
+      fd.readf("%d", &_highScore[i]);
+    fd.readf("%d", &_gameMode);
   }
 
   public void save(File fd) {
-    foreach (inout int hs; _highScore)
-      fd.write(hs);
-    fd.write(_gameMode);
+    foreach (ref int hs; _highScore)
+      fd.writef("%d", hs);
+    fd.writef("%d", _gameMode);
   }
 
   public void recordGameMode(int gm) {

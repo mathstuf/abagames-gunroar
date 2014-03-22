@@ -5,7 +5,7 @@
  */
 module abagames.util.sdl.shape;
 
-private import opengl;
+private import derelict.opengl3.gl;
 private import abagames.util.vector;
 private import abagames.util.sdl.displaylist;
 
@@ -24,7 +24,7 @@ public interface Collidable {
   public bool checkCollision(float ax, float ay, Collidable shape = null);
 }
 
-private template CollidableImpl() {
+public template CollidableImpl() {
   public bool checkCollision(float ax, float ay, Collidable shape = null) {
     float cx, cy;
     if (shape) {

@@ -39,7 +39,7 @@ public template RecordableInput(T) {
 }
 
 public class NoRecordDataException: Exception {
-  public this(char[] msg) {
+  public this(string) {
     super(msg);
   }
 }

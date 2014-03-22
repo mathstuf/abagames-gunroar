@@ -5,6 +5,7 @@
  */
 module abagames.util.vector;
 
+private import std.conv;
 private import std.math;
 private import std.string;
 
@@ -52,12 +53,12 @@ public class Vector {
     y -= v.y;
   }
 
-  public void opMulAssign(float a) {	
+  public void opMulAssign(float a) {
     x *= a;
     y *= a;
   }
 
-  public void opDivAssign(float a) {	
+  public void opDivAssign(float a) {
     x /= a;
     y /= a;
   }
@@ -67,21 +68,21 @@ public class Vector {
     float yo = pos2.y - pos1.y;
     if (xo == 0) {
       if (yo == 0)
-	return 0;
+        return 0;
       if (yo > 0)
-	return x - pos1.x;
+        return x - pos1.x;
       else
-	return pos1.x - x;
+        return pos1.x - x;
     } else if (yo == 0) {
       if (xo > 0)
-	return pos1.y - y;
+        return pos1.y - y;
       else
-	return y - pos1.y;
+        return y - pos1.y;
     } else {
       if (xo * yo > 0)
-	return (x - pos1.x) / xo - (y - pos1.y) / yo;
+        return (x - pos1.x) / xo - (y - pos1.y) / yo;
       else
-	return -(x - pos1.x) / xo + (y - pos1.y) / yo;
+        return -(x - pos1.x) / xo + (y - pos1.y) / yo;
     }
   }
 
@@ -92,21 +93,21 @@ public class Vector {
     float my = y + ofs.y;
     if (xo == 0) {
       if (yo == 0)
-	return 0;
+        return 0;
       if (yo > 0)
-	return mx - pos1.x;
+        return mx - pos1.x;
       else
-	return pos1.x - mx;
+        return pos1.x - mx;
     } else if (yo == 0) {
       if (xo > 0)
-	return pos1.y - my;
+        return pos1.y - my;
       else
-	return my - pos1.y;
+        return my - pos1.y;
     } else {
       if (xo * yo > 0)
-	return (mx - pos1.x) / xo - (my - pos1.y) / yo;
+        return (mx - pos1.x) / xo - (my - pos1.y) / yo;
       else
-	return -(mx - pos1.x) / xo + (my - pos1.y) / yo;
+        return -(mx - pos1.x) / xo + (my - pos1.y) / yo;
     }
   }
 
@@ -169,9 +170,9 @@ public class Vector {
       sofsy -= p.y;
       inab = bmvx * sofsx + bmvy * sofsy;
       if (inab >= 0 && inab <= inaa) {
-	hd = sofsx * sofsx + sofsy * sofsy - inab * inab / inaa;
-	if (hd >= 0 && hd <= dist)
-	  return true;
+        hd = sofsx * sofsx + sofsy * sofsy - inab * inab / inaa;
+        if (hd >= 0 && hd <= dist)
+          return true;
       }
     }
     return false;
@@ -205,8 +206,8 @@ public class Vector {
       return false;
   }
 
-  public char[] toString() {
-    return "(" ~ std.string.toString(x) ~ ", " ~ std.string.toString(y) ~ ")";
+  public override string toString() {
+    return "(" ~ to!string(x) ~ ", " ~ to!string(y) ~ ")";
   }
 }
 
@@ -260,13 +261,13 @@ public class Vector3 {
     z -= v.z;
   }
 
-  public void opMulAssign(float a) {	
+  public void opMulAssign(float a) {
     x *= a;
     y *= a;
     z *= a;
   }
 
-  public void opDivAssign(float a) {	
+  public void opDivAssign(float a) {
     x /= a;
     y /= a;
     z /= a;

@@ -7,7 +7,7 @@ module abagames.util.sdl.mouse;
 
 private import std.string;
 private import std.stream;
-private import SDL;
+private import derelict.sdl2.sdl;
 private import abagames.util.sdl.input;
 private import abagames.util.sdl.recordableinput;
 private import abagames.util.sdl.screen;
@@ -132,7 +132,8 @@ public class RecordableMouse: Mouse {
   mixin RecordableInput!(MouseState);
  private:
 
-  public MouseState getState(bool doRecord = true) {
+  alias Mouse.getState getState;
+  public MouseState getState(bool doRecord) {
     MouseState s = super.getState();
     if (doRecord)
       record(s);

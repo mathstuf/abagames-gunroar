@@ -7,7 +7,7 @@ module abagames.gr.mouseandpad;
 
 private import std.string;
 private import std.stream;
-private import SDL;
+private import derelict.sdl2.sdl;
 private import abagames.util.sdl.input;
 private import abagames.util.sdl.recordableinput;
 private import abagames.util.sdl.mouse;
@@ -81,7 +81,7 @@ public class RecordableMouseAndPad {
     state = new MouseAndPadState;
   }
 
-  public MouseAndPadState getState(bool doRecord = true) {
+  public MouseAndPadState getState(bool doRecord) {
     RecordableMouse rm = cast(RecordableMouse) mouse;
     if (rm)
       state.mouseState = rm.getState(false);

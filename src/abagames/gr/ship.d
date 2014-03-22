@@ -6,7 +6,7 @@
 module abagames.gr.ship;
 
 private import std.math;
-private import opengl;
+private import derelict.opengl3.gl;
 private import abagames.util.vector;
 private import abagames.util.rand;
 private import abagames.util.math;
@@ -45,7 +45,7 @@ public class Ship {
   Vector _midstPos, _higherPos, _lowerPos, _nearPos, _nearVel;
   BaseShape bridgeShape;
 
-  invariant {
+  invariant() {
     assert(boatNum >= 1 && boatNum <= boat.length);
     assert(scrollSpeed > 0);
     assert(_scrollSpeedBase > 0);
@@ -57,7 +57,7 @@ public class Ship {
     this.field = field;
     Boat.init();
     int i = 0;
-    foreach (inout Boat b; boat) {
+    foreach (ref Boat b; boat) {
       b = new Boat(i, this, pad, twinStick, mouse, mouseAndPad,
                    field, screen, sparks, smokes, fragments, wakes);
       i++;
@@ -332,7 +332,7 @@ public class Boat {
   int idx;
   Ship ship;
 
-  invariant {
+  invariant() {
     assert(_pos.x < 15 && _pos.x > -15);
     assert(_pos.y < 20 && _pos.y > -20);
     assert(firePos.x < 15 && firePos.x > -15);
@@ -388,6 +388,8 @@ public class Boat {
       _shape = new BaseShape(0.7f, 0.6f, 0.6f, BaseShape.ShapeType.SHIP_ROUNDTAIL, 0.4f, 0.3f, 0.8f);
       bridgeShape = new BaseShape(0.3f, 0.6f, 0.6f, BaseShape.ShapeType.BRIDGE, 0.2f, 0.3f, 0.6f);
       break;
+    default:
+      assert(0);
     }
     deg = 0;
     speed = 0;
@@ -432,6 +434,8 @@ public class Boat {
       case 1:
         _pos.x = field.size.x * 0.5f;
         break;
+      default:
+        assert(0);
       }
     } else {
       _pos.x = 0;
@@ -461,6 +465,8 @@ public class Boat {
       fireCnt = 0;
       fireInterval = FIRE_INTERVAL;
       break;
+    default:
+      assert(0);
     }
     fireSprCnt = 0;
     fireSprDeg = 0.5f;
@@ -490,6 +496,8 @@ public class Boat {
     case InGameState.GameMode.MOUSE:
       moveMouse();
       break;
+    default:
+      assert(0);
     }
     if (gameState.isGameOver) {
       clearBullets();
@@ -550,6 +558,8 @@ public class Boat {
     case InGameState.GameMode.MOUSE:
       fireMouse();
       break;
+    default:
+      assert(0);
     }
     if (cnt % 3 == 0 && cnt >= -INVINCIBLE_CNT) {
       float sp;
@@ -666,6 +676,8 @@ public class Boat {
       vx = stickInput.right.x;
       vy = stickInput.right.y;
       break;
+    default:
+      assert(0);
     }
     if (vx != 0 || vy != 0) {
       float ad = atan2(vx, vy);
@@ -680,7 +692,7 @@ public class Boat {
 
   private void moveMouse() {
     if (!_replayMode) {
-      MouseAndPadState mps = mouseAndPad.getState();
+      MouseAndPadState mps = mouseAndPad.getState(true);
       padInput = mps.padState;
       mouseInput = mps.mouseState;
     } else {
@@ -756,6 +768,8 @@ public class Boat {
       case 1:
         td = -fireSprDeg * (fireSprCnt / 2 % 4 + 1) * 0.2f;
         break;
+      default:
+        assert(0);
       }
       fireSprCnt++;
       s = shots.getInstance();
@@ -815,6 +829,8 @@ public class Boat {
         case 1:
           td = -fireSprDeg * (fireSprCnt / 2 % 4 + 1) * 0.2f;
           break;
+        default:
+          assert(0);
         }
         fireSprCnt++;
         Shot s = shots.getInstance();
@@ -871,6 +887,8 @@ public class Boat {
         case 1:
           td = -fireSprDeg * (fireSprCnt / 2 % 4 + 1) * 0.15f;
           break;
+        default:
+          assert(0);
         }
         firePos.x = ship.midstPos.x + cos(fd + PI) * 0.2f * foc;
         firePos.y = ship.midstPos.y - sin(fd + PI) * 0.2f * foc;
@@ -918,6 +936,8 @@ public class Boat {
         case 1:
           td = -fireSprDeg * (fireSprCnt / 2 % 4 + 1) * 0.2f;
           break;
+        default:
+          assert(0);
         }
         fireSprCnt++;
         Shot s = shots.getInstance();

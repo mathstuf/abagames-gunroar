@@ -6,11 +6,23 @@
 module abagames.gr.screen;
 
 private import std.math;
-private import opengl;
-private import openglu;
+private import derelict.opengl3.gl;
 private import abagames.util.rand;
 private import abagames.util.sdl.screen3d;
 private import abagames.util.sdl.luminous;
+
+private static void normalize(ref float x, ref float y, ref float z) {
+  float d = sqrt(x * x + y * y + z * z);
+  x /= d;
+  y /= d;
+  z /= d;
+}
+
+private static void cross(
+    ref float x, ref float y, ref float z,
+    float x1, float y1, float z1,
+    float x2, float y2, float z2) {
+}
 
 /**
  * Initialize an OpenGL and set the caption.
@@ -18,7 +30,7 @@ private import abagames.util.sdl.luminous;
  */
 public class Screen: Screen3D {
  private:
-  const char[] CAPTION = "Gunroar";
+  string CAPTION = "Gunroar";
   static Rand rand;
   static float lineWidthBase;
   LuminousScreen luminousScreen;
@@ -26,7 +38,7 @@ public class Screen: Screen3D {
   int screenShakeCnt;
   float screenShakeIntense;
 
-  invariant {
+  invariant() {
     assert(_luminosity >= 0 && _luminosity <= 1);
     assert(screenShakeCnt >= 0 && screenShakeCnt < 120);
     assert(screenShakeIntense >= 0 && screenShakeIntense < 1);
@@ -145,7 +157,31 @@ public class Screen: Screen3D {
       lx += mx;
       ly += my;
     }
-    gluLookAt(ex, ey, ez, lx, ly, lz, 0, 1, 0);
+
+    glMatrixMode(GL_MODELVIEW);
+    float fx, fy, fz;
+    fx = lx - ex;
+    fy = ly - ey;
+    fz = lz - ez;
+    normalize(fx, fy, fz);
+    float sx, sy, sz;
+    cross(sx, sy, sz,
+          fx, fy, fz,
+          0., 1., 0.);
+    normalize(sx, sy, sz);
+    float ux, uy, uz;
+    cross(ux, uy, uz,
+          sx, sy, sz,
+          fx, fy, fz);
+    normalize(ux, uy, uz);
+    float[] matrix = [
+      sx, ux, -fx, 0.,
+      sy, uy, -fy, 0.,
+      sz, uz, -fz, 0.,
+      0., 0., 0., 1.];
+    glLoadIdentity();
+    glLoadMatrixf(matrix.ptr);
+    glTranslatef(ex, ey, ez);
   }
 
   public void setScreenShake(int cnt, float its) {

@@ -6,7 +6,7 @@
 module abagames.gr.enemy;
 
 private import std.math;
-private import opengl;
+private import derelict.opengl3.gl;
 private import abagames.util.vector;
 private import abagames.util.actor;
 private import abagames.util.rand;
@@ -167,7 +167,7 @@ public class EnemyState {
   StageManager stageManager;
   ScoreReel scoreReel;
 
-  invariant {
+  invariant() {
     assert(pos.x < 15 && pos.x > -15);
     assert(pos.y < 60 && pos.y > -30);
     assert(ppos.x < 15 && ppos.x > -15);
@@ -232,9 +232,9 @@ public class EnemyState {
   public void setEnemyAndPool(Enemy enemy, EnemyPool enemies) {
     this.enemy = enemy;
     this.enemies = enemies;
-    foreach (inout TurretGroup tg; turretGroup)
+    foreach (ref TurretGroup tg; turretGroup)
       tg = new TurretGroup(field, bullets, ship, sparks, smokes, fragments, enemy);
-    foreach (inout MovingTurretGroup tg; movingTurretGroup)
+    foreach (ref MovingTurretGroup tg; movingTurretGroup)
       tg = new MovingTurretGroup(field, bullets, ship, sparks, smokes, fragments, enemy);
   }
 
@@ -286,6 +286,8 @@ public class EnemyState {
         pos.y = field.outerSize.y * 0.99f + spec.size;
         velDeg = deg = 0;
         break;
+      default:
+        assert(0);
       }
       ppos.x = pos.x;
       ppos.y = pos.y;
@@ -580,7 +582,7 @@ public class EnemySpec {
   EnemyShape shape, damagedShape, destroyedShape, bridgeShape;
   int type;
 
-  invariant {
+  invariant() {
     assert(shield > 0 && shield < 1000);
     assert(_size > 0 && _size < 20);
     assert(distRatio >= 0 && distRatio <= 1);
@@ -605,9 +607,9 @@ public class EnemySpec {
     this.smokes = smokes;
     this.fragments = fragments;
     this.wakes = wakes;
-    foreach (inout TurretGroupSpec tgs; turretGroupSpec)
+    foreach (ref TurretGroupSpec tgs; turretGroupSpec)
       tgs = new TurretGroupSpec;
-    foreach (inout MovingTurretGroupSpec tgs; movingTurretGroupSpec)
+    foreach (ref MovingTurretGroupSpec tgs; movingTurretGroupSpec)
       tgs = new MovingTurretGroupSpec;
     distRatio = 0;
     shield = 1;
@@ -655,6 +657,8 @@ public class EnemySpec {
       case 3:
         type = MovingTurretGroupSpec.MoveType.SWING_AIM;
         break;
+      default:
+        assert(0);
       }
     } else {
       type = MovingTurretGroupSpec.MoveType.ROLL;
@@ -682,6 +686,8 @@ public class EnemySpec {
         s = 0;
       sv = 0.01f + rand.nextFloat(0.02f);
       break;
+    default:
+      assert(0);
     }
     for (int i = 0; i < mtn; i++) {
       MovingTurretGroupSpec tgs = getMovingTurretGroupSpec();
@@ -737,6 +743,8 @@ public class EnemySpec {
         sr = br / tgs.num;
         sr *= 0.4f;
         break;
+      default:
+        assert(0);
       }
       if (rand.nextInt(4) == 0)
         tgs.setXReverse(-1);
@@ -755,7 +763,7 @@ public class EnemySpec {
   public bool checkShipCollision(EnemyState es, float x, float y, bool largeOnly = false) {
     if (es.destroyedCnt >= 0 || (largeOnly && type != EnemyType.LARGE))
       return false;
-    return shape.checkShipCollision(x - es.pos.x, y - es.pos.y, es.deg);
+    return shape.checkShipCollision(x - es.pos.x, y - es.pos.y, es.deg); 
   }
 
   public bool move(EnemyState es) {
@@ -817,7 +825,7 @@ public class SmallShipEnemySpec: EnemySpec, HasAppearType {
   int moveDuration, stayDuration;
   float speed, turnDeg;
 
-  invariant {
+  invariant() {
     assert(type >= 0);
     assert(accel >= 0 && accel <= 1);
     assert(maxSpeed < 10 && maxSpeed > -10);
@@ -862,6 +870,8 @@ public class SmallShipEnemySpec: EnemySpec, HasAppearType {
       speed = 0.036f * (1.0f + sr);
       turnDeg = 0.02f + rand.nextSignedFloat(0.04f);
       break;
+    default:
+      assert(0);
     }
     shield = 1;
     TurretGroupSpec tgs = getTurretGroupSpec();
@@ -881,11 +891,13 @@ public class SmallShipEnemySpec: EnemySpec, HasAppearType {
     case MoveType.CHASE:
       es.speed = speed;
       break;
+    default:
+      assert(0);
     }
     return true;
   }
 
-  public bool move(EnemyState es) {
+  public override bool move(EnemyState es) {
     if (!super.move(es))
       return false;
     switch (type) {
@@ -918,6 +930,8 @@ public class SmallShipEnemySpec: EnemySpec, HasAppearType {
           es.state = MoveState.MOVING;
         }
         break;
+      default:
+        assert(0);
       }
       break;
     case MoveType.CHASE:
@@ -948,6 +962,8 @@ public class SmallShipEnemySpec: EnemySpec, HasAppearType {
         es.velDeg += turnDeg;
       Math.normalizeDeg(es.velDeg);
       es.cnt++;
+    default:
+      assert(0);
     }
     float od = es.velDeg - es.deg;
     Math.normalizeDeg(od);
@@ -958,11 +974,11 @@ public class SmallShipEnemySpec: EnemySpec, HasAppearType {
     return true;
   }
 
-  public int score() {
+  public override int score() {
     return 50;
   }
 
-  public bool isBoss() {
+  public override bool isBoss() {
     return false;
   }
 }
@@ -980,7 +996,7 @@ public class ShipEnemySpec: EnemySpec, HasAppearType {
   float speed, degVel;
   int shipClass;
 
-  invariant {
+  invariant() {
     assert(speed < 10 && speed > -10);
     assert(degVel < 1 && degVel > -1);
   }
@@ -1024,6 +1040,8 @@ public class ShipEnemySpec: EnemySpec, HasAppearType {
         rk = rank * (1 - movingTurretRatio);
         movingTurretRatio *= 2;
         break;
+      default:
+        assert(0);
       }
       break;
     case ShipClass.LARGE:
@@ -1054,6 +1072,8 @@ public class ShipEnemySpec: EnemySpec, HasAppearType {
       rk = rank * (1 - movingTurretRatio);
       movingTurretRatio *= 2.5f;
       break;
+    default:
+      assert(0);
     }
     shield = cast(int) (size * 10);
     if (cls == ShipClass.BOSS)
@@ -1199,7 +1219,7 @@ public class ShipEnemySpec: EnemySpec, HasAppearType {
     return true;
   }
 
-  public bool move(EnemyState es) {
+  public override bool move(EnemyState es) {
     if (es.destroyedCnt >= SINK_INTERVAL)
       return false;
     if (!super.move(es))
@@ -1251,7 +1271,7 @@ public class ShipEnemySpec: EnemySpec, HasAppearType {
     super.draw(es);
   }
 
-  public int score() {
+  public override int score() {
     switch (shipClass) {
     case ShipClass.MIDDLE:
       return 100;
@@ -1259,10 +1279,12 @@ public class ShipEnemySpec: EnemySpec, HasAppearType {
       return 300;
     case ShipClass.BOSS:
       return 1000;
+    default:
+      assert(0);
     }
   }
 
-  public bool isBoss() {
+  public override bool isBoss() {
     if (shipClass == ShipClass.BOSS)
       return true;
     return false;
@@ -1308,6 +1330,8 @@ public class PlatformEnemySpec: EnemySpec {
     case 2:
       mainTurretNum = cast(int) (size * (1 + rand.nextSignedFloat(0.33f)) + 1);
       break;
+    default:
+      assert(0);
     }
     shield = cast(int) (size * 20);
     int subTurretNum = frontTurretNum + sideTurretNum;
@@ -1368,7 +1392,7 @@ public class PlatformEnemySpec: EnemySpec {
     return true;
   }
 
-  public bool move(EnemyState es) {
+  public override bool move(EnemyState es) {
     if (!super.move(es))
       return false;
     es.pos.y -= field.lastScrollY;
@@ -1377,11 +1401,11 @@ public class PlatformEnemySpec: EnemySpec {
     return true;
   }
 
-  public int score() {
+  public override int score() {
     return 100;
   }
 
-  public bool isBoss() {
+  public override bool isBoss() {
     return false;
   }
 }

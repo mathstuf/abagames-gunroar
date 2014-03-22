@@ -7,7 +7,7 @@ module abagames.gr.shot;
 
 private import std.math;
 private import std.string;
-private import opengl;
+private import derelict.opengl3.gl;
 private import abagames.util.actor;
 private import abagames.util.vector;
 private import abagames.util.rand;
@@ -42,7 +42,7 @@ public class Shot: Actor {
   int _damage;
   bool lance;
 
-  invariant {
+  invariant() {
     assert(pos.x < 15 && pos.x > -15);
     assert(pos.y < 20 && pos.y > -20);
     assert(cnt >= 0);
