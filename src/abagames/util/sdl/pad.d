@@ -49,7 +49,7 @@ public class Pad: Input {
       x = SDL_JoystickGetAxis(stick, 0);
       y = SDL_JoystickGetAxis(stick, 1);
     }
-    if (keys[SDLK_RIGHT] == SDL_PRESSED || keys[SDLK_KP6] == SDL_PRESSED || 
+    if (keys[SDLK_RIGHT] == SDL_PRESSED || keys[SDLK_KP6] == SDL_PRESSED ||
         keys[SDLK_d] == SDL_PRESSED || keys[SDLK_l] == SDL_PRESSED ||
         x > JOYSTICK_AXIS)
       state.dir |= PadState.Dir.RIGHT;
@@ -77,7 +77,7 @@ public class Pad: Input {
              SDL_JoystickGetButton(stick, 9) + SDL_JoystickGetButton(stick, 10);
     }
     if (keys[SDLK_z] == SDL_PRESSED || keys[SDLK_PERIOD] == SDL_PRESSED ||
-        keys[SDLK_LCTRL] == SDL_PRESSED || keys[SDLK_RCTRL] == SDL_PRESSED || 
+        keys[SDLK_LCTRL] == SDL_PRESSED || keys[SDLK_RCTRL] == SDL_PRESSED ||
         btn1) {
       if (!buttonReversed)
         state.button |= PadState.Button.A;

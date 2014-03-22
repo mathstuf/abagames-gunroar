@@ -317,8 +317,8 @@ public class Letter {
     glVertex3f( width / 3 * 1,  height / 2, 0);
     glVertex3f(-width / 3 * 1,  height / 2, 0);
   }
-  
-  private static float[5][16][] spData = 
+
+  private static float[5][16][] spData =
     [[
      [0, 1.15f, 0.65f, 0.3f, 0],
      [-0.6f, 0.55f, 0.65f, 0.3f, 90], [0.6f, 0.55f, 0.65f, 0.3f, 90],

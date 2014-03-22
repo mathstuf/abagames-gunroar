@@ -56,7 +56,7 @@ public class ActorPool(T) {
       actorIdx--;
       if (actorIdx < 0)
         actorIdx = actor.length - 1;
-      if (!actor[actorIdx].exists) 
+      if (!actor[actorIdx].exists)
         return actor[actorIdx];
     }
     return null;
@@ -85,7 +85,7 @@ public class ActorPool(T) {
       r.exists = false;
     return rsl;
   }
-  
+
   public void move() {
     foreach (T ac; actor)
       if (ac.exists)

@@ -755,7 +755,7 @@ public class EnemySpec {
   public bool checkShipCollision(EnemyState es, float x, float y, bool largeOnly = false) {
     if (es.destroyedCnt >= 0 || (largeOnly && type != EnemyType.LARGE))
       return false;
-    return shape.checkShipCollision(x - es.pos.x, y - es.pos.y, es.deg); 
+    return shape.checkShipCollision(x - es.pos.x, y - es.pos.y, es.deg);
   }
 
   public bool move(EnemyState es) {
@@ -1080,7 +1080,7 @@ public class ShipEnemySpec: EnemySpec, HasAppearType {
           tgs.num = rearMainTurretNum;
           tgs.alignType = TurretGroupSpec.AlignType.STRAIGHT;
           tgs.offset.y = size * (0.9f + rand.nextSignedFloat(0.05f));
-        } 
+        }
         TurretSpec pts;
         if (subTurretNum > 0) {
           int frontSubTurretNum = (subTurretNum + 2) / 4;

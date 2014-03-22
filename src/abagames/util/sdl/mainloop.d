@@ -121,7 +121,7 @@ public class MainLoop {
   }
 
   // Intentional slowdown.
-  
+
   public void initInterval() {
     interval = INTERVAL_BASE;
   }

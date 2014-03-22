@@ -913,7 +913,7 @@ public class MovingTurretGroupSpec {
     assert(swingAmpVel <>= 0);
     assert(distRatio <>= 0);
     assert(xReverse == 1 || xReverse == -1);
-    
+
   }
 
   public this() {

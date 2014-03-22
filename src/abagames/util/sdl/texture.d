@@ -59,7 +59,7 @@ public class Texture {
     SDL_Surface *s = loadBmp(name);
     glGenTextures(1, &num);
     glBindTexture(GL_TEXTURE_2D, num);
-    gluBuild2DMipmaps(GL_TEXTURE_2D, 4, s.w, s.h, 
+    gluBuild2DMipmaps(GL_TEXTURE_2D, 4, s.w, s.h,
                       GL_RGBA, GL_UNSIGNED_BYTE, s.pixels);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);

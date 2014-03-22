@@ -56,7 +56,7 @@ public class TitleManager {
     glEnable(GL_TEXTURE_2D);
     logo.bind();
     Screen.setColor(1, 1, 1);
-    glBegin(GL_TRIANGLE_FAN); 
+    glBegin(GL_TRIANGLE_FAN);
     glTexCoord2f(0, 0);
     glVertex2f(0, -63);
     glTexCoord2f(1, 0);

@@ -12,7 +12,7 @@ private import std.date;
  * Random number generator.
  */
 public class Rand {
-  
+
   public this() {
     d_time timer = getUTCtime();
     init_genrand(timer);
@@ -48,14 +48,14 @@ public class Rand {
     return genrand_real1() * (n * 2) - n;
   }
 
-/* 
+/*
    MT.d
    Mersenne Twister random number generator -- D
    Based on code by Makoto Matsumoto, Takuji Nishimura, Shawn Cokus,
      Matthe Bellew, and Isaku Wada
    Andrew C. Edwards  v0.1  30 September 2003  edwardsac@ieee.org
 
-   Before using, initialize the state by using init_genrand(seed) 
+   Before using, initialize the state by using init_genrand(seed)
    or init_by_array(init_key, key_length).
 
    Copyright (C) 1997 - 2002, Makoto Matsumoto and Takuji Nishimura,
@@ -73,8 +73,8 @@ public class Rand {
         notice, this list of conditions and the following disclaimer in the
         documentation and/or other materials provided with the distribution.
 
-     3. The names of its contributors may not be used to endorse or promote 
-        products derived from this software without specific prior written 
+     3. The names of its contributors may not be used to endorse or promote
+        products derived from this software without specific prior written
         permission.
 
    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -90,20 +90,20 @@ public class Rand {
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
    The original code included the following notice:
-  
+
      Any feedback is very welcome.
      http://www.math.keio.ac.jp/matumoto/emt.html
      email: matumoto@math.keio.ac.jp
-  
+
    Please CC: edwardsac@ieee.org on all correspondence
 */
 
-/* 
+/*
    Modified by Kenta Cho.
    Remove 'static' to wrap with Rand class.
 */
 
-/* Period parameters */  
+/* Period parameters */
 const int N = 624;
 const int M = 397;
 const uint MATRIX_A = 0x9908b0dfUL;   /* constant vector a */
@@ -122,7 +122,7 @@ void init_genrand(uint s)
 {
     state[0]= s & 0xffffffffUL;
     for (int j=1; j<N; j++) {
-        state[j] = (1812433253UL * (state[j-1] ^ (state[j-1] >> 30)) + j); 
+        state[j] = (1812433253UL * (state[j-1] ^ (state[j-1] >> 30)) + j);
         /* See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. */
         /* In the previous versions, MSBs of the seed affect   */
         /* only MSBs of the array state[].                        */
@@ -159,7 +159,7 @@ void init_by_array(uint init_key[], uint key_length)
         if (i>=N) { state[0] = state[N-1]; i=1; }
     }
 
-    state[0] = 0x80000000UL; /* MSB is 1; assuring non-zero initial array */ 
+    state[0] = 0x80000000UL; /* MSB is 1; assuring non-zero initial array */
     left = 1; initf = 1;
 }
 
@@ -173,11 +173,11 @@ void next_state()
 
     left = N;
     next = state;
-    
-    for (int j=N-M+1; --j; p++) 
+
+    for (int j=N-M+1; --j; p++)
         *p = p[M] ^ TWIST(p[0], p[1]);
 
-    for (int j=M; --j; p++) 
+    for (int j=M; --j; p++)
         *p = p[M-N] ^ TWIST(p[0], p[1]);
 
     *p = p[M-N] ^ TWIST(p[0], state[0]);
@@ -231,8 +231,8 @@ double genrand_real1()
     y ^= (y << 15) & 0xefc60000UL;
     y ^= (y >> 18);
 
-    return cast(double)y * (1.0/4294967295.0); 
-    /* divided by 2^32-1 */ 
+    return cast(double)y * (1.0/4294967295.0);
+    /* divided by 2^32-1 */
 }
 
 /* generates a random number on [0,1)-real-interval */
@@ -249,7 +249,7 @@ double genrand_real2()
     y ^= (y << 15) & 0xefc60000UL;
     y ^= (y >> 18);
 
-    return cast(double)y * (1.0/4294967296.0); 
+    return cast(double)y * (1.0/4294967296.0);
     /* divided by 2^32 */
 }
 
@@ -267,15 +267,15 @@ double genrand_real3()
     y ^= (y << 15) & 0xefc60000UL;
     y ^= (y >> 18);
 
-    return (cast(double)y + 0.5) * (1.0/4294967296.0); 
+    return (cast(double)y + 0.5) * (1.0/4294967296.0);
     /* divided by 2^32 */
 }
 
 /* generates a random number on [0,1) with 53-bit resolution*/
-double genrand_res53() 
-{ 
-    uint a=genrand_int32()>>5, b=genrand_int32()>>6; 
-    return(a*67108864.0+b)*(1.0/9007199254740992.0); 
-} 
+double genrand_res53()
+{
+    uint a=genrand_int32()>>5, b=genrand_int32()>>6;
+    return(a*67108864.0+b)*(1.0/9007199254740992.0);
+}
 
 }

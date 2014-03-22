@@ -39,7 +39,7 @@ public class Screen3D: Screen, SizableScreen {
       videoFlags = SDL_OPENGL | SDL_RESIZABLE;
     } else {
       videoFlags = SDL_OPENGL | SDL_FULLSCREEN;
-    } 
+    }
     if (SDL_SetVideoMode(_width, _height, 0, videoFlags) == null) {
       throw new SDLInitFailedException
         ("Unable to create SDL screen: " ~ std.string.toString(SDL_GetError()));

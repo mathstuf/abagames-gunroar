@@ -37,7 +37,7 @@ public class Vector {
       rsl.x = mag * v.x / ll;
       rsl.y = mag * v.y / ll;
     } else {
-      rsl.x = rsl.y = 0; 
+      rsl.x = rsl.y = 0;
     }
     return rsl;
   }

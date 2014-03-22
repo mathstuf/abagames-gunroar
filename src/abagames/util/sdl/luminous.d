@@ -58,7 +58,7 @@ public class LuminousScreen {
 
   public void endRender() {
     glBindTexture(GL_TEXTURE_2D, luminousTexture);
-    glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 
+    glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                      0, 0, luminousTextureWidth, luminousTextureHeight, 0);
     glViewport(0, 0, screenWidth, screenHeight);
   }

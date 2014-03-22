@@ -183,7 +183,7 @@ public class Ship {
     for (int i = 0; i < boatNum; i++)
       boat[i].drawFront();
   }
-  
+
   public void drawShape() {
     boat[0].drawShape();
   }

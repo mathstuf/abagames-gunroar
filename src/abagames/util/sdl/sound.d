@@ -78,11 +78,11 @@ public class Music: Sound {
     music = Mix_LoadMUS(std.string.toStringz(fileName));
     if (!music) {
       SoundManager.noSound = true;
-      throw new SDLException("Couldn't load: " ~ fileName ~ 
+      throw new SDLException("Couldn't load: " ~ fileName ~
                              " (" ~ std.string.toString(Mix_GetError()) ~ ")");
     }
   }
-  
+
   public void load(char[] name, int ch) {
     load(name);
   }
@@ -139,7 +139,7 @@ public class Chunk: Sound {
   public void load(char[] name) {
     load(name, 0);
   }
-  
+
   public void load(char[] name, int ch) {
     if (SoundManager.noSound)
       return;
@@ -147,7 +147,7 @@ public class Chunk: Sound {
     chunk = Mix_LoadWAV(std.string.toStringz(fileName));
     if (!chunk) {
       SoundManager.noSound = true;
-      throw new SDLException("Couldn't load: " ~ fileName ~ 
+      throw new SDLException("Couldn't load: " ~ fileName ~
                              " (" ~ std.string.toString(Mix_GetError()) ~ ")");
     }
     chunkChannel = ch;
