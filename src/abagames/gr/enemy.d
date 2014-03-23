@@ -763,7 +763,7 @@ public class EnemySpec {
   public bool checkShipCollision(EnemyState es, float x, float y, bool largeOnly = false) {
     if (es.destroyedCnt >= 0 || (largeOnly && type != EnemyType.LARGE))
       return false;
-    return shape.checkShipCollision(x - es.pos.x, y - es.pos.y, es.deg); 
+    return shape.checkShipCollision(x - es.pos.x, y - es.pos.y, es.deg);
   }
 
   public bool move(EnemyState es) {
