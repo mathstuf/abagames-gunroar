@@ -68,7 +68,7 @@ public class Screen3D: Screen, SizableScreen {
     glViewport(0, 0, _width, _height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    float aspect = cast(GLfloat) _width / cast(GLfloat) _height;
+    float aspect = cast(GLfloat) width / cast(GLfloat) height;
     float ymax = _nearPlane * tan(45.0f * PI / 360.0);
     float ymin = -ymax;
     float xmin = ymin * aspect;
@@ -76,8 +76,8 @@ public class Screen3D: Screen, SizableScreen {
     glFrustum(xmin, xmax, ymin, ymax, _nearPlane, _farPlane);
     glFrustum(-_nearPlane,
               _nearPlane,
-              -_nearPlane * aspect,
-              _nearPlane * aspect,
+              -_nearPlane * cast(GLfloat) _height / cast(GLfloat) _width,
+              _nearPlane * cast(GLfloat) _height / cast(GLfloat) _width,
               0.1f, _farPlane);
     glMatrixMode(GL_MODELVIEW);
   }
