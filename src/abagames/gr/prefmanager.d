@@ -70,21 +70,21 @@ public class PrefData {
 
   public void load(File fd) {
     foreach (ref int hs; _highScore)
-      fd.readf("%d", &hs);
-    fd.readf("%d", &_gameMode);
+      fd.read(hs);
+    fd.read(_gameMode);
   }
 
   public void loadVer13(File fd) {
     init();
     for (int i = 0; i < 3; i++)
-      fd.readf("%d", &_highScore[i]);
-    fd.readf("%d", &_gameMode);
+      fd.read(_highScore[i]);
+    fd.read(_gameMode);
   }
 
   public void save(File fd) {
     foreach (ref int hs; _highScore)
-      fd.writef("%d", hs);
-    fd.writef("%d", _gameMode);
+      fd.write(hs);
+    fd.write(_gameMode);
   }
 
   public void recordGameMode(int gm) {
