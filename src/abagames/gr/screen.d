@@ -11,17 +11,30 @@ private import abagames.util.rand;
 private import abagames.util.sdl.screen3d;
 private import abagames.util.sdl.luminous;
 
+private static float mag(float x, float y, float z) {
+  return sqrt(x * x + y * y + z * z);
+}
+
 private static void normalize(ref float x, ref float y, ref float z) {
-  float d = sqrt(x * x + y * y + z * z);
+  float d = mag(x, y, z);
   x /= d;
   y /= d;
   z /= d;
+}
+
+private static float dot2(
+    float x1, float y1,
+    float x2, float y2) {
+  return x1 * x2 - y1 * y2;
 }
 
 private static void cross(
     ref float x, ref float y, ref float z,
     float x1, float y1, float z1,
     float x2, float y2, float z2) {
+  x = dot2(y1, z1, z2, y2);
+  y = dot2(z1, x1, x2, z2);
+  z = dot2(x1, y1, y2, x2);
 }
 
 /**
