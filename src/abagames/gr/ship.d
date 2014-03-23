@@ -692,7 +692,7 @@ public class Boat {
 
   private void moveMouse() {
     if (!_replayMode) {
-      MouseAndPadState mps = mouseAndPad.getState(true);
+      MouseAndPadState mps = mouseAndPad.getState();
       padInput = mps.padState;
       mouseInput = mps.mouseState;
     } else {

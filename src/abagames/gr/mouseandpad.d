@@ -81,7 +81,7 @@ public class RecordableMouseAndPad {
     state = new MouseAndPadState;
   }
 
-  public MouseAndPadState getState(bool doRecord) {
+  public MouseAndPadState getState(bool doRecord = true) {
     RecordableMouse rm = cast(RecordableMouse) mouse;
     if (rm)
       state.mouseState = rm.getState(false);
