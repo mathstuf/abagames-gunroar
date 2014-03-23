@@ -254,8 +254,8 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
       Sint32 h = we.data2;
       if (w > 150 && h > 100)
         screen.resized(w, h);
-   }
-   if (screen.startRenderToLuminousScreen()) {
+    }
+    if (screen.startRenderToLuminousScreen()) {
       glPushMatrix();
       screen.setEyepos();
       state.drawLuminous();
