@@ -91,6 +91,7 @@ public int boot(char[][] args) {
   try {
     parseArgs(args);
   } catch (Exception e) {
+    Logger.info(e.toString());
     return EXIT_FAILURE;
   }
   try {
@@ -99,7 +100,9 @@ public int boot(char[][] args) {
     Logger.info(o.toString());
     try {
       gameManager.saveErrorReplay();
-    } catch (Throwable o1) {}
+    } catch (Throwable o1) {
+      Logger.info(o.toString());
+    }
     throw o;
   }
   return EXIT_SUCCESS;
