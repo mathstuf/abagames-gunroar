@@ -71,12 +71,12 @@ version (Win32_release) {
   }
 } else {
   // Boot as the general executable.
-  public int main(char[][] args) {
+  public int main(string[] args) {
     return boot(args);
   }
 }
 
-public int boot(char[][] args) {
+public int boot(string[] args) {
   screen = new Screen;
   input = new MultipleInputDevice;
   pad = new RecordablePad;
@@ -108,11 +108,11 @@ public int boot(char[][] args) {
   return EXIT_SUCCESS;
 }
 
-private void parseArgs(char[][] commandArgs) {
-  char[][] args = readOptionsIniFile();
+private void parseArgs(string[] commandArgs) {
+  string[] args = readOptionsIniFile();
   for (int i = 1; i < commandArgs.length; i++)
     args ~= commandArgs[i];
-  char[] progName = commandArgs[0];
+  string progName = commandArgs[0];
   for (int i = 0; i < args.length; i++) {
     switch (args[i]) {
     case "-brightness":
@@ -223,15 +223,15 @@ private void parseArgs(char[][] commandArgs) {
 
 private const string OPTIONS_INI_FILE = "options.ini";
 
-private char[][] readOptionsIniFile() {
+private string[] readOptionsIniFile() {
   try {
-    return Tokenizer.readFile(OPTIONS_INI_FILE.dup, " ");
+    return Tokenizer.readFile(OPTIONS_INI_FILE, " ");
   } catch (Throwable e) {
     return null;
   }
 }
 
-private void usage(char[] progName) {
+private void usage(string progName) {
   Logger.error
     ("Usage: " ~ progName ~ " [-window] [-res x y] [-brightness [0-100]] [-luminosity [0-100]] [-nosound] [-exchange] [-turnspeed [0-500]] [-firerear] [-rotatestick2 deg] [-reversestick2] [-enableaxis5] [-nowait]");
 }

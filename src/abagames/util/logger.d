@@ -34,11 +34,11 @@ public class Logger {
       std.cstream.derr.writeString(std.string.toString(n) ~ " ");*/
   }
 
-  private static void putMessage(char[] msg) {
+  private static void putMessage(string msg) {
     MessageBoxA(null, std.string.toStringz(msg), "Error", MB_OK | MB_ICONEXCLAMATION);
   }
 
-  public static void error(char[] msg) {
+  public static void error(string msg) {
     putMessage("Error: " ~ msg);
   }
 
@@ -69,7 +69,7 @@ public class Logger {
       std.cstream.derr.writeString(to!string(n) ~ " ");
   }
 
-  public static void error(char[] msg) {
+  public static void error(string msg) {
     std.cstream.derr.writeLine("Error: " ~ msg);
   }
 
