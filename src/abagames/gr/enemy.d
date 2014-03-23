@@ -962,6 +962,7 @@ public class SmallShipEnemySpec: EnemySpec, HasAppearType {
         es.velDeg += turnDeg;
       Math.normalizeDeg(es.velDeg);
       es.cnt++;
+      break;
     default:
       assert(0);
     }
