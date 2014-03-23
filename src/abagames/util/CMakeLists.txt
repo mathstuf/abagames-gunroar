@@ -1,5 +1,3 @@
-add_subdirectory(sdl)
-
 set(util_srcs
     actor.d
     iterator.d
@@ -12,5 +10,5 @@ set(util_srcs
 
 add_library(gr_util STATIC
     ${util_srcs})
-target_link_libraries(gr_util
-    gr_util_sdl)
+
+add_subdirectory(sdl)

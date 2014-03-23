@@ -18,6 +18,7 @@ set(util_sdl_srcs
 add_library(gr_util_sdl STATIC
     ${util_sdl_srcs})
 target_link_libraries(gr_util_sdl
-    DerelictGL3
-    DerelictSDL2
-    DerelictUtil)
+    gr_util
+    Derelict::opengl3
+    Derelict::sdl2
+    Derelict::util)

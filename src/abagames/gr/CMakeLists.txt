@@ -25,7 +25,10 @@ add_library(gr STATIC
     ${gr_srcs})
 target_link_libraries(gr
     gr_util
-    gr_util_sdl)
+    gr_util_sdl
+    Derelict::opengl3
+    Derelict::sdl2
+    Derelict::util)
 
 add_executable(gunroar
     boot.d)

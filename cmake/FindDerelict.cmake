@@ -22,7 +22,8 @@ set(util_file exception)
 
 find_path("Derelict_INCLUDE_DIR"
     NAMES "derelict/util/exception.d"
-    PATHS "/usr/include/d"
+    PATHS "${CMAKE_SYSTEM_ROOT}/include/d"
+          "/usr/include/d"
     DOC   "The include directory for Derelict")
 
 function (find_derelict_library component)
@@ -46,7 +47,8 @@ function (find_derelict_library component)
     if (${component}_libname)
         find_library("Derelict_${component}_LIBRARY"
             NAMES "Derelict${${component}_libname}"
-            PATHS "/usr/lib64"
+            PATHS "${CMAKE_SYSTEM_ROOT}/lib"
+                  "/usr/lib64"
             DOC   "The Derelict ${component} library")
         if (Derelict_${component}_LIBRARY MATCHES "\\.${CMAKE_STATIC_LIBRARY_SUFFIX}$")
             set(libtype "STATIC")
@@ -63,6 +65,10 @@ function (find_derelict_library component)
         set_property(TARGET "Derelict::${component}"
             PROPERTY
                 IMPORTED_LOCATION "${Derelict_${component}_LIBRARY}")
+        set_property(TARGET "Derelict::${component}"
+            PROPERTY
+                IMPORTED_LINK_INTERFACE_LIBRARIES
+                                  "${CMAKE_DL_LIBS}")
     endif ()
 endfunction ()
 

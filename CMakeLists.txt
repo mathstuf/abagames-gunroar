@@ -4,4 +4,9 @@ list(APPEND CMAKE_MODULE_PATH
 
 project(gunroar D)
 
+get_filename_component(CMAKE_SYSTEM_ROOT "${CMAKE_D_COMPILER}" DIRECTORY)
+get_filename_component(CMAKE_SYSTEM_ROOT "${CMAKE_SYSTEM_ROOT}" DIRECTORY)
+
+include_directories(SYSTEM "${CMAKE_SYSTEM_ROOT}/include/d")
+
 add_subdirectory(src)
