@@ -192,9 +192,8 @@ public class Screen: Screen3D {
       sy, uy, -fy, 0.,
       sz, uz, -fz, 0.,
       0., 0., 0., 1.];
-    glLoadIdentity();
     glLoadMatrixf(matrix.ptr);
-    glTranslatef(ex, ey, ez);
+    glTranslatef(-ex, -ey, -ez);
   }
 
   public void setScreenShake(int cnt, float its) {
