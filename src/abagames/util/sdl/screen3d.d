@@ -68,12 +68,14 @@ public class Screen3D: Screen, SizableScreen {
     glViewport(0, 0, _width, _height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    float aspect = cast(GLfloat) width / cast(GLfloat) height;
-    float ymax = _nearPlane * tan(45.0f * PI / 360.0);
-    float ymin = -ymax;
-    float xmin = ymin * aspect;
-    float xmax = ymax * aspect;
-    glFrustum(xmin, xmax, ymin, ymax, _nearPlane, _farPlane);
+    /* FIXME: Why does removing this work? What was gluPerspective doing before?
+     *float aspect = cast(GLfloat) width / cast(GLfloat) height;
+     *float ymax = _nearPlane * tan(45.0f * PI / 360.0);
+     *float ymin = -ymax;
+     *float xmin = ymin * aspect;
+     *float xmax = ymax * aspect;
+     *glFrustum(xmin, xmax, ymin, ymax, _nearPlane, _farPlane);
+     */
     glFrustum(-_nearPlane,
               _nearPlane,
               -_nearPlane * cast(GLfloat) _height / cast(GLfloat) _width,
