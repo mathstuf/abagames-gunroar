@@ -171,7 +171,6 @@ public class Screen: Screen3D {
       ly += my;
     }
 
-    glMatrixMode(GL_MODELVIEW);
     float fx, fy, fz;
     fx = lx - ex;
     fy = ly - ey;
@@ -192,6 +191,8 @@ public class Screen: Screen3D {
       sy, uy, -fy, 0.,
       sz, uz, -fz, 0.,
       0., 0., 0., 1.];
+
+    glMatrixMode(GL_MODELVIEW);
     glLoadMatrixf(matrix.ptr);
     glTranslatef(-ex, -ey, -ez);
   }
