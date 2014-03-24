@@ -1,8 +1,44 @@
 set(components)
 
+list(APPEND components alure)
+set(alure_libname ALURE)
+set(alure_file alure)
+
+list(APPEND components assimp3)
+set(assimp3_libname ASSIMP3)
+set(assimp3_file assimp)
+
+list(APPEND components devil)
+set(devil_libname IL)
+set(devil_file il)
+
 list(APPEND components freeglut)
 set(freeglut_libname FG)
 set(freeglut_file glut)
+
+list(APPEND components freeimage)
+set(freeimage_libname FI)
+set(freeimage_file freeimage)
+
+list(APPEND components freetype)
+set(freetype_libname FT)
+set(freetype_file ft)
+
+list(APPEND components glfw3)
+set(glfw3_libname GLFW3)
+set(glfw3_file glfw3)
+
+list(APPEND components lua)
+set(lua_libname Lua)
+set(lua_file lua)
+
+list(APPEND components openal)
+set(openal_libname AL)
+set(openal_file al)
+
+list(APPEND components ode)
+set(ode_libname ODE)
+set(ode_file ode)
 
 list(APPEND components opengl3)
 set(opengl3_libname GL3)
@@ -12,13 +48,29 @@ list(APPEND components ogg)
 set(ogg_libname OGG)
 set(ogg_file ogg)
 
+list(APPEND components physfs)
+set(physfs_libname PHYSFS)
+set(physfs_file physfs)
+
+list(APPEND components pq)
+set(pq_libname PQ)
+set(pq_file pq)
+
 list(APPEND components sdl2)
 set(sdl2_libname SDL2)
 set(sdl2_file sdl)
 
+list(APPEND components sfml2)
+set(sfml2_libname SFML2)
+set(sfml2_file system)
+
 list(APPEND components util)
 set(util_libname Util)
 set(util_file exception)
+
+list(APPEND components vorbis)
+set(vorbis_libname Vorbis)
+set(vorbis_file vorbis)
 
 find_path("Derelict_INCLUDE_DIR"
     NAMES "derelict/util/exception.d"
