@@ -47,7 +47,7 @@ public class Screen3D: Screen, SizableScreen {
       videoFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN_DESKTOP;
     }
     _window = SDL_CreateWindow("",
-        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOW_OPENGL,
+        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
         _width, _height, videoFlags);
     if (_window == null) {
       throw new SDLInitFailedException
