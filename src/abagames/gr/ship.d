@@ -740,25 +740,8 @@ public class Boat {
       if (s)
         s.set(firePos, fireDeg);
       fireCnt = cast(int) fireInterval;
-      float td;
-      switch (foc) {
-      case -1:
-        td = fireSprDeg * (fireSprCnt / 2 % 4 + 1) * 0.2f;
-        break;
-      case 1:
-        td = -fireSprDeg * (fireSprCnt / 2 % 4 + 1) * 0.2f;
-        break;
-      default:
-        assert(0);
-      }
-      fireSprCnt++;
-      s = shots.getInstance();
-      if (s)
-        s.set(firePos, fireDeg + td);
-      Smoke sm = smokes.getInstanceForced();
-      float sd = fireDeg + td / 2;
-      sm.set(firePos, sin(sd) * Shot.SPEED * 0.33f, cos(sd) * Shot.SPEED * 0.33f, 0,
-             Smoke.SmokeType.SPARK, 10, 0.33f);
+
+      fire(foc);
     }
     fireCnt--;
     if (padInput.button & PadState.Button.B) {
@@ -801,28 +784,8 @@ public class Boat {
         firePos.x = _pos.x + cos(fireDeg + PI) * 0.2f * foc;
         firePos.y = _pos.y - sin(fireDeg + PI) * 0.2f * foc;
         fireCnt = cast(int) fireInterval;
-        float td;
-        switch (foc) {
-        case -1:
-          td = fireSprDeg * (fireSprCnt / 2 % 4 + 1) * 0.2f;
-          break;
-        case 1:
-          td = -fireSprDeg * (fireSprCnt / 2 % 4 + 1) * 0.2f;
-          break;
-        default:
-          assert(0);
-        }
-        fireSprCnt++;
-        Shot s = shots.getInstance();
-        if (s)
-          s.set(firePos, fireDeg + td / 2, false, 2);
-        s = shots.getInstance();
-        if (s)
-          s.set(firePos, fireDeg + td, false, 2);
-        Smoke sm = smokes.getInstanceForced();
-        float sd = fireDeg + td / 2;
-        sm.set(firePos, sin(sd) * Shot.SPEED * 0.33f, cos(sd) * Shot.SPEED * 0.33f, 0,
-               Smoke.SmokeType.SPARK, 10, 0.33f);
+
+        fire(foc);
       }
     } else {
       fireDeg = 99999;
@@ -907,31 +870,36 @@ public class Boat {
         firePos.x = _pos.x + cos(fireDeg + PI) * 0.2f * foc;
         firePos.y = _pos.y - sin(fireDeg + PI) * 0.2f * foc;
         fireCnt = cast(int) fireInterval;
-        float td;
-        switch (foc) {
-        case -1:
-          td = fireSprDeg * (fireSprCnt / 2 % 4 + 1) * 0.2f;
-          break;
-        case 1:
-          td = -fireSprDeg * (fireSprCnt / 2 % 4 + 1) * 0.2f;
-          break;
-        default:
-          assert(0);
-        }
-        fireSprCnt++;
-        Shot s = shots.getInstance();
-        if (s)
-          s.set(firePos, fireDeg + td / 2, false, 2);
-        s = shots.getInstance();
-        if (s)
-          s.set(firePos, fireDeg + td, false, 2);
-        Smoke sm = smokes.getInstanceForced();
-        float sd = fireDeg + td / 2;
-        sm.set(firePos, sin(sd) * Shot.SPEED * 0.33f, cos(sd) * Shot.SPEED * 0.33f, 0,
-               Smoke.SmokeType.SPARK, 10, 0.33f);
+
+        fire(foc);
       }
     }
     fireCnt--;
+  }
+
+  private void fire(int foc) {
+    float td;
+    switch (foc) {
+    case -1:
+      td = fireSprDeg * (fireSprCnt / 2 % 4 + 1) * 0.2f;
+      break;
+    case 1:
+      td = -fireSprDeg * (fireSprCnt / 2 % 4 + 1) * 0.2f;
+      break;
+    default:
+      assert(0);
+    }
+    fireSprCnt++;
+    Shot s = shots.getInstance();
+    if (s)
+      s.set(firePos, fireDeg + td / 2, false, 2);
+    s = shots.getInstance();
+    if (s)
+      s.set(firePos, fireDeg + td, false, 2);
+    Smoke sm = smokes.getInstanceForced();
+    float sd = fireDeg + td / 2;
+    sm.set(firePos, sin(sd) * Shot.SPEED * 0.33f, cos(sd) * Shot.SPEED * 0.33f, 0,
+           Smoke.SmokeType.SPARK, 10, 0.33f);
   }
 
   public bool checkBulletHit(Vector p, Vector pp) {
