@@ -553,7 +553,7 @@ public class Boat {
       fireTwinStick();
       break;
     case InGameState.GameMode.DOUBLE_PLAY:
-      fireDobulePlay();
+      fireDoublePlay();
       break;
     case InGameState.GameMode.MOUSE:
       fireMouse();
@@ -850,7 +850,7 @@ public class Boat {
     fireCnt--;
   }
 
-  private void fireDobulePlay() {
+  private void fireDoublePlay() {
     if (gameState.isGameOver || cnt < -INVINCIBLE_CNT)
       return;
     float dist = ship.distAmongBoats();
