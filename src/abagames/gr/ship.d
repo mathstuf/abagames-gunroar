@@ -617,15 +617,7 @@ public class Boat {
       vx *= 0.7f;
       vy *= 0.7f;
     }
-    if (vx != 0 || vy != 0) {
-      float ad = atan2(vx, vy);
-      assert(ad <>= 0);
-      Math.normalizeDeg(ad);
-      ad -= deg;
-      Math.normalizeDeg(ad);
-      deg += ad * turnRatio * turnSpeed;
-      Math.normalizeDeg(deg);
-    }
+    moveRelative();
   }
 
   private void moveTwinStick() {
@@ -643,15 +635,7 @@ public class Boat {
       stickInput.clear();
     vx = stickInput.left.x;
     vy = stickInput.left.y;
-    if (vx != 0 || vy != 0) {
-      float ad = atan2(vx, vy);
-      assert(ad <>= 0);
-      Math.normalizeDeg(ad);
-      ad -= deg;
-      Math.normalizeDeg(ad);
-      deg += ad * turnRatio * turnSpeed;
-      Math.normalizeDeg(deg);
-    }
+    moveRelative();
   }
 
   private void moveDoublePlay() {
@@ -679,15 +663,7 @@ public class Boat {
     default:
       assert(0);
     }
-    if (vx != 0 || vy != 0) {
-      float ad = atan2(vx, vy);
-      assert(ad <>= 0);
-      Math.normalizeDeg(ad);
-      ad -= deg;
-      Math.normalizeDeg(ad);
-      deg += ad * turnRatio * turnSpeed;
-      Math.normalizeDeg(deg);
-    }
+    moveRelative();
   }
 
   private void moveMouse() {
@@ -722,6 +698,10 @@ public class Boat {
       vx *= 0.7f;
       vy *= 0.7f;
     }
+    moveRelative();
+  }
+
+  private void moveRelative() {
     if (vx != 0 || vy != 0) {
       float ad = atan2(vx, vy);
       assert(ad <>= 0);
