@@ -14,6 +14,7 @@ private import abagames.util.sdl.gamemanager;
 private import abagames.util.sdl.texture;
 private import abagames.util.sdl.input;
 private import abagames.util.sdl.pad;
+private import abagames.util.sdl.touch;
 private import abagames.util.sdl.twinstick;
 private import abagames.util.sdl.mouse;
 private import abagames.util.sdl.shape;
@@ -46,6 +47,7 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
  private:
   Pad pad;
   TwinStick twinStick;
+  Touch touch;
   Mouse mouse;
   RecordableMouseAndPad mouseAndPad;
   PrefManager prefManager;
@@ -86,6 +88,7 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
     twinStick = cast(TwinStick) (cast(MultipleInputDevice) input).inputs[1];
     twinStick.openJoystick(pad.openJoystick());
     mouse = cast(Mouse) (cast(MultipleInputDevice) input).inputs[2];
+    touch = cast(Touch) (cast(MultipleInputDevice) input).inputs[3];
     mouse.init(screen);
     mouseAndPad = new RecordableMouseAndPad(mouse, pad);
     field = new Field;
@@ -100,7 +103,7 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
     fargs ~= smokes;
     fragments = new FragmentPool(60, fargs);
     sparkFragments = new SparkFragmentPool(40, fargs);
-    ship = new Ship(pad, twinStick, mouse, mouseAndPad,
+    ship = new Ship(pad, twinStick, touch, mouse, mouseAndPad,
                     field, screen, sparks, smokes, fragments, wakes);
     Object[] cargs;
     cargs ~= ship;
@@ -145,13 +148,13 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
     field.setShip(ship);
     enemies.setStageManager(stageManager);
     SoundManager.loadSounds();
-    titleManager = new TitleManager(prefManager, pad, mouse, field, this);
-    inGameState = new InGameState(this, screen, pad, twinStick, mouse, mouseAndPad,
+    titleManager = new TitleManager(prefManager, pad, mouse, touch, field, this);
+    inGameState = new InGameState(this, screen, pad, twinStick, touch, mouse, mouseAndPad,
                                   field, ship, shots, bullets, enemies,
                                   sparks, smokes, fragments, sparkFragments, wakes,
                                   crystals, numIndicators, stageManager, scoreReel,
                                   prefManager);
-    titleState = new TitleState(this, screen, pad, twinStick, mouse, mouseAndPad,
+    titleState = new TitleState(this, screen, pad, twinStick, touch, mouse, mouseAndPad,
                                 field, ship, shots, bullets, enemies,
                                 sparks, smokes, fragments, sparkFragments, wakes,
                                 crystals, numIndicators, stageManager, scoreReel,
@@ -289,6 +292,7 @@ public class GameState {
   Screen screen;
   Pad pad;
   TwinStick twinStick;
+  Touch touch;
   Mouse mouse;
   RecordableMouseAndPad mouseAndPad;
   Field field;
@@ -308,7 +312,7 @@ public class GameState {
   ReplayData _replayData;
 
   public this(GameManager gameManager, Screen screen,
-              Pad pad, TwinStick twinStick, Mouse mouse, RecordableMouseAndPad mouseAndPad,
+              Pad pad, TwinStick twinStick, Touch touch, Mouse mouse, RecordableMouseAndPad mouseAndPad,
               Field field, Ship ship, ShotPool shots, BulletPool bullets, EnemyPool enemies,
               SparkPool sparks, SmokePool smokes,
               FragmentPool fragments, SparkFragmentPool sparkFragments, WakePool wakes,
@@ -318,6 +322,7 @@ public class GameState {
     this.screen = screen;
     this.pad = pad;
     this.twinStick = twinStick;
+    this.touch = touch;
     this.mouse = mouse;
     this.mouseAndPad = mouseAndPad;
     this.field = field;
@@ -395,14 +400,14 @@ public class InGameState: GameState {
   }
 
   public this(GameManager gameManager, Screen screen,
-              Pad pad, TwinStick twinStick, Mouse mouse, RecordableMouseAndPad mouseAndPad,
+              Pad pad, TwinStick twinStick, Touch touch, Mouse mouse, RecordableMouseAndPad mouseAndPad,
               Field field, Ship ship, ShotPool shots, BulletPool bullets, EnemyPool enemies,
               SparkPool sparks, SmokePool smokes,
               FragmentPool fragments, SparkFragmentPool sparkFragments, WakePool wakes,
               CrystalPool crystals, NumIndicatorPool numIndicators,
               StageManager stageManager, ScoreReel scoreReel,
               PrefManager prefManager) {
-    super(gameManager, screen, pad, twinStick, mouse, mouseAndPad,
+    super(gameManager, screen, pad, twinStick, touch, mouse, mouseAndPad,
           field, ship, shots, bullets, enemies,
           sparks, smokes, fragments, sparkFragments, wakes, crystals, numIndicators,
           stageManager, scoreReel);
@@ -663,14 +668,14 @@ public class TitleState: GameState {
   }
 
   public this(GameManager gameManager, Screen screen,
-              Pad pad, TwinStick twinStick, Mouse mouse, RecordableMouseAndPad mouseAndPad,
+              Pad pad, TwinStick twinStick, Touch touch, Mouse mouse, RecordableMouseAndPad mouseAndPad,
               Field field, Ship ship, ShotPool shots, BulletPool bullets, EnemyPool enemies,
               SparkPool sparks, SmokePool smokes,
               FragmentPool fragments, SparkFragmentPool sparkFragments, WakePool wakes,
               CrystalPool crystals, NumIndicatorPool numIndicators,
               StageManager stageManager, ScoreReel scoreReel,
               TitleManager titleManager, InGameState inGameState) {
-    super(gameManager, screen, pad, twinStick, mouse, mouseAndPad,
+    super(gameManager, screen, pad, twinStick, touch, mouse, mouseAndPad,
           field, ship, shots, bullets, enemies,
           sparks, smokes, fragments, sparkFragments, wakes, crystals, numIndicators,
           stageManager, scoreReel);

@@ -9,6 +9,7 @@ private import std.conv;
 private import std.stream;
 private import abagames.util.sdl.recordableinput;
 private import abagames.util.sdl.pad;
+private import abagames.util.sdl.touch;
 private import abagames.util.sdl.twinstick;
 private import abagames.util.sdl.mouse;
 private import abagames.gr.gamemanager;
@@ -24,6 +25,7 @@ public class ReplayData {
   InputRecord!(PadState) padInputRecord;
   InputRecord!(TwinStickState) twinStickInputRecord;
   InputRecord!(MouseAndPadState) mouseAndPadInputRecord;
+  InputRecord!(TouchState) touchInputRecord;
   long seed;
   int score = 0;
   float shipTurnSpeed;

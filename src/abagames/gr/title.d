@@ -12,6 +12,7 @@ private import abagames.util.sdl.displaylist;
 private import abagames.util.sdl.texture;
 private import abagames.util.sdl.pad;
 private import abagames.util.sdl.mouse;
+private import abagames.util.sdl.touch;
 private import abagames.gr.screen;
 private import abagames.gr.prefmanager;
 private import abagames.gr.field;
@@ -29,6 +30,7 @@ public class TitleManager {
   PrefManager prefManager;
   RecordablePad pad;
   RecordableMouse mouse;
+  RecordableTouch touch;
   Field field;
   GameManager gameManager;
   DisplayList displayList;
@@ -38,11 +40,12 @@ public class TitleManager {
   int btnPressedCnt;
   int gameMode;
 
-  public this(PrefManager prefManager, Pad pad, Mouse mouse,
+  public this(PrefManager prefManager, Pad pad, Mouse mouse, Touch touch,
               Field field, GameManager gameManager) {
     this.prefManager = prefManager;
     this.pad = cast(RecordablePad) pad;
     this.mouse = cast(RecordableMouse) mouse;
+    this.touch = cast(RecordableTouch) touch;
     this.field = field;
     this.gameManager = gameManager;
     init();

@@ -12,6 +12,7 @@ private import abagames.util.rand;
 private import abagames.util.math;
 private import abagames.util.sdl.pad;
 private import abagames.util.sdl.twinstick;
+private import abagames.util.sdl.touch;
 private import abagames.util.sdl.mouse;
 private import abagames.util.sdl.recordableinput;
 private import abagames.util.sdl.shape;
@@ -51,14 +52,14 @@ public class Ship {
     assert(_scrollSpeedBase > 0);
   }
 
-  public this(Pad pad, TwinStick twinStick, Mouse mouse, RecordableMouseAndPad mouseAndPad,
+  public this(Pad pad, TwinStick twinStick, Touch touch, Mouse mouse, RecordableMouseAndPad mouseAndPad,
               Field field, Screen screen,
               SparkPool sparks, SmokePool smokes, FragmentPool fragments, WakePool wakes) {
     this.field = field;
     Boat.init();
     int i = 0;
     foreach (ref Boat b; boat) {
-      b = new Boat(i, this, pad, twinStick, mouse, mouseAndPad,
+      b = new Boat(i, this, pad, twinStick, touch, mouse, mouseAndPad,
                    field, screen, sparks, smokes, fragments, wakes);
       i++;
     }
@@ -289,9 +290,11 @@ public class Boat {
   static Rand rand;
   static PadState padInput;
   static TwinStickState stickInput;
+  static TouchState touchInput;
   static MouseState mouseInput;
   RecordablePad pad;
   RecordableTwinStick twinStick;
+  RecordableTouch touch;
   RecordableMouse mouse;
   RecordableMouseAndPad mouseAndPad;
   Field field;
@@ -360,13 +363,14 @@ public class Boat {
   }
 
   public this(int idx, Ship ship,
-              Pad pad, TwinStick twinStick, Mouse mouse, RecordableMouseAndPad mouseAndPad,
+              Pad pad, TwinStick twinStick, Touch touch, Mouse mouse, RecordableMouseAndPad mouseAndPad,
               Field field, Screen screen,
               SparkPool sparks, SmokePool smokes, FragmentPool fragments, WakePool wakes) {
     this.idx = idx;
     this.ship = ship;
     this.pad = cast(RecordablePad) pad;
     this.twinStick = cast(RecordableTwinStick) twinStick;
+    this.touch = cast(RecordableTouch) touch;
     this.mouse = cast(RecordableMouse) mouse;
     this.mouseAndPad = mouseAndPad;
     this.field = field;
