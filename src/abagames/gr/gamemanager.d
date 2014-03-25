@@ -386,7 +386,7 @@ public class InGameState: GameState {
   static enum GameMode {
     NORMAL, TWIN_STICK, TOUCH, TILT, DOUBLE_PLAY, DOUBLE_PLAY_TOUCH, MOUSE,
   };
-  static int GAME_MODE_NUM = 4;
+  static immutable int GAME_MODE_NUM = 7;
   static string[] gameModeText = ["NORMAL", "TWIN STICK", "TOUCH", "TILT", "DOUBLE PLAY", "DOUBLE PLAY TOUCH", "MOUSE"];
   bool isGameOver;
  private:

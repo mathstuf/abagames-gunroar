@@ -59,7 +59,7 @@ public class PrefManager: abagames.util.prefmanager.PrefManager {
 public class PrefData {
  private:
   //int[InGameState.GAME_MODE_NUM] _highScore;
-  int[4] _highScore;
+  int[7] _highScore;
   int _gameMode;
 
   public void init() {
