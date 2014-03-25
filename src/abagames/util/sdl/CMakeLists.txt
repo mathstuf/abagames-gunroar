@@ -13,6 +13,7 @@ set(util_sdl_srcs
     shape.d
     sound.d
     texture.d
+    touch.d
     twinstick.d)
 
 add_library(gr_util_sdl STATIC
