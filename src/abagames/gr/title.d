@@ -6,6 +6,7 @@
 module abagames.gr.title;
 
 private import std.math;
+private import derelict.sdl2.sdl;
 private import derelict.opengl3.gl;
 private import abagames.util.vector;
 private import abagames.util.sdl.displaylist;
@@ -157,7 +158,48 @@ public class TitleManager {
   }
 
   private bool modeSupported(int mode) {
-    // TODO: Implement.
+    SDL_Joystick* stick = pad.openJoystick();
+    int numAxes = 0;
+    if (stick) {
+      numAxes = SDL_JoystickNumAxes(stick);
+    }
+    switch (mode) {
+    case -1:
+      // Replay is always available.
+      break;
+    // Requires a keyboard or a joystick.
+    case InGameState.GameMode.NORMAL:
+      // TODO: Detect keyboard.
+      if (!true && numAxes < 2) {
+        return false;
+      }
+      break;
+    // Fine with a keyboard or a joystick with 5 axes.
+    case InGameState.GameMode.DOUBLE_PLAY:
+    case InGameState.GameMode.TWIN_STICK:
+      // TODO: Detect keyboard.
+      // A joystick needs 5 axes (two thumbsticks; the 5th for -enableaxis5).
+      if (!true && numAxes < 5) {
+        return false;
+      }
+      break;
+    // Requires a keyboard and mouse.
+    case InGameState.GameMode.MOUSE:
+      if (SDL_GetCursor() is null) {
+        return false;
+      }
+      break;
+    // Requires a touch input.
+    case InGameState.GameMode.TOUCH:
+    case InGameState.GameMode.DOUBLE_PLAY_TOUCH:
+      if (!SDL_GetNumTouchDevices()) {
+        return false;
+      }
+      break;
+    default:
+      break;
+    }
+
     return true;
   }
 
