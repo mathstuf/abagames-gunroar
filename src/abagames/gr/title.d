@@ -118,6 +118,7 @@ public class TitleManager {
     }
     PadState input = pad.getState(false);
     MouseState mouseInput = mouse.getState(false);
+    // TODO: Use swipe motions to change the selection.
     if (btnPressedCnt <= 0) {
       if (((input.button & PadState.Button.A) ||
            (gameMode == InGameState.GameMode.MOUSE &&
