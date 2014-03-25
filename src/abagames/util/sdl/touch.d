@@ -61,6 +61,15 @@ public class Touch: Input {
     state.clear();
     return state;
   }
+
+  public static float touchRadius() {
+    int w, h;
+    SDL_Window* window = SDL_GL_GetCurrentWindow();
+    SDL_GetWindowSize(window, &w, &h);
+    // TODO: Get the physical size of the window. Touch regions should
+    // be...reasonable in size.
+    return 0.05;
+  }
 }
 
 public class FingerState {
