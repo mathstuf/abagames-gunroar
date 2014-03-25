@@ -105,7 +105,8 @@ public class Ship {
 
   public void start(int gameMode) {
     this.gameMode = gameMode;
-    if (gameMode == InGameState.GameMode.DOUBLE_PLAY)
+    if (gameMode == InGameState.GameMode.DOUBLE_PLAY ||
+        gameMode == InGameState.GameMode.DOUBLE_PLAY_TOUCH)
       boatNum = 2;
     else
       boatNum = 1;
@@ -163,7 +164,8 @@ public class Ship {
   public void draw() {
     for (int i = 0; i < boatNum; i++)
       boat[i].draw();
-    if (gameMode == InGameState.GameMode.DOUBLE_PLAY && boat[0].hasCollision) {
+    if ((gameMode == InGameState.GameMode.DOUBLE_PLAY ||
+         gameMode == InGameState.GameMode.DOUBLE_PLAY_TOUCH) && boat[0].hasCollision) {
       Screen.setColor(0.5f, 0.5f, 0.9f, 0.8f);
       glBegin(GL_LINE_STRIP);
       glVertex2f(boat[0].pos.x, boat[0].pos.y);
@@ -430,7 +432,8 @@ public class Boat {
 
   public void start(int gameMode) {
     this.gameMode = gameMode;
-    if (gameMode == InGameState.GameMode.DOUBLE_PLAY) {
+    if (gameMode == InGameState.GameMode.DOUBLE_PLAY ||
+        gameMode == InGameState.GameMode.DOUBLE_PLAY_TOUCH) {
       switch (idx) {
       case 0:
         _pos.x = -field.size.x * 0.5f;
@@ -454,6 +457,7 @@ public class Boat {
     aPressed = bPressed = true;
     padInput = pad.getNullState();
     stickInput = twinStick.getNullState();
+    touchInput = touch.getNullState();
     mouseInput = mouse.getNullState();
   }
 
@@ -465,6 +469,7 @@ public class Boat {
       break;
     case InGameState.GameMode.TWIN_STICK:
     case InGameState.GameMode.DOUBLE_PLAY:
+    case InGameState.GameMode.DOUBLE_PLAY_TOUCH:
     case InGameState.GameMode.MOUSE:
       fireCnt = 0;
       fireInterval = FIRE_INTERVAL;
@@ -496,6 +501,9 @@ public class Boat {
       break;
     case InGameState.GameMode.DOUBLE_PLAY:
       moveDoublePlay();
+      break;
+    case InGameState.GameMode.DOUBLE_PLAY_TOUCH:
+      moveDoublePlayTouch();
       break;
     case InGameState.GameMode.MOUSE:
       moveMouse();
@@ -557,7 +565,8 @@ public class Boat {
       fireTwinStick();
       break;
     case InGameState.GameMode.DOUBLE_PLAY:
-      fireDoublePlay();
+    case InGameState.GameMode.DOUBLE_PLAY_TOUCH:
+      fireDouble();
       break;
     case InGameState.GameMode.MOUSE:
       fireMouse();
@@ -663,6 +672,42 @@ public class Boat {
     case 1:
       vx = stickInput.right.x;
       vy = stickInput.right.y;
+      break;
+    default:
+      assert(0);
+    }
+    moveRelative();
+  }
+
+  private void moveDoublePlayTouch() {
+    CircularTouchRegion boatRegion = new CircularTouchRegion(ship.boat[0]._pos, gameState.touchRadius());
+    switch (idx) {
+    case 0:
+      if (!_replayMode) {
+        touchInput = touch.getState();
+      } else {
+        try {
+          touchInput = touch.replay();
+        } catch (NoRecordDataException e) {
+          gameState.isGameOver = true;
+          touchInput = touch.getNullState();
+        }
+      }
+      if (gameState.isGameOver || cnt < -INVINCIBLE_CNT)
+        touchInput.clear();
+      Vector location = touchInput.getPrimaryTouch(boatRegion);
+      location -= boatRegion.center();
+      vx = location.x;
+      vy = location.y;
+      break;
+    case 1:
+      TouchRegion[1] ignores;
+      ignores[0] = boatRegion;
+      CircularTouchRegion secondBoatRegion = new CircularTouchRegion(ship.boat[1]._pos, gameState.touchRadius());
+      Vector location = touchInput.getSecondaryTouch(secondBoatRegion, ignores, 1);
+      location -= secondBoatRegion.center();
+      vx = location.x;
+      vy = location.y;
       break;
     default:
       assert(0);
@@ -797,7 +842,7 @@ public class Boat {
     fireCnt--;
   }
 
-  private void fireDoublePlay() {
+  private void fireDouble() {
     if (gameState.isGameOver || cnt < -INVINCIBLE_CNT)
       return;
     float dist = ship.distAmongBoats();

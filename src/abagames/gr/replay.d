@@ -53,6 +53,9 @@ public class ReplayData {
     case InGameState.GameMode.DOUBLE_PLAY:
       twinStickInputRecord.save(fd);
       break;
+    case InGameState.GameMode.DOUBLE_PLAY_TOUCH:
+      touchInputRecord.save(fd);
+      break;
     case InGameState.GameMode.MOUSE:
       mouseAndPadInputRecord.save(fd);
       break;
@@ -88,6 +91,10 @@ public class ReplayData {
     case InGameState.GameMode.DOUBLE_PLAY:
       twinStickInputRecord = new InputRecord!(TwinStickState);
       twinStickInputRecord.load(fd);
+      break;
+    case InGameState.GameMode.DOUBLE_PLAY_TOUCH:
+      touchInputRecord = new InputRecord!(TouchState);
+      touchInputRecord.load(fd);
       break;
     case InGameState.GameMode.MOUSE:
       mouseAndPadInputRecord = new InputRecord!(MouseAndPadState);
