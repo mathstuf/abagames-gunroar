@@ -59,6 +59,9 @@ public class ReplayData {
     case InGameState.GameMode.TOUCH:
       touchInputRecord.save(fd);
       break;
+    case InGameState.GameMode.TILT:
+      accelerometerAndTouchInputRecord.save(fd);
+      break;
     case InGameState.GameMode.MOUSE:
       mouseAndPadInputRecord.save(fd);
       break;
@@ -99,6 +102,10 @@ public class ReplayData {
     case InGameState.GameMode.TOUCH:
       touchInputRecord = new InputRecord!(TouchState);
       touchInputRecord.load(fd);
+      break;
+    case InGameState.GameMode.TILT:
+      accelerometerAndTouchInputRecord = new InputRecord!(AccelerometerAndTouchState);
+      accelerometerAndTouchInputRecord.load(fd);
       break;
     case InGameState.GameMode.MOUSE:
       mouseAndPadInputRecord = new InputRecord!(MouseAndPadState);

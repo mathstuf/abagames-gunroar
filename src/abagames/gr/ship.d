@@ -339,6 +339,7 @@ public class Boat {
   float turnSpeed;
   bool reverseFire;
   int gameMode;
+  float ax, ay;
   float vx, vy;
   int idx;
   Ship ship;
@@ -480,6 +481,7 @@ public class Boat {
     case InGameState.GameMode.TWIN_STICK:
     case InGameState.GameMode.DOUBLE_PLAY:
     case InGameState.GameMode.DOUBLE_PLAY_TOUCH:
+    case InGameState.GameMode.TILT:
     case InGameState.GameMode.MOUSE:
       fireCnt = 0;
       fireInterval = FIRE_INTERVAL;
@@ -501,6 +503,7 @@ public class Boat {
   public void move() {
     float px = _pos.x, py = _pos.y;
     cnt++;
+    ax = ay = 0;
     vx = vy = 0;
     switch (gameMode) {
     case InGameState.GameMode.NORMAL:
@@ -517,6 +520,9 @@ public class Boat {
       break;
     case InGameState.GameMode.DOUBLE_PLAY_TOUCH:
       moveDoublePlayTouch();
+      break;
+    case InGameState.GameMode.TILT:
+      moveTilt();
       break;
     case InGameState.GameMode.MOUSE:
       moveMouse();
@@ -583,6 +589,9 @@ public class Boat {
     case InGameState.GameMode.DOUBLE_PLAY:
     case InGameState.GameMode.DOUBLE_PLAY_TOUCH:
       fireDouble();
+      break;
+    case InGameState.GameMode.TILT:
+      fireTilt();
       break;
     case InGameState.GameMode.MOUSE:
       fireMouse();
@@ -748,6 +757,33 @@ public class Boat {
     default:
       assert(0);
     }
+    moveRelative();
+  }
+
+  private void moveTilt() {
+    if (!_replayMode) {
+      AccelerometerAndTouchState ats = accelerometerAndTouch.getState();
+      accelerometerInput = ats.accelerometerState;
+      touchInput = ats.touchState;
+    } else {
+      try {
+        AccelerometerAndTouchState ats = accelerometerAndTouch.replay();
+        accelerometerInput = ats.accelerometerState;
+        touchInput = ats.touchState;
+      } catch (NoRecordDataException e) {
+        gameState.isGameOver = true;
+        accelerometerInput = accelerometer.getNullState();
+        touchInput = touch.getNullState();
+      }
+    }
+    if (gameState.isGameOver || cnt < -INVINCIBLE_CNT) {
+      accelerometerInput.clear();
+      touchInput.clear();
+    }
+    ax = accelerometerInput.tilt.x;
+    ay = accelerometerInput.tilt.y;
+    vx += ax;
+    vy += ay;
     moveRelative();
   }
 
@@ -946,6 +982,16 @@ public class Boat {
       fireSprCnt++;
     }
     fireCnt--;
+  }
+
+  private void fireTilt() {
+   CircularTouchRegion boatRegion = new CircularTouchRegion(ship.boat[0]._pos, gameState.touchRadius());
+   Vector location = touchInput.getPrimaryTouch(boatRegion);
+   location -= boatRegion.center();
+   vx = location.x;
+   vy = location.y;
+
+   fireFromLocation(location);
   }
 
   private void fireMouse() {

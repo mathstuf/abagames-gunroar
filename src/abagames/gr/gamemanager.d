@@ -384,10 +384,10 @@ public class GameState {
 public class InGameState: GameState {
  public:
   static enum GameMode {
-    NORMAL, TWIN_STICK, TOUCH, DOUBLE_PLAY, DOUBLE_PLAY_TOUCH, MOUSE,
+    NORMAL, TWIN_STICK, TOUCH, TILT, DOUBLE_PLAY, DOUBLE_PLAY_TOUCH, MOUSE,
   };
   static int GAME_MODE_NUM = 4;
-  static string[] gameModeText = ["NORMAL", "TWIN STICK", "TOUCH", "DOUBLE PLAY", "DOUBLE PLAY TOUCH", "MOUSE"];
+  static string[] gameModeText = ["NORMAL", "TWIN STICK", "TOUCH", "TILT", "DOUBLE PLAY", "DOUBLE PLAY TOUCH", "MOUSE"];
   bool isGameOver;
  private:
   static const float SCORE_REEL_SIZE_DEFAULT = 0.5f;
@@ -464,6 +464,10 @@ public class InGameState: GameState {
       RecordableTouch rt = cast(RecordableTouch) touch;
       rt.startRecord();
       _replayData.touchInputRecord = rt.inputRecord;
+      break;
+    case GameMode.TILT:
+      accelerometerAndTouch.startRecord();
+      _replayData.accelerometerAndTouchInputRecord = accelerometerAndTouch.inputRecord;
       break;
     case GameMode.MOUSE:
       mouseAndPad.startRecord();
@@ -761,6 +765,9 @@ public class TitleState: GameState {
     case InGameState.GameMode.TOUCH:
       RecordableTouch rts = cast(RecordableTouch) touch;
       rts.startReplay(_replayData.touchInputRecord);
+      break;
+    case InGameState.GameMode.TILT:
+      accelerometerAndTouch.startReplay(_replayData.accelerometerAndTouchInputRecord);
       break;
     case InGameState.GameMode.MOUSE:
       mouseAndPad.startReplay(_replayData.mouseAndPadInputRecord);

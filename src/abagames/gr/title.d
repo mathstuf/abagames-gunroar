@@ -189,6 +189,13 @@ public class TitleManager {
         return false;
       }
       break;
+    // Requires a joystick with 2 axes (not an accelerometer otherwise).
+    case InGameState.GameMode.TILT:
+      if (numAxes != 2) {
+        return false;
+      }
+      // Also requires touch.
+      /* FALLTHROUGH */
     // Requires a touch input.
     case InGameState.GameMode.TOUCH:
     case InGameState.GameMode.DOUBLE_PLAY_TOUCH:
