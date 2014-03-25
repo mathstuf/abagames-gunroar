@@ -373,10 +373,10 @@ public class GameState {
 public class InGameState: GameState {
  public:
   static enum GameMode {
-    NORMAL, TWIN_STICK, DOUBLE_PLAY, DOUBLE_PLAY_TOUCH, MOUSE,
+    NORMAL, TWIN_STICK, TOUCH, DOUBLE_PLAY, DOUBLE_PLAY_TOUCH, MOUSE,
   };
   static int GAME_MODE_NUM = 4;
-  static string[] gameModeText = ["NORMAL", "TWIN STICK", "DOUBLE PLAY", "DOUBLE PLAY TOUCH", "MOUSE"];
+  static string[] gameModeText = ["NORMAL", "TWIN STICK", "TOUCH", "DOUBLE PLAY", "DOUBLE PLAY TOUCH", "MOUSE"];
   bool isGameOver;
  private:
   static const float SCORE_REEL_SIZE_DEFAULT = 0.5f;
@@ -394,6 +394,9 @@ public class InGameState: GameState {
 
   // For touch-input modes.
   float _touchRadius;
+  // For the TOUCH mode.
+  TouchRegion _movementRegion;
+  TouchRegion _fireRegion;
 
   invariant() {
     assert(left >= -1 && left < 10);
@@ -422,6 +425,10 @@ public class InGameState: GameState {
     scoreReelSize = SCORE_REEL_SIZE_DEFAULT;
 
     _touchRadius = Touch.touchRadius();
+    // TODO: Are these sensible values?
+    float touchPos = 1.5 * _touchRadius;
+    _movementRegion = new CircularTouchRegion(new Vector(touchPos, 1.0 - touchPos), _touchRadius);
+    _fireRegion = new CircularTouchRegion(new Vector(1.0 - touchPos, 1.0 - touchPos), _touchRadius);
   }
 
   public override void start() {
@@ -441,6 +448,7 @@ public class InGameState: GameState {
       _replayData.twinStickInputRecord = rts.inputRecord;
       break;
     case GameMode.DOUBLE_PLAY_TOUCH:
+    case GameMode.TOUCH:
       RecordableTouch rt = cast(RecordableTouch) touch;
       rt.startRecord();
       _replayData.touchInputRecord = rt.inputRecord;
@@ -605,8 +613,11 @@ public class InGameState: GameState {
     drawGameParams();
     if (isGameOver)
       Letter.drawString("GAME OVER", 190, 180, 15);
-    if (pauseCnt > 0 && (pauseCnt % 64) < 32)
+    else if (pauseCnt > 0 && (pauseCnt % 64) < 32)
       Letter.drawString("PAUSE", 265, 210, 12);
+    else if (_gameMode == GameMode.TOUCH) {
+      // TODO: Draw the touch regions.
+    }
   }
 
   public override void drawLuminous() {
@@ -669,6 +680,14 @@ public class InGameState: GameState {
   public float touchRadius() {
     return _touchRadius;
   }
+
+  public TouchRegion movementRegion() {
+    return _movementRegion;
+  }
+
+  public TouchRegion fireRegion() {
+    return _fireRegion;
+  }
 }
 
 public class TitleState: GameState {
@@ -726,6 +745,7 @@ public class TitleState: GameState {
       rts.startReplay(_replayData.twinStickInputRecord);
       break;
     case InGameState.GameMode.DOUBLE_PLAY_TOUCH:
+    case InGameState.GameMode.TOUCH:
       RecordableTouch rts = cast(RecordableTouch) touch;
       rts.startReplay(_replayData.touchInputRecord);
       break;

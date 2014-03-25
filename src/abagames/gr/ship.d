@@ -464,6 +464,7 @@ public class Boat {
   public void restart() {
     switch (gameMode) {
     case InGameState.GameMode.NORMAL:
+    case InGameState.GameMode.TOUCH:
       fireCnt = 99999;
       fireInterval = 99999;
       break;
@@ -498,6 +499,9 @@ public class Boat {
       break;
     case InGameState.GameMode.TWIN_STICK:
       moveTwinStick();
+      break;
+    case InGameState.GameMode.TOUCH:
+      moveTouch();
       break;
     case InGameState.GameMode.DOUBLE_PLAY:
       moveDoublePlay();
@@ -563,6 +567,9 @@ public class Boat {
       break;
     case InGameState.GameMode.TWIN_STICK:
       fireTwinStick();
+      break;
+    case InGameState.GameMode.TOUCH:
+      fireTouch();
       break;
     case InGameState.GameMode.DOUBLE_PLAY:
     case InGameState.GameMode.DOUBLE_PLAY_TOUCH:
@@ -648,6 +655,26 @@ public class Boat {
       stickInput.clear();
     vx = stickInput.left.x;
     vy = stickInput.left.y;
+    moveRelative();
+  }
+
+  private void moveTouch() {
+    if (!_replayMode) {
+      touchInput = touch.getState();
+    } else {
+      try {
+        touchInput = touch.replay();
+      } catch (NoRecordDataException e) {
+        gameState.isGameOver = true;
+        touchInput = touch.getNullState();
+      }
+    }
+    if (gameState.isGameOver || cnt < -INVINCIBLE_CNT)
+      touchInput.clear();
+    Vector location = touchInput.getPrimaryTouch(gameState.movementRegion());
+    location -= gameState.movementRegion().center();
+    vx = location.x;
+    vy = location.y;
     moveRelative();
   }
 
@@ -820,26 +847,39 @@ public class Boat {
   }
 
   private void fireTwinStick() {
-    if (fabs(stickInput.right.x) + fabs(stickInput.right.y) > 0.01f) {
-      fireDeg = atan2(stickInput.right.x, stickInput.right.y);
-      assert(fireDeg <>= 0);
-      if (fireCnt <= 0) {
-        SoundManager.playSe("shot.wav");
-        int foc = (fireSprCnt % 2) * 2 - 1;
-        float rsd = stickInput.right.vctSize;
-        if (rsd > 1)
-          rsd = 1;
-        fireSprDeg = 1 - rsd + 0.05f;
-        firePos.x = _pos.x + cos(fireDeg + PI) * 0.2f * foc;
-        firePos.y = _pos.y - sin(fireDeg + PI) * 0.2f * foc;
-        fireCnt = cast(int) fireInterval;
+    fireFromLocation(stickInput.right);
+  }
 
-        fire(foc);
-      }
-    } else {
-      fireDeg = 99999;
-    }
-    fireCnt--;
+  private void fireTouch() {
+   Vector location = touchInput.getPrimaryTouch(gameState.fireRegion());
+   location -= gameState.fireRegion().center();
+   vx = location.x;
+   vy = location.y;
+
+   fireFromLocation(location);
+  }
+
+  private void fireFromLocation(Vector angle) {
+   if (fabs(angle.x) + fabs(angle.y) > 0.01f) {
+     fireDeg = atan2(angle.x, angle.y);
+     assert(fireDeg <>= 0);
+     if (fireCnt <= 0) {
+       SoundManager.playSe("shot.wav");
+       int foc = (fireSprCnt % 2) * 2 - 1;
+       float rsd = angle.vctSize;
+       if (rsd > 1)
+         rsd = 1;
+       fireSprDeg = 1 - rsd + 0.05f;
+       firePos.x = _pos.x + cos(fireDeg + PI) * 0.2f * foc;
+       firePos.y = _pos.y - sin(fireDeg + PI) * 0.2f * foc;
+       fireCnt = cast(int) fireInterval;
+
+       fire(foc);
+     }
+   } else {
+     fireDeg = 99999;
+   }
+   fireCnt--;
   }
 
   private void fireDouble() {
