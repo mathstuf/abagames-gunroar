@@ -85,6 +85,11 @@ public class FingerState {
     assert(position.y >= 0 && position.y <= 1);
   }
 
+  public this() {
+    position = new Vector(0, 0);
+    active = false;
+  }
+
   public void clear() {
     position.x = position.y = 0;
     active = false;
@@ -221,6 +226,9 @@ public class TouchState {
 
   public this() {
     fingers = new FingerState[MAXFINGERS];
+    foreach (ref FingerState f; fingers) {
+      f = new FingerState();
+    }
   }
 
   public this(TouchState s) {
