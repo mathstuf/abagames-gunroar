@@ -920,7 +920,6 @@ public class Boat {
       if (fireCnt <= 0) {
         SoundManager.playSe("shot.wav");
         int foc = (fireSprCnt % 2) * 2 - 1;
-        float rsd = stickInput.right.vctSize;
         float fstd = 0.05f;
         if (mouseInput.button & MouseState.Button.RIGHT)
           fstd += 0.5f;
