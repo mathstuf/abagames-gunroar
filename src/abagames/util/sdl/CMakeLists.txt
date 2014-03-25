@@ -1,4 +1,5 @@
 set(util_sdl_srcs
+    accelerometer.d
     displaylist.d
     gamemanager.d
     input.d
