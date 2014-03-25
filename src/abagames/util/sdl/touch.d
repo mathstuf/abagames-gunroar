@@ -100,6 +100,40 @@ public class FingerState {
   }
 }
 
+public interface TouchRegion {
+  public bool contains(Vector position);
+  public Vector center();
+}
+
+public class CircularTouchRegion: TouchRegion {
+ private:
+  Vector center_;
+  float radius;
+
+  public this(Vector center_, float radius) {
+    this.center_ = new Vector(center_);
+    this.radius = radius;
+  }
+
+  public bool contains(Vector position) {
+    return center_.dist(position) <= radius;
+  }
+
+  public Vector center() {
+    return center_;
+  }
+}
+
+public class EntireScreenRegion: TouchRegion {
+  public bool contains(Vector position) {
+    return true;
+  }
+
+  public Vector center() {
+    return new Vector(0.5, 0.5);
+  }
+}
+
 public class TouchState {
  public:
   static const int MAXFINGERS = 10;
@@ -152,6 +186,34 @@ public class TouchState {
       }
     }
     return true;
+  }
+
+  // Utility methods
+  public Vector getPrimaryTouch(TouchRegion region) {
+    foreach (FingerState f; fingers) {
+      if (f.active && region.contains(f.position)) {
+        return f.position;
+      }
+    }
+    return new Vector;
+  }
+
+  public Vector getSecondaryTouch(TouchRegion region, TouchRegion[] ignores, uint ignoreCount) {
+    foreach (FingerState f; fingers) {
+      if (f.active && region.contains(f.position)) {
+        if (ignoreCount) {
+          foreach (TouchRegion ignore; ignores) {
+            if (ignore.contains(f.position)) {
+              --ignoreCount;
+              continue;
+            }
+          }
+        }
+
+        return f.position;
+      }
+    }
+    return new Vector;
   }
 }
 
