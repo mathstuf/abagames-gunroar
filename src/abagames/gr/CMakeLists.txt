@@ -1,4 +1,5 @@
 set(gr_srcs
+    accelerometerandtouch.d
     bullet.d
     CMakeLists.txt
     crystal.d
