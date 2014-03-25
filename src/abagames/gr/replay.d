@@ -13,6 +13,7 @@ private import abagames.util.sdl.touch;
 private import abagames.util.sdl.twinstick;
 private import abagames.util.sdl.mouse;
 private import abagames.gr.gamemanager;
+private import abagames.gr.accelerometerandtouch;
 private import abagames.gr.mouseandpad;
 
 /**
@@ -24,6 +25,7 @@ public class ReplayData {
   static const int VERSION_NUM = 11;
   InputRecord!(PadState) padInputRecord;
   InputRecord!(TwinStickState) twinStickInputRecord;
+  InputRecord!(AccelerometerAndTouchState) accelerometerAndTouchInputRecord;
   InputRecord!(MouseAndPadState) mouseAndPadInputRecord;
   InputRecord!(TouchState) touchInputRecord;
   long seed;
