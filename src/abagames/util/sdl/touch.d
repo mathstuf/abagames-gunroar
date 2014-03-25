@@ -31,6 +31,8 @@ public class Touch: Input {
           state.fingers[i].id = event.tfinger.fingerId;
           state.fingers[i].position.x = event.tfinger.x;
           state.fingers[i].position.y = event.tfinger.y;
+
+          state.fingers[i].update();
         }
       }
     } else if (event.type == SDL_FINGERUP) {
@@ -44,6 +46,8 @@ public class Touch: Input {
         if (state.fingers[i].id == event.tfinger.fingerId) {
           state.fingers[i].position.x = event.tfinger.x;
           state.fingers[i].position.y = event.tfinger.y;
+
+          state.fingers[i].update();
         }
       }
     }
@@ -62,6 +66,7 @@ public class Touch: Input {
 public class FingerState {
  public:
   Vector position;
+  TouchVector normPosition;
   int active;
   long id;
  private:
@@ -82,6 +87,8 @@ public class FingerState {
       fd.read(position.x);
       fd.read(position.y);
       fd.read(id);
+
+      update();
     }
   }
 
@@ -98,10 +105,14 @@ public class FingerState {
     return (position.x == s.position.x && position.y == s.position.y &&
             active == s.active);
   }
+
+  public void update() {
+    normPosition = new TouchVector(position);
+  }
 }
 
 public interface TouchRegion {
-  public bool contains(Vector position);
+  public bool contains(TouchVector position);
   public Vector center();
 }
 
@@ -113,7 +124,7 @@ public class InvertedTouchRegion {
     this.ignore = ignore;
   }
 
-  public bool contains(Vector position) {
+  public bool contains(TouchVector position) {
     return !ignore.contains(position);
   }
 
@@ -124,15 +135,15 @@ public class InvertedTouchRegion {
 
 public class CircularTouchRegion: TouchRegion {
  private:
-  Vector center_;
+  TouchVector center_;
   float radius;
 
   public this(Vector center_, float radius) {
-    this.center_ = new Vector(center_);
+    this.center_ = new TouchVector(center_);
     this.radius = radius;
   }
 
-  public bool contains(Vector position) {
+  public bool contains(TouchVector position) {
     return center_.dist(position) <= radius;
   }
 
@@ -142,12 +153,46 @@ public class CircularTouchRegion: TouchRegion {
 }
 
 public class EntireScreenRegion: TouchRegion {
-  public bool contains(Vector position) {
+  public bool contains(TouchVector position) {
     return true;
   }
 
   public Vector center() {
     return new Vector(0.5, 0.5);
+  }
+}
+
+// A normalized vector which scales the 'y' axis so that it uses the same units
+// (in physical space) as the 'x' axis. This is required since SDL uses a 0..1
+// scale for each axis and testing whether a region is used should be based on
+// what the user actually sees.
+public class TouchVector: Vector {
+ private:
+  static float aspect = 0.0;
+
+  static void init() {
+    // Set the aspect ratio.
+    // TODO: Get DPI involved here as well.
+    if (!aspect) {
+      int w, h;
+      SDL_Window* window = SDL_GL_GetCurrentWindow();
+      SDL_GetWindowSize(window, &w, &h);
+      aspect = cast(float) w / cast(float) h;
+    }
+  }
+
+  public this(float x, float y) {
+    init();
+    super(x, y * aspect);
+  }
+
+  public this(Vector input) {
+    init();
+    super(input.x, input.y * aspect);
+  }
+
+  public Vector normalized() {
+    return new Vector(x, y / aspect);
   }
 }
 
@@ -208,7 +253,7 @@ public class TouchState {
   // Utility methods
   public Vector getPrimaryTouch(TouchRegion region) {
     foreach (FingerState f; fingers) {
-      if (f.active && region.contains(f.position)) {
+      if (f.active && region.contains(f.normPosition)) {
         return f.position;
       }
     }
@@ -217,10 +262,10 @@ public class TouchState {
 
   public Vector getSecondaryTouch(TouchRegion region, TouchRegion[] ignores, uint ignoreCount) {
     foreach (FingerState f; fingers) {
-      if (f.active && region.contains(f.position)) {
+      if (f.active && region.contains(f.normPosition)) {
         if (ignoreCount) {
           foreach (TouchRegion ignore; ignores) {
-            if (ignore.contains(f.position)) {
+            if (ignore.contains(f.normPosition)) {
               --ignoreCount;
               continue;
             }
