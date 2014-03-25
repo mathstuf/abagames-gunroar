@@ -105,6 +105,23 @@ public interface TouchRegion {
   public Vector center();
 }
 
+public class InvertedTouchRegion {
+ private:
+  TouchRegion ignore;
+
+  public this(TouchRegion ignore) {
+    this.ignore = ignore;
+  }
+
+  public bool contains(Vector position) {
+    return !ignore.contains(position);
+  }
+
+  public Vector center() {
+    return ignore.center();
+  }
+}
+
 public class CircularTouchRegion: TouchRegion {
  private:
   Vector center_;
