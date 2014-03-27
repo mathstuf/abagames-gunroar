@@ -75,6 +75,7 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
   TitleState titleState;
   InGameState inGameState;
   bool escPressed;
+  bool backgrounded;
 
   public override void init() {
     Letter.init();
@@ -166,6 +167,9 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
                                 crystals, numIndicators, stageManager, scoreReel,
                                 titleManager, inGameState);
     ship.setGameState(inGameState);
+
+    escPressed = false;
+    backgrounded = false;
   }
 
   public override void close() {
@@ -256,7 +260,14 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
   }
 
   public override void draw() {
+    // Do nothing in the background.
+    if (backgrounded) {
+      return;
+    }
     SDL_Event e = mainLoop.event;
+    if (handleAppEvents(e)) {
+      return;
+    }
     if (e.type == SDL_WINDOWEVENT_RESIZED) {
       SDL_WindowEvent we = e.window;
       Sint32 w = we.data1;
@@ -285,6 +296,34 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
     screen.viewOrthoFixed();
     state.drawOrtho();
     screen.viewPerspective();
+  }
+
+  private bool handleAppEvents(ref SDL_Event e) {
+    switch (e.type) {
+    case SDL_APP_TERMINATING:
+      mainLoop.breakLoop();
+      return true;
+    case SDL_APP_WILLENTERBACKGROUND:
+    case SDL_APP_DIDENTERBACKGROUND:
+      // Pause the game.
+      if (pauseCnt <= 0 && !isGameOver) {
+        pauseCnt = 1;
+      }
+      // We're in the background.
+      backgrounded = true;
+      return true;
+    case SDL_APP_DIDENTERFOREGROUND:
+      backgrounded = false;
+      return true;
+    // Nothing to be done; we'll just start looping.
+    case SDL_APP_WILLENTERFOREGROUND:
+      return true;
+    // Not much we're going to do here.
+    case SDL_APP_LOWMEMORY:
+      return false;
+    default:
+      break;
+    }
   }
 }
 
