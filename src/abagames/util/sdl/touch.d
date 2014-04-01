@@ -187,12 +187,10 @@ public class TouchVector: Vector {
   static void init() {
     // Set the aspect ratio.
     // TODO: Get DPI involved here as well.
-    if (!aspect) {
-      int w, h;
-      SDL_Window* window = SDL_GL_GetCurrentWindow();
-      SDL_GetWindowSize(window, &w, &h);
-      aspect = cast(float) w / cast(float) h;
-    }
+    int w, h;
+    SDL_Window* window = SDL_GL_GetCurrentWindow();
+    SDL_GetWindowSize(window, &w, &h);
+    aspect = cast(float) w / cast(float) h;
   }
 
   public this(float x, float y) {
