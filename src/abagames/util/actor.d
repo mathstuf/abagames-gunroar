@@ -5,6 +5,8 @@
  */
 module abagames.util.actor;
 
+private import std.conv;
+
 /**
  * Actor in the game that has the interface to move and draw.
  */
@@ -56,8 +58,9 @@ public class ActorPool(T) {
       actorIdx--;
       if (actorIdx < 0)
         actorIdx = actor.length - 1;
-      if (!actor[actorIdx].exists)
-        return actor[actorIdx];
+      size_t idx = to!size_t(actorIdx);
+      if (!actor[idx].exists)
+        return actor[idx];
     }
     return null;
   }
@@ -66,7 +69,8 @@ public class ActorPool(T) {
     actorIdx--;
     if (actorIdx < 0)
       actorIdx = actor.length - 1;
-    return actor[actorIdx];
+    size_t idx = to!size_t(actorIdx);
+    return actor[idx];
   }
 
   public T[] getMultipleInstances(int n) {

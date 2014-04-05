@@ -31,8 +31,8 @@ public class SoundManager: abagames.util.sdl.sound.SoundManager {
   Rand rand;
   string[] bgmFileName;
   string currentBgm;
-  ulong prevBgmIdx;
-  ulong nextIdxMv;
+  size_t prevBgmIdx;
+  size_t nextIdxMv;
 
   public static void setRandSeed(long seed) {
     rand.setSeed(seed);
@@ -76,14 +76,14 @@ public class SoundManager: abagames.util.sdl.sound.SoundManager {
   }
 
   public static void playBgm() {
-    ulong bgmIdx = rand.nextInt(bgm.length - RANDOM_BGM_START_INDEX) + RANDOM_BGM_START_INDEX;
+    size_t bgmIdx = rand.nextInt(bgm.length - RANDOM_BGM_START_INDEX) + RANDOM_BGM_START_INDEX;
     nextIdxMv = rand.nextInt(2) * 2 - 1;
     prevBgmIdx = bgmIdx;
     playBgm(bgmFileName[bgmIdx]);
   }
 
   public static void nextBgm() {
-    ulong bgmIdx = prevBgmIdx + nextIdxMv;
+    size_t bgmIdx = prevBgmIdx + nextIdxMv;
     if (bgmIdx < RANDOM_BGM_START_INDEX)
       bgmIdx = bgm.length - 1;
     else if (bgmIdx >= bgm.length)
