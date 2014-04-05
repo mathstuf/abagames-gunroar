@@ -73,6 +73,16 @@ version (Win32_release) {
     gc_term();
     return result;
   }
+} else version (ABAGames_Android) { // TODO: Use just the 'Android' version.
+  extern (C) {
+    public int SDL_main(int argc, char[] argv) {
+      string[] args;
+      for (int i = 0; i < argc; ++i) {
+        args ~= argv.idup;
+      }
+      return boot(args);
+    }
+  }
 } else {
   // Boot as the general executable.
   public int main(string[] args) {

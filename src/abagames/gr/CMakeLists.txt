@@ -30,9 +30,18 @@ target_link_libraries(gr
     Derelict::sdl2
     Derelict::util)
 
-add_executable(gunroar
-    boot.d)
-target_link_libraries(gunroar
-    gr
-    gr_util
-    gr_util_sdl)
+if (GUNROAR_ANDROID)
+    add_library(gr_main STATIC
+        boot.d)
+    target_link_libraries(gr_main
+        gr
+        gr_util
+        gr_util_sdl)
+else ()
+    add_executable(gunroar
+        boot.d)
+    target_link_libraries(gunroar
+        gr
+        gr_util
+        gr_util_sdl)
+endif ()
