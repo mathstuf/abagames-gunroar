@@ -5,3 +5,7 @@ find_package(Derelict REQUIRED
         util)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 add_subdirectory(abagames)
+
+if (GUNROAR_ANDROID)
+    add_subdirectory(android)
+endif ()
