@@ -1,7 +1,7 @@
 /*
     SDL_android_main.c, placed in the public domain by Sam Lantinga  3/13/14
 */
-#include "../../SDL_internal.h"
+#include "../SDL/src/SDL_internal.h"
 
 #ifdef __ANDROID__
 
@@ -30,7 +30,7 @@ void Java_org_libsdl_app_SDLActivity_nativeInit(JNIEnv* env, jclass cls, jint wi
     char height_str[20];
     snprintf(width_str, 20, "%d", width);
     snprintf(height_str, 20, "%d", height);
-    const char *argv[5];
+    char *argv[5];
     argv[0] = SDL_strdup("SDL_app");
     argv[1] = "-res";
     argv[2] = width_str;
