@@ -45,8 +45,25 @@ add_custom_command(
             "${CMAKE_CURRENT_SOURCE_DIR}/jni"
     COMMENT "Building the APK")
 
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/android_install.cmake.in"
+    "${CMAKE_BINARY_DIR}/android_install.cmake.genex"
+    @ONLY)
+file(GENERATE
+    OUTPUT "${CMAKE_BINARY_DIR}/android_install.cmake"
+    INPUT  "${CMAKE_BINARY_DIR}/android_install.cmake.genex")
+add_custom_target(android-libs
+    DEPENDS
+        gr_main)
+add_custom_command(
+    TARGET  android-libs
+    COMMAND "${CMAKE_COMMAND}"
+            -P "${CMAKE_BINARY_DIR}/android_install.cmake"
+    COMMENT "Installing libraries for the NDK")
+
 add_custom_target(android-apk
     DEPENDS
+        android-libs
         android-ndk)
 add_custom_command(
     TARGET  android-apk
