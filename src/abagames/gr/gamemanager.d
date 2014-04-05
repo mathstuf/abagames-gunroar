@@ -306,8 +306,8 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
     case SDL_APP_WILLENTERBACKGROUND:
     case SDL_APP_DIDENTERBACKGROUND:
       // Pause the game.
-      if (pauseCnt <= 0 && !isGameOver) {
-        pauseCnt = 1;
+      if (inGameState.pauseCnt <= 0 && !inGameState.isGameOver) {
+        inGameState.pauseCnt = 1;
       }
       // We're in the background.
       backgrounded = true;
@@ -324,6 +324,8 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
     default:
       break;
     }
+
+    return false;
   }
 }
 
