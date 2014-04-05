@@ -24,3 +24,8 @@ target_link_libraries(gr_util_sdl
     Derelict::opengl3
     Derelict::sdl2
     Derelict::util)
+set_target_properties(gr_util_sdl
+    PROPERTIES
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")

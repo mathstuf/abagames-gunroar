@@ -29,6 +29,11 @@ target_link_libraries(gr
     Derelict::opengl3
     Derelict::sdl2
     Derelict::util)
+set_target_properties(gr
+    PROPERTIES
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 if (GUNROAR_ANDROID)
     add_library(gr_main STATIC
@@ -37,6 +42,11 @@ if (GUNROAR_ANDROID)
         gr
         gr_util
         gr_util_sdl)
+    set_target_properties(gr_main
+        PROPERTIES
+            ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+            LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 else ()
     add_executable(gunroar
         boot.d)
@@ -44,4 +54,9 @@ else ()
         gr
         gr_util
         gr_util_sdl)
+    set_target_properties(gunroar
+        PROPERTIES
+            ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+            LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+            RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 endif ()
