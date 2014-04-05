@@ -26,3 +26,36 @@ configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/ant.properties.in"
     "${CMAKE_CURRENT_SOURCE_DIR}/ant.properties"
     @ONLY)
+
+find_program(NDK_BUILD_COMMAND
+    NAMES ndk-build
+    DOC   "Path to the ndk-build command")
+find_program(ANT_COMMAND
+    NAMES ant
+    DOC   "Path to the ant command")
+
+add_custom_target(android-ndk ALL
+    DEPENDS
+        SDL
+        SDL_mixer)
+add_custom_command(
+    TARGET  android-ndk
+    COMMAND "${NDK_BUILD_COMMAND}"
+    WORKING_DIRECTORY
+            "${CMAKE_CURRENT_SOURCE_DIR}/jni"
+    COMMENT "Building the APK")
+
+add_custom_target(android-apk
+    DEPENDS
+        android-ndk)
+add_custom_command(
+    TARGET  android-apk
+    COMMAND "${ANT_COMMAND}" release
+    WORKING_DIRECTORY
+            "${CMAKE_CURRENT_SOURCE_DIR}"
+    COMMENT "Building the APK")
+
+add_custom_target(android ALL
+    DEPENDS
+        android-ndk
+        android-apk)
