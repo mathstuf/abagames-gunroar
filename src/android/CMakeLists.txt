@@ -88,5 +88,4 @@ add_custom_command(
 
 add_custom_target(android ALL
     DEPENDS
-        android-ndk
         android-apk)
