@@ -31,31 +31,56 @@ public class Texture {
       SDL_Surface *s = SDL_LoadBMP(std.string.toStringz(fileName));
       if (!s)
         throw new SDLInitFailedException("Unable to load: " ~ fileName);
-      SDL_PixelFormat format;
-      format.palette = null;
-      format.BitsPerPixel = 32;
-      format.BytesPerPixel = 4;
-      format.Rmask = 0x000000ff;
-      format.Gmask = 0x0000ff00;
-      format.Bmask = 0x00ff0000;
-      format.Amask = 0xff000000;
-      format.Rshift = 0;
-      format.Gshift = 8;
-      format.Bshift = 16;
-      format.Ashift = 24;
-      format.Rloss = 0;
-      format.Gloss = 0;
-      format.Bloss = 0;
-      format.Aloss = 0;
-      //format.alpha = 0;
-      SDL_Surface *cs = SDL_ConvertSurface(s, &format, SDL_SWSURFACE);
-      surface[name] = cs;
-      return cs;
+      return convertSurface(name, s);
     }
+  }
+
+  public static SDL_Surface* loadBmp(string name, const(void)* mem, int sz) {
+    if (name in surface) {
+      return surface[name];
+    } else {
+      SDL_RWops* rwops = SDL_RWFromConstMem(mem, sz);
+      SDL_Surface *s = SDL_LoadBMP_RW(rwops, 1);
+      if (!s)
+        throw new SDLInitFailedException("Unable to load: " ~ name);
+      return convertSurface(name, s);
+    }
+  }
+
+  private static SDL_Surface* convertSurface(string name, SDL_Surface* s) {
+    SDL_PixelFormat format;
+    format.palette = null;
+    format.BitsPerPixel = 32;
+    format.BytesPerPixel = 4;
+    format.Rmask = 0x000000ff;
+    format.Gmask = 0x0000ff00;
+    format.Bmask = 0x00ff0000;
+    format.Amask = 0xff000000;
+    format.Rshift = 0;
+    format.Gshift = 8;
+    format.Bshift = 16;
+    format.Ashift = 24;
+    format.Rloss = 0;
+    format.Gloss = 0;
+    format.Bloss = 0;
+    format.Aloss = 0;
+    //format.alpha = 0;
+    SDL_Surface *cs = SDL_ConvertSurface(s, &format, SDL_SWSURFACE);
+    surface[name] = cs;
+    return cs;
   }
 
   public this(string name) {
     SDL_Surface *s = loadBmp(name);
+    generateTexture(s);
+  }
+
+  public this(string name, const(void)* mem, int sz) {
+    SDL_Surface *s = loadBmp(name, mem, sz);
+    generateTexture(s);
+  }
+
+  private void generateTexture(SDL_Surface* s) {
     glGenTextures(1, &num);
     glBindTexture(GL_TEXTURE_2D, num);
     glTexStorage2D(GL_TEXTURE_2D, 4, GL_RGBA8, s.w, s.h);
@@ -70,6 +95,13 @@ public class Texture {
   public this(string name, int sx, int sy, int xn, int yn, int panelWidth, int panelHeight,
               Uint32 maskColor = 0xffffffffu) {
     SDL_Surface *s = loadBmp(name);
+    Uint32* surfacePixels = cast(Uint32*) s.pixels;
+    this(surfacePixels, s.w, sx, sy, xn, yn, panelWidth, panelHeight, maskColor);
+  }
+
+  public this(string name, const(void)* mem, int sz, int sx, int sy, int xn, int yn, int panelWidth, int panelHeight,
+              Uint32 maskColor = 0xffffffffu) {
+    SDL_Surface *s = loadBmp(name, mem, sz);
     Uint32* surfacePixels = cast(Uint32*) s.pixels;
     this(surfacePixels, s.w, sx, sy, xn, yn, panelWidth, panelHeight, maskColor);
   }
