@@ -59,7 +59,9 @@ public class SoundManager {
  */
 public interface Sound {
   public void load(string name);
+  public void load(string name, const(void)* mem, int sz);
   public void load(string name, int ch);
+  public void load(string name, int ch, const(void)* mem, int sz);
   public void free();
   public void play();
   public void fade();
@@ -85,8 +87,24 @@ public class Music: Sound {
     }
   }
 
+  public void load(string name, const(void)* mem, int sz) {
+    if (SoundManager.noSound)
+      return;
+    SDL_RWops* rwops = SDL_RWFromConstMem(mem, sz);
+    music = Mix_LoadMUS_RW(rwops, 1);
+    if (!music) {
+      SoundManager.noSound = true;
+      throw new SDLException("Couldn't load: " ~ name ~
+                             " (" ~ to!string(Mix_GetError()) ~ ")");
+    }
+  }
+
   public void load(string name, int ch) {
     load(name);
+  }
+
+  public void load(string name, int ch, const(void)* mem, int sz) {
+    load(name, mem, sz);
   }
 
   public void free() {
@@ -142,11 +160,29 @@ public class Chunk: Sound {
     load(name, 0);
   }
 
+  public void load(string name, const(void)* mem, int sz) {
+    load(name, 0, mem, sz);
+  }
+
   public void load(string name, int ch) {
     if (SoundManager.noSound)
       return;
     string fileName = dir ~ "/" ~ name;
     chunk = Mix_LoadWAV(std.string.toStringz(fileName));
+    if (!chunk) {
+      SoundManager.noSound = true;
+      throw new SDLException("Couldn't load: " ~ fileName ~
+                             " (" ~ to!string(Mix_GetError()) ~ ")");
+    }
+    chunkChannel = ch;
+  }
+
+  public void load(string name, int ch, const(void)* mem, int sz) {
+    if (SoundManager.noSound)
+      return;
+    string fileName = dir ~ "/" ~ name;
+    SDL_RWops* rwops = SDL_RWFromConstMem(mem, sz);
+    chunk = Mix_LoadWAV_RW(rwops, 1);
     if (!chunk) {
       SoundManager.noSound = true;
       throw new SDLException("Couldn't load: " ~ fileName ~
