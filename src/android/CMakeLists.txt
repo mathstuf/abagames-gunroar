@@ -72,6 +72,8 @@ add_custom_command(
             "${CMAKE_CURRENT_SOURCE_DIR}/assets/images"
     COMMENT "Linking resources")
 
+set(buildtype $<$<CONFIG:Debug>:debug>$<$<NOT:$<CONFIG:Debug>>:release>)
+
 add_custom_target(android-apk
     DEPENDS
         android-libs
@@ -79,7 +81,7 @@ add_custom_target(android-apk
         android-res)
 add_custom_command(
     TARGET  android-apk
-    COMMAND "${ANT_COMMAND}" release
+    COMMAND "${ANT_COMMAND}" ${buildtype}
     WORKING_DIRECTORY
             "${CMAKE_CURRENT_SOURCE_DIR}"
     COMMENT "Building the APK")
