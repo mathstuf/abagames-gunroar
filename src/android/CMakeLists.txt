@@ -19,10 +19,6 @@ get_filename_component(Derelict_LIBRARY_PATH "${Derelict_util_PATH}" DIRECTORY)
 set(gunroar_LIBRARY_PATH "${CMAKE_BINARY_DIR}/lib")
 
 configure_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/jni/src/Android.mk.in"
-    "${CMAKE_CURRENT_SOURCE_DIR}/jni/src/Android.mk"
-    @ONLY)
-configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/ant.properties.in"
     "${CMAKE_CURRENT_SOURCE_DIR}/ant.properties"
     @ONLY)

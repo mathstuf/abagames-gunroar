@@ -1,9 +1,3 @@
 file(INSTALL
-    $<TARGET_PROPERTY:Derelict::util,IMPORTED_LOCATION>
-    $<TARGET_PROPERTY:Derelict::opengl3,IMPORTED_LOCATION>
-    $<TARGET_PROPERTY:Derelict::sdl2,IMPORTED_LOCATION>
-    $<TARGET_FILE:gr_util>
-    $<TARGET_FILE:gr_util_sdl>
-    $<TARGET_FILE:gr>
     $<TARGET_FILE:gr_main>
     DESTINATION "@CMAKE_CURRENT_SOURCE_DIR@/jni/gunroar")

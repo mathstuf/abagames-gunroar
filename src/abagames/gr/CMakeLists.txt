@@ -36,7 +36,7 @@ set_target_properties(gr
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 if (GUNROAR_ANDROID)
-    add_library(gr_main STATIC
+    add_library(gr_main SHARED
         boot.d)
     target_link_libraries(gr_main
         gr

@@ -12,7 +12,7 @@ LOCAL_C_INCLUDES := $(SDL_PATH)/include $(SDL_MIXER_PATH)/include
 # Add your application source files here...
 LOCAL_SRC_FILES := SDL_android_main.c
 
-LOCAL_STATIC_LIBRARIES := derelict_util derelict_opengl3 derelict_sdl2 gunroar_util gunroar_util_sdl gunroar_lib gunroar_main
+LOCAL_STATIC_LIBRARIES := gunroar_main
 LOCAL_SHARED_LIBRARIES := SDL2 SDL2_mixer
 
 LOCAL_LDLIBS := -lGLESv1_CM -lGLESv2 -llog
