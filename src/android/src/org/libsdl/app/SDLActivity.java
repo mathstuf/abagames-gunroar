@@ -505,7 +505,7 @@ class SDLMain implements Runnable {
     @Override
     public void run() {
         // Get the default window size.
-        Context context = getContext();
+        Context context = SDLActivity.getContext();
         WindowManager wm = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
         Display display = wm.getDefaultDisplay();
         Point size = new Point();
