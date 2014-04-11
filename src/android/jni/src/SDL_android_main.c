@@ -32,9 +32,9 @@ int Java_org_libsdl_app_SDLActivity_nativeInit(JNIEnv* env, jclass cls, jint wid
     snprintf(height_str, 20, "%d", height);
     char *argv[5];
     argv[0] = SDL_strdup("SDL_app");
-    argv[1] = "-res";
-    argv[2] = width_str;
-    argv[3] = height_str;
+    argv[1] = SDL_strdup("-res");
+    argv[2] = SDL_strdup(width_str);
+    argv[3] = SDL_strdup(height_str);
     argv[4] = NULL;
     status = SDL_main(5, argv);
 
