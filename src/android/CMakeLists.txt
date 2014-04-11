@@ -61,10 +61,26 @@ add_custom_command(
             -P "${CMAKE_BINARY_DIR}/android_install.cmake"
     COMMENT "Installing libraries for the NDK")
 
+add_custom_target(android-res ALL)
+add_custom_command(
+    TARGET  android-res
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+            "${CMAKE_CURRENT_SOURCE_DIR}/assets"
+    COMMAND ${CMAKE_COMMAND} -E make_directory
+            "${CMAKE_CURRENT_SOURCE_DIR}/assets/replay"
+    COMMAND ${CMAKE_COMMAND} -E create_symlink
+            "${CMAKE_SOURCE_DIR}/sounds"
+            "${CMAKE_CURRENT_SOURCE_DIR}/assets/sounds"
+    COMMAND ${CMAKE_COMMAND} -E create_symlink
+            "${CMAKE_SOURCE_DIR}/images"
+            "${CMAKE_CURRENT_SOURCE_DIR}/assets/images"
+    COMMENT "Linking resources")
+
 add_custom_target(android-apk
     DEPENDS
         android-libs
-        android-ndk)
+        android-ndk
+        android-res)
 add_custom_command(
     TARGET  android-apk
     COMMAND "${ANT_COMMAND}" release
