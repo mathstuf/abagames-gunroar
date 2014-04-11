@@ -1,2 +1,7 @@
+assets/
+gen/
+libs/
+obj/
+
 ant.properties
 local.properties
