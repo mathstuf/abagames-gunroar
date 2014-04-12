@@ -8,6 +8,7 @@ import java.util.List;
 
 import android.app.*;
 import android.content.*;
+import android.content.res.AssetManager;
 import android.view.*;
 import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.EditorInfo;
@@ -270,7 +271,7 @@ public class SDLActivity extends Activity {
     }
 
     // C functions we call
-    public static native int nativeInit(int width, int height);
+    public static native int nativeInit(int width, int height, AssetManager manager, String dataPath);
     public static native void nativeLowMemory();
     public static native void nativeQuit();
     public static native void nativePause();
@@ -512,7 +513,9 @@ class SDLMain implements Runnable {
         display.getSize(size);
 
         // Runs SDL_main()
-        SDLActivity.nativeInit(size.x, size.y);
+        SDLActivity.nativeInit(size.x, size.y,
+                               context.getAssets(),
+                               context.getFilesDir().getAbsolutePath());
 
         //Log.v("SDL", "SDL thread terminated");
     }

@@ -15,6 +15,6 @@ LOCAL_SRC_FILES := SDL_android_main.c
 LOCAL_STATIC_LIBRARIES := gunroar_main
 LOCAL_SHARED_LIBRARIES := SDL2 SDL2_mixer
 
-LOCAL_LDLIBS := -lGLESv1_CM -lGLESv2 -llog
+LOCAL_LDLIBS := -lGLESv1_CM -lGLESv2 -llog -landroid
 
 include $(BUILD_SHARED_LIBRARY)

@@ -12,12 +12,15 @@
                  Functions called by JNI
 *******************************************************************************/
 #include <jni.h>
+#include <android/asset_manager_jni.h>
 
 /* Called before SDL_main() to initialize JNI bindings in SDL library */
 extern void SDL_Android_Init(JNIEnv* env, jclass cls);
+extern int android_main(int argc, char* argv[], AAssetManager* amgr, const char* path);
 
 /* Start up the SDL app */
-int Java_org_libsdl_app_SDLActivity_nativeInit(JNIEnv* env, jclass cls, jint width, jint height)
+int Java_org_libsdl_app_SDLActivity_nativeInit(JNIEnv* env, jclass cls,
+        jint width, jint height, jobject manager, jstring dataPath)
 {
     /* This interface could expand with ABI negotiation, calbacks, etc. */
     SDL_Android_Init(env, cls);
@@ -36,7 +39,17 @@ int Java_org_libsdl_app_SDLActivity_nativeInit(JNIEnv* env, jclass cls, jint wid
     argv[2] = SDL_strdup(width_str);
     argv[3] = SDL_strdup(height_str);
     argv[4] = NULL;
-    status = SDL_main(5, argv);
+
+    jobject lref = (*env)->NewLocalRef(env, manager);
+    AAssetManager* amgr = AAssetManager_fromJava(env, manager);
+
+    jboolean isCopy;
+    const char* cDataPath = (*env)->GetStringUTFChars(env, dataPath, &isCopy);
+
+    status = android_main(5, argv, amgr, cDataPath);
+
+    (*env)->ReleaseStringUTFChars(env, dataPath, cDataPath);
+    (*env)->DeleteLocalRef(env, lref);
 
     /* Do not issue an exit or the whole application will terminate instead of just the SDL thread */
     /* exit(status); */

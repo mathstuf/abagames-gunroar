@@ -5,6 +5,12 @@
  */
 module abagames.gr.boot;
 
+version (ABAGames_Android) {
+  private import std.conv;
+  private import derelict.android.android;
+  private import abagames.util.android.assets;
+  private import abagames.util.android.storage;
+}
 private import core.stdc.stdlib;
 private import std.string;
 private import std.stream;
@@ -75,10 +81,17 @@ version (Win32_release) {
   }
 } else version (ABAGames_Android) { // TODO: Use just the 'Android' version.
   extern (C) {
-    public int SDL_main(int argc, char[] argv) {
+    public int android_main(int argc, char*[] argv, AAssetManager* amgr, char* path) {
+      DerelictAndroid.load();
+      AssetManager.setManager(amgr);
+      StorageManager.setPath(to!string(path));
+      return SDL_main(argc, argv);
+    }
+
+    public int SDL_main(int argc, char*[] argv) {
       string[] args;
       for (int i = 0; i < argc; ++i) {
-        args ~= argv.idup;
+        args ~= to!string(argv[i]);
       }
       return boot(args);
     }
