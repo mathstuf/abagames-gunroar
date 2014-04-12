@@ -24,7 +24,7 @@ private import abagames.gr.mouseandpad;
  */
 public class ReplayData {
  public:
-  static const char[] dir = "replay";
+  static const string dir = "replay";
   static const int VERSION_NUM = 11;
   InputRecord!(PadState) padInputRecord;
   InputRecord!(TwinStickState) twinStickInputRecord;
@@ -84,7 +84,7 @@ public class ReplayData {
     } else {
       scope File fd = new File;
     }
-    fd.open(to!string(dir ~ "/" ~ fileName));
+    fd.open(dir ~ "/" ~ fileName);
     int ver;
     fd.read(ver);
     if (ver != VERSION_NUM)
