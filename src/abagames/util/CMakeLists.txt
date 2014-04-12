@@ -16,4 +16,7 @@ set_target_properties(gr_util
         LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
+if (GUNROAR_ANDROID)
+    add_subdirectory(android)
+endif ()
 add_subdirectory(sdl)
