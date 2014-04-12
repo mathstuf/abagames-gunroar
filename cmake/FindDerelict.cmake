@@ -4,6 +4,10 @@ list(APPEND components alure)
 set(alure_libname ALURE)
 set(alure_file alure)
 
+list(APPEND components android)
+set(android_libname Android)
+set(android_file android)
+
 list(APPEND components assimp3)
 set(assimp3_libname ASSIMP3)
 set(assimp3_file assimp)
