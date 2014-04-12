@@ -5,6 +5,9 @@
  */
 module abagames.gr.soundmanager;
 
+version (ABAGames_Android) {
+  private import abagames.util.android.assets;
+}
 private import std.path;
 private import std.file;
 private import abagames.util.rand;
@@ -45,13 +48,29 @@ public class SoundManager: abagames.util.sdl.sound.SoundManager {
   }
 
   private static void loadMusics() {
-    foreach (string filePath; dirEntries(Music.dir, "*.{ogg,wav}", SpanMode.shallow)) {
-      string fileName = baseName(filePath);
-      Music music = new Music();
-      music.load(fileName.dup);
-      bgm[fileName] = music;
-      bgmFileName ~= fileName;
-      Logger.info("Load bgm: " ~ fileName);
+    version (ABAGames_Android) {
+      scope AssetDir dir = AssetManager.openDir(Music.dir);
+      foreach (string fileName; dir) {
+        string ext = extension(fileName);
+        if (!(ext == "wav" || ext == "ogg")) {
+          continue;
+        }
+        Music music = new Music();
+        scope Asset asset = AssetManager.open(Music.dir ~ "/" ~ fileName);
+        music.load(fileName, asset.buffer(), asset.length());
+        bgm[fileName] = music;
+        bgmFileName ~= fileName;
+        Logger.info("Load bgm: " ~ fileName);
+      }
+    } else {
+      foreach (string filePath; dirEntries(Music.dir, "*.{ogg,wav}", SpanMode.shallow)) {
+        string fileName = baseName(filePath);
+        Music music = new Music();
+        music.load(fileName);
+        bgm[fileName] = music;
+        bgmFileName ~= fileName;
+        Logger.info("Load bgm: " ~ fileName);
+      }
     }
   }
 
@@ -59,7 +78,12 @@ public class SoundManager: abagames.util.sdl.sound.SoundManager {
     int i = 0;
     foreach (string fileName; seFileName) {
       Chunk chunk = new Chunk();
-      chunk.load(fileName.dup, seChannel[i]);
+      version (ABAGames_Android) {
+        scope Asset asset = AssetManager.open(Chunk.dir ~ "/" ~ fileName);
+        chunk.load(fileName, seChannel[i], asset.buffer(), asset.length());
+      } else {
+        chunk.load(fileName, seChannel[i]);
+      }
       se[fileName] = chunk;
       seMark[fileName] = false;
       Logger.info("Load SE: " ~ fileName);

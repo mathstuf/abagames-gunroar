@@ -41,6 +41,7 @@ if (GUNROAR_ANDROID)
     target_link_libraries(gr_main
         gr
         gr_util
+        gr_util_android
         gr_util_sdl)
     set_target_properties(gr_main
         PROPERTIES

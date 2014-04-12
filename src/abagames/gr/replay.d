@@ -5,6 +5,9 @@
  */
 module abagames.gr.replay;
 
+version (ABAGames_Android) {
+  private import abagames.util.android.storage;
+}
 private import std.conv;
 private import std.stream;
 private import abagames.util.sdl.recordableinput;
@@ -36,7 +39,11 @@ public class ReplayData {
  private:
 
   public void save(string fileName) {
-    scope File fd = new File;
+    version (ABAGames_Android) {
+      scope File fd = StorageManager.newFile();
+    } else {
+      scope File fd = new File;
+    }
     fd.create(to!string(dir ~ "/" ~ fileName));
     fd.write(VERSION_NUM);
     fd.write(seed);
@@ -72,7 +79,11 @@ public class ReplayData {
   }
 
   public void load(string fileName) {
-    scope File fd = new File;
+    version (ABAGames_Android) {
+      scope File fd = StorageManager.newFile();
+    } else {
+      scope File fd = new File;
+    }
     fd.open(to!string(dir ~ "/" ~ fileName));
     int ver;
     fd.read(ver);
