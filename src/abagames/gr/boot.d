@@ -64,8 +64,8 @@ version (Win32_release) {
       char exe[4096];
       GetModuleFileNameA(null, exe, 4096);
       char[][1] prog;
-      prog[0] = std.string.toString(exe);
-      result = boot(prog ~ std.string.split(std.string.toString(lpCmdLine)));
+      prog[0] = to!string(exe);
+      result = boot(prog ~ std.string.split(to!string(lpCmdLine)));
     } catch (Throwable o) {
       Logger.error("Exception: " ~ o.toString());
       result = EXIT_FAILURE;
