@@ -1,6 +1,6 @@
 module abagames.util.android.storage;
 
-version (ABAGames_Android) {
+version (Android) {
 
 private import std.stream;
 

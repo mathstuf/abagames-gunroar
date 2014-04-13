@@ -4,13 +4,7 @@ list(APPEND CMAKE_MODULE_PATH
 
 project(gunroar D)
 
-# TODO: Remove this once androideabi builds are available.
 option(GUNROAR_ANDROID "Build for Android" OFF)
-if (GUNROAR_ANDROID)
-    # FIXME: Currently only good for GDC.
-    set(CMAKE_D_FLAGS
-        "${CMAKE_D_FLAGS} -fversion=ABAGames_Android")
-endif ()
 
 get_filename_component(CMAKE_SYSTEM_ROOT "${CMAKE_D_COMPILER}" DIRECTORY)
 get_filename_component(CMAKE_SYSTEM_ROOT "${CMAKE_SYSTEM_ROOT}" DIRECTORY)

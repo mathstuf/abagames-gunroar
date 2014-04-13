@@ -5,7 +5,7 @@
  */
 module abagames.gr.prefmanager;
 
-version (ABAGames_Android) {
+version (Android) {
   private import abagames.util.android.storage;
 }
 private import std.stream;
@@ -27,7 +27,7 @@ public class PrefManager: abagames.util.prefmanager.PrefManager {
   }
 
   public void load() {
-    version (ABAGames_Android) {
+    version (Android) {
       scope File fd = StorageManager.newFile();
     } else {
       scope File fd = new File;
@@ -51,7 +51,7 @@ public class PrefManager: abagames.util.prefmanager.PrefManager {
   }
 
   public void save() {
-    version (ABAGames_Android) {
+    version (Android) {
       scope File fd = StorageManager.newFile();
     } else {
       scope File fd = new File;

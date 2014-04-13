@@ -5,7 +5,7 @@
  */
 module abagames.gr.boot;
 
-version (ABAGames_Android) {
+version (Android) {
   private import std.conv;
   private import derelict.android.android;
   private import abagames.util.android.assets;
@@ -79,7 +79,7 @@ version (Win32_release) {
     gc_term();
     return result;
   }
-} else version (ABAGames_Android) { // TODO: Use just the 'Android' version.
+} else version (Android) {
   extern (C) {
     public int android_main(int argc, char*[] argv, AAssetManager* amgr, char* path) {
       DerelictAndroid.load();

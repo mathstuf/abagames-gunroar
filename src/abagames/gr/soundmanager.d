@@ -5,7 +5,7 @@
  */
 module abagames.gr.soundmanager;
 
-version (ABAGames_Android) {
+version (Android) {
   private import abagames.util.android.assets;
 }
 private import std.path;
@@ -48,7 +48,7 @@ public class SoundManager: abagames.util.sdl.sound.SoundManager {
   }
 
   private static void loadMusics() {
-    version (ABAGames_Android) {
+    version (Android) {
       scope AssetDir dir = AssetManager.openDir(Music.dir);
       foreach (string fileName; dir) {
         string ext = extension(fileName);
@@ -78,7 +78,7 @@ public class SoundManager: abagames.util.sdl.sound.SoundManager {
     int i = 0;
     foreach (string fileName; seFileName) {
       Chunk chunk = new Chunk();
-      version (ABAGames_Android) {
+      version (Android) {
         scope Asset asset = AssetManager.open(Chunk.dir ~ "/" ~ fileName);
         chunk.load(fileName, seChannel[i], asset.buffer(), asset.length());
       } else {

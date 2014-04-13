@@ -1,6 +1,6 @@
 module abagames.util.android.assets;
 
-version (ABAGames_Android) {
+version (Android) {
 
 private import derelict.android.android;
 private import std.conv;

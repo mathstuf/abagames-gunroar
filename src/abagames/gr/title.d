@@ -5,7 +5,7 @@
  */
 module abagames.gr.title;
 
-version (ABAGames_Android) {
+version (Android) {
   private import abagames.util.android.assets;
 }
 private import std.math;
@@ -56,7 +56,7 @@ public class TitleManager {
   }
 
   private void init() {
-    version (ABAGames_Android) {
+    version (Android) {
       scope Asset asset = AssetManager.open("images/title.bmp");
       logo = new Texture("title.bmp", asset.buffer(), asset.length());
     } else {
