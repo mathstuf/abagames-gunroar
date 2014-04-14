@@ -5,6 +5,11 @@ list(APPEND CMAKE_MODULE_PATH
 project(gunroar D)
 
 option(GUNROAR_ANDROID "Build for Android" OFF)
+if (GUNROAR_ANDROID)
+    if (NOT CMAKE_D_COMPILER_ID STREQUAL "GNU")
+        message(FATAL_ERROR "Only GDC is supported for Android builds")
+    endif ()
+endif ()
 
 get_filename_component(CMAKE_SYSTEM_ROOT "${CMAKE_D_COMPILER}" DIRECTORY)
 get_filename_component(CMAKE_SYSTEM_ROOT "${CMAKE_SYSTEM_ROOT}" DIRECTORY)
