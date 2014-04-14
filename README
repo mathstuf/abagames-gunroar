@@ -1,5 +1,0 @@
-A modernization of gunroar[1] so that it works with recent versions of its
-dependencies (OpenGL, SDL). Instead of the custom code originally used, the
-Derelict project is used instead.
-
-[1]http://www.asahi-net.or.jp/~cs8k-cyu/windows/gr_e.html
