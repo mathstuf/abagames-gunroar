@@ -1,5 +1,6 @@
 set(util_android_srcs
-    assets.d)
+    assets.d
+    storage.d)
 
 add_library(gr_util_android STATIC
     ${util_android_srcs})
