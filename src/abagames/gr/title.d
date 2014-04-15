@@ -204,7 +204,7 @@ public class TitleManager {
         return false;
       }
       // Also requires touch.
-      /* FALLTHROUGH */
+      goto case;
     // Requires a touch input.
     case InGameState.GameMode.TOUCH:
     case InGameState.GameMode.DOUBLE_PLAY_TOUCH:
