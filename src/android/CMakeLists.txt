@@ -1,5 +1,9 @@
 include(ExternalProject)
 
+find_program(PATCH_COMMAND
+    NAMES patch
+    DOC   "Path to the patch command")
+
 externalproject_add(SDL
     GIT_REPOSITORY    hg::http://hg.libsdl.org/SDL
     GIT_TAG           master
@@ -11,6 +15,15 @@ externalproject_add(SDL_mixer
     GIT_REPOSITORY    hg::http://hg.libsdl.org/SDL_mixer
     GIT_TAG           master
     SOURCE_DIR        "${CMAKE_CURRENT_SOURCE_DIR}/jni/SDL_mixer"
+                      # Turns off THUMB support since third-party libraries
+                      # don't support it.
+                      # https://bugzilla.libsdl.org/show_bug.cgi?id=2491
+    PATCH_COMMAND     "${PATCH_COMMAND}" -p1 -n < "${CMAKE_CURRENT_SOURCE_DIR}/src/jni/SDL_mixer-arm.patch"
+                      # Makes third-party libraries actually optional.
+                      # Currently they require a patch (such as this); with
+                      # this, Application.mk can override the defaults instead.
+                      # https://bugzilla.libsdl.org/show_bug.cgi?id=2490
+                   && "${PATCH_COMMAND}" -p1 -n < "${CMAKE_CURRENT_SOURCE_DIR}/src/jni/SDL_mixer-options.patch"
     CONFIGURE_COMMAND ""
     BUILD_COMMAND     ""
     INSTALL_COMMAND   "")
