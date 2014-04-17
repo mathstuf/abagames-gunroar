@@ -42,7 +42,8 @@ if (GUNROAR_ANDROID)
         gr
         gr_util
         gr_util_android
-        gr_util_sdl)
+        gr_util_sdl
+        Derelict::android)
     set_target_properties(gr_main
         PROPERTIES
             ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
