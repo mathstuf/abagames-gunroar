@@ -51,6 +51,41 @@ public class Logger {
   }
 }
 
+} else version(Android) {
+
+extern (C) void android_log(const(char)* msg);
+
+public class Logger {
+
+  public static void info(string msg, bool nline = true) {
+    if (nline)
+      android_log(std.string.toStringz(msg ~ "\n"));
+    else
+      android_log(std.string.toStringz(msg));
+  }
+
+  public static void info(double n, bool nline = true) {
+    if (nline)
+      android_log(std.string.toStringz(to!string(n) ~ "\n"));
+    else
+      android_log(std.string.toStringz(to!string(n) ~ " "));
+  }
+
+  public static void error(string msg) {
+    android_log(std.string.toStringz("Error: " ~ msg ~ "\n"));
+  }
+
+  public static void error(Exception e) {
+    android_log(std.string.toStringz("Error: " ~ e.toString() ~ "\n"));
+  }
+
+  public static void error(Error e) {
+    android_log(std.string.toStringz("Error: " ~ e.toString() ~ "\n"));
+    if (e.next)
+      error(to!Exception(e.next));
+  }
+}
+
 } else {
 
 public class Logger {

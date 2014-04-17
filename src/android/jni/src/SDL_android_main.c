@@ -12,6 +12,7 @@
                  Functions called by JNI
 *******************************************************************************/
 #include <jni.h>
+#include <android/log.h>
 
 /* Called before SDL_main() to initialize JNI bindings in SDL library */
 extern void SDL_Android_Init(JNIEnv* env, jclass cls);
@@ -44,6 +45,11 @@ int Java_org_libsdl_app_SDLActivity_nativeInit(JNIEnv* env, jclass cls,
     /* exit(status); */
 
     return status;
+}
+
+void android_log(const char* msg)
+{
+    __android_log_write(ANDROID_LOG_DEFAULT, "gunroar", msg);
 }
 
 #endif /* __ANDROID__ */
