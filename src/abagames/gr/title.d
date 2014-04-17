@@ -5,9 +5,6 @@
  */
 module abagames.gr.title;
 
-version (Android) {
-  private import abagames.util.android.assets;
-}
 private import std.math;
 private import derelict.sdl2.sdl;
 private import derelict.opengl3.gl;
@@ -56,12 +53,7 @@ public class TitleManager {
   }
 
   private void init() {
-    version (Android) {
-      scope Asset asset = AssetManager.open("images/title.bmp");
-      logo = new Texture("title.bmp", asset.buffer(), asset.length());
-    } else {
-      logo = new Texture("title.bmp");
-    }
+    logo = new Texture("title.bmp");
     displayList = new DisplayList(1);
     displayList.beginNewList();
     glEnable(GL_TEXTURE_2D);

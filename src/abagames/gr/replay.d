@@ -6,7 +6,8 @@
 module abagames.gr.replay;
 
 version (Android) {
-  private import abagames.util.android.storage;
+  private import std.conv;
+  private import derelict.sdl2.sdl;
 }
 private import std.conv;
 private import std.stream;
@@ -39,12 +40,13 @@ public class ReplayData {
  private:
 
   public void save(string fileName) {
+    scope File fd = new File;
+    string path = ".";
     version (Android) {
-      scope File fd = StorageManager.newFile();
-    } else {
-      scope File fd = new File;
+      path = to!string(SDL_AndroidGetExternalStoragePath());
     }
-    fd.create(to!string(dir ~ "/" ~ fileName));
+    path ~= "/" ~ dir ~ "/" ~ fileName;
+    fd.create(path);
     fd.write(VERSION_NUM);
     fd.write(seed);
     fd.write(score);
@@ -79,12 +81,13 @@ public class ReplayData {
   }
 
   public void load(string fileName) {
+    scope File fd = new File;
+    string path = ".";
     version (Android) {
-      scope File fd = StorageManager.newFile();
-    } else {
-      scope File fd = new File;
+      path = to!string(SDL_AndroidGetExternalStoragePath());
     }
-    fd.open(dir ~ "/" ~ fileName);
+    path ~= "/" ~ dir ~ "/" ~ fileName;
+    fd.open(path);
     int ver;
     fd.read(ver);
     if (ver != VERSION_NUM)

@@ -6,7 +6,8 @@
 module abagames.gr.prefmanager;
 
 version (Android) {
-  private import abagames.util.android.storage;
+  private import std.conv;
+  private import derelict.sdl2.sdl;
 }
 private import std.stream;
 private import abagames.util.prefmanager;
@@ -27,14 +28,15 @@ public class PrefManager: abagames.util.prefmanager.PrefManager {
   }
 
   public void load() {
-    version (Android) {
-      scope File fd = StorageManager.newFile();
-    } else {
-      scope File fd = new File;
-    }
+    scope File fd = new File;
     try {
       int ver;
-      fd.open(PREF_FILE);
+      string path = ".";
+      version (Android) {
+        path = to!string(SDL_AndroidGetExternalStoragePath());
+      }
+      path ~= "/" ~ PREF_FILE;
+      fd.open(path);
       fd.read(ver);
       if (ver == VERSION_NUM_13)
         _prefData.loadVer13(fd);
@@ -51,12 +53,13 @@ public class PrefManager: abagames.util.prefmanager.PrefManager {
   }
 
   public void save() {
+    scope File fd = new File;
+    string path = ".";
     version (Android) {
-      scope File fd = StorageManager.newFile();
-    } else {
-      scope File fd = new File;
+      path = to!string(SDL_AndroidGetExternalStoragePath());
     }
-    fd.create(PREF_FILE);
+    path ~= "/" ~ PREF_FILE;
+    fd.create(path);
     fd.write(VERSION_NUM);
     _prefData.save(fd);
     fd.close();

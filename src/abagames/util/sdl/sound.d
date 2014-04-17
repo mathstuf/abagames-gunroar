@@ -167,11 +167,15 @@ public class Chunk: Sound {
   public void load(string name, int ch) {
     if (SoundManager.noSound)
       return;
-    string fileName = dir ~ "/" ~ name;
-    chunk = Mix_LoadWAV(std.string.toStringz(fileName));
+    string path = ".";
+    version (Android) {
+      path = to!string(SDL_AndroidGetInternalStoragePath());
+    }
+    path ~= "/" ~ dir ~ "/" ~ name;
+    chunk = Mix_LoadWAV(std.string.toStringz(path));
     if (!chunk) {
       SoundManager.noSound = true;
-      throw new SDLException("Couldn't load: " ~ fileName ~
+      throw new SDLException("Couldn't load: " ~ path ~
                              " (" ~ to!string(Mix_GetError()) ~ ")");
     }
     chunkChannel = ch;

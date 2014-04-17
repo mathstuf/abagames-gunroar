@@ -5,6 +5,9 @@
  */
 module abagames.util.sdl.texture;
 
+version (Android) {
+  private import std.conv;
+}
 private import std.string;
 private import derelict.opengl3.gl;
 private import derelict.sdl2.sdl;
@@ -27,10 +30,14 @@ public class Texture {
     if (name in surface) {
       return surface[name];
     } else {
-      string fileName = imagesDir ~ name;
-      SDL_Surface *s = SDL_LoadBMP(std.string.toStringz(fileName));
+      string path = ".";
+      version (Android) {
+        path = to!string(SDL_AndroidGetInternalStoragePath());
+      }
+      path ~= "/" ~ imagesDir ~ name;
+      SDL_Surface *s = SDL_LoadBMP(std.string.toStringz(path));
       if (!s)
-        throw new SDLInitFailedException("Unable to load: " ~ fileName);
+        throw new SDLInitFailedException("Unable to load: " ~ path);
       return convertSurface(name, s);
     }
   }
