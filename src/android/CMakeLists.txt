@@ -49,7 +49,8 @@ add_custom_target(android-ndk ALL
         SDL_mixer)
 add_custom_command(
     TARGET  android-ndk
-    COMMAND "${NDK_BUILD_COMMAND}"
+    COMMAND $<$<CONFIG:Debug>:NDK_DEBUG=1>
+            "${NDK_BUILD_COMMAND}"
     WORKING_DIRECTORY
             "${CMAKE_CURRENT_SOURCE_DIR}/jni"
     COMMENT "Building the APK")
