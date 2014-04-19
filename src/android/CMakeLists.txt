@@ -33,6 +33,9 @@ find_program(NDK_BUILD_COMMAND
 find_program(ANT_COMMAND
     NAMES ant
     DOC   "Path to the ant command")
+find_program(ADB_COMMAND
+    NAMES adb
+    DOC   "Path to the adb command")
 
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/android_install.cmake.in"
@@ -95,3 +98,13 @@ add_custom_command(
 add_custom_target(android ALL
     DEPENDS
         android-apk)
+
+add_custom_target(android-install
+    DEPENDS
+        android)
+add_custom_command(
+    TARGET  android-install
+    COMMAND "${ADB_COMMAND}" install
+            -r
+            "${CMAKE_BINARY_DIR}/android/gunroar-${buildtype}.apk"
+    COMMENT "Installing the APK")
