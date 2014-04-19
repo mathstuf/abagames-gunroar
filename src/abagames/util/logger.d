@@ -53,34 +53,38 @@ public class Logger {
 
 } else version(Android) {
 
-extern (C) void android_log(const(char)* msg);
+extern (C) void __android_log_write(int, const(char)*, const(char)*);
+
+void android_log(string msg) {
+  __android_log_write(1, "gunroar", std.string.toStringz(msg));
+}
 
 public class Logger {
 
   public static void info(string msg, bool nline = true) {
     if (nline)
-      android_log(std.string.toStringz(msg ~ "\n"));
+      android_log(msg ~ "\n");
     else
-      android_log(std.string.toStringz(msg));
+      android_log(msg);
   }
 
   public static void info(double n, bool nline = true) {
     if (nline)
-      android_log(std.string.toStringz(to!string(n) ~ "\n"));
+      android_log(to!string(n) ~ "\n");
     else
-      android_log(std.string.toStringz(to!string(n) ~ " "));
+      android_log(to!string(n) ~ " ");
   }
 
   public static void error(string msg) {
-    android_log(std.string.toStringz("Error: " ~ msg ~ "\n"));
+    android_log("Error: " ~ msg ~ "\n");
   }
 
   public static void error(Exception e) {
-    android_log(std.string.toStringz("Error: " ~ e.toString() ~ "\n"));
+    android_log("Error: " ~ e.toString() ~ "\n");
   }
 
   public static void error(Error e) {
-    android_log(std.string.toStringz("Error: " ~ e.toString() ~ "\n"));
+    android_log("Error: " ~ e.toString() ~ "\n");
     if (e.next)
       error(to!Exception(e.next));
   }

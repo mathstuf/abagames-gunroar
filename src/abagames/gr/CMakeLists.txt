@@ -36,12 +36,15 @@ set_target_properties(gr
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 if (GUNROAR_ANDROID)
+    find_library(ANDROID_LOG_LIBRARY
+        NAMES log)
     add_library(gr_main SHARED
         boot.d)
     target_link_libraries(gr_main
         gr
         gr_util
-        gr_util_sdl)
+        gr_util_sdl
+        ${ANDROID_LOG_LIBRARY})
     set_target_properties(gr_main
         PROPERTIES
             ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
