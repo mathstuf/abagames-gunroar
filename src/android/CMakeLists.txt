@@ -34,18 +34,6 @@ find_program(ANT_COMMAND
     NAMES ant
     DOC   "Path to the ant command")
 
-add_custom_target(android-ndk ALL
-    DEPENDS
-        SDL
-        SDL_mixer)
-add_custom_command(
-    TARGET  android-ndk
-    COMMAND $<$<CONFIG:Debug>:NDK_DEBUG=1>
-            "${NDK_BUILD_COMMAND}"
-    WORKING_DIRECTORY
-            "${CMAKE_CURRENT_SOURCE_DIR}/jni"
-    COMMENT "Building the APK")
-
 configure_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/android_install.cmake.in"
     "${CMAKE_BINARY_DIR}/android_install.cmake.genex"
@@ -61,6 +49,19 @@ add_custom_command(
     COMMAND "${CMAKE_COMMAND}"
             -P "${CMAKE_BINARY_DIR}/android_install.cmake"
     COMMENT "Installing libraries for the NDK")
+
+add_custom_target(android-ndk ALL
+    DEPENDS
+        SDL
+        SDL_mixer
+        android-libs)
+add_custom_command(
+    TARGET  android-ndk
+    COMMAND $<$<CONFIG:Debug>:NDK_DEBUG=1>
+            "${NDK_BUILD_COMMAND}"
+    WORKING_DIRECTORY
+            "${CMAKE_CURRENT_SOURCE_DIR}/jni"
+    COMMENT "Building the APK")
 
 add_custom_target(android-res ALL)
 add_custom_command(
