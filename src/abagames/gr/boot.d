@@ -78,7 +78,7 @@ version (Win32_release) {
   }
 } else version (Android) {
   extern (C) {
-    public int SDL_main(int argc, char*[] argv) {
+    public int SDL_main(int argc, char** argv) {
       string[] args;
       for (int i = 0; i < argc; ++i) {
         args ~= to!string(argv[i]);
