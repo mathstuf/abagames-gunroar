@@ -33,11 +33,11 @@ otherwise (it looks like a linker script is not executed when using `ld.gold`,
 but only with GDC; GCC is fine).
 
 Once the toolchain is built, build all of the required Derelict libraries
-(Util, SDL2, GL3, and [Android][derelict-android]) configure a CMake build
-using a `CMAKE_TOOLCHAIN_FILE` argument pointing to a CMake script setting the
-compiler, linker, archiver, etc. just built above. An example file is provided
-in the repository as `src/android/toolchain.cmake` which just needs a few
-variables set. SDL and SDL\_mixer will be downloaded and built using the NDK.
+(Util, SDL2, and GL3) configure a CMake build using a `CMAKE_TOOLCHAIN_FILE`
+argument pointing to a CMake script setting the compiler, linker, archiver,
+etc. just built above. An example file is provided in the repository as
+`src/android/toolchain.cmake` which just needs a few variables set. SDL and
+SDL\_mixer will be downloaded and built using the NDK.
 
 [gunroar]: http://www.asahi-net.or.jp/~cs8k-cyu/windows/gr_e.html
 [derelict]: https://github.com/DerelictOrg
@@ -45,4 +45,3 @@ variables set. SDL and SDL\_mixer will be downloaded and built using the NDK.
 [gdc-android]: https://github.com/mathstuf/GDC/tree/android/gdc-4.8
 [ndk]: https://developer.android.com/tools/sdk/ndk/index.html
 [ndk-build]: http://recursify.com/blog/2013/08/08/building-an-android-ndk-toolchain
-[derelict-android]: https://github.com/mathstuf/DerelictAndroid
