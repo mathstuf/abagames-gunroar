@@ -15,6 +15,8 @@
 
 /* Called before SDL_main() to initialize JNI bindings in SDL library */
 extern void SDL_Android_Init(JNIEnv* env, jclass cls);
+/* Initialize the D runtime. */
+extern int rt_init();
 
 /* Start up the SDL app */
 int Java_org_libsdl_app_SDLActivity_nativeInit(JNIEnv* env, jclass cls,
@@ -22,6 +24,8 @@ int Java_org_libsdl_app_SDLActivity_nativeInit(JNIEnv* env, jclass cls,
 {
     /* This interface could expand with ABI negotiation, calbacks, etc. */
     SDL_Android_Init(env, cls);
+
+    rt_init();
 
     SDL_SetMainReady();
 

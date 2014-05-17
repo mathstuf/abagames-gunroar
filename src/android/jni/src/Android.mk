@@ -9,5 +9,6 @@ SDL_PATH := ../SDL
 LOCAL_C_INCLUDES       := $(SDL_PATH)/include
 LOCAL_SRC_FILES        := SDL_android_main.c
 LOCAL_SHARED_LIBRARIES := SDL2 SDL2_mixer gunroar_main
+LOCAL_LDLIBS           := -lgphobos2
 
 include $(BUILD_SHARED_LIBRARY)
