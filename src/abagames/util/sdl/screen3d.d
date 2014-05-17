@@ -35,9 +35,13 @@ public class Screen3D: Screen, SizableScreen {
     DerelictSDL2.load();
     DerelictGL.load(); // We use deprecated features.
     // Initialize SDL.
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-      throw new SDLInitFailedException(
-        "Unable to initialize SDL: " ~ to!string(SDL_GetError()));
+    version (Android) {
+      // Already initialized at this point.
+    } else {
+      if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        throw new SDLInitFailedException(
+          "Unable to initialize SDL: " ~ to!string(SDL_GetError()));
+      }
     }
     // Create an OpenGL screen.
     Uint32 videoFlags;
