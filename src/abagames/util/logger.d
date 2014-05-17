@@ -55,36 +55,39 @@ public class Logger {
 
 extern (C) void __android_log_write(int, const(char)*, const(char)*);
 
-void android_log(string msg) {
-  __android_log_write(1, "gunroar", std.string.toStringz(msg));
+void android_log(int level, string msg) {
+  __android_log_write(level, "gunroar", std.string.toStringz(msg));
 }
 
 public class Logger {
 
+  private static const int WARN_LEVEL = 4;
+  private static const int ERROR_LEVEL = 5;
+
   public static void info(string msg, bool nline = true) {
     if (nline)
-      android_log(msg ~ "\n");
+      android_log(WARN_LEVEL, msg ~ "\n");
     else
-      android_log(msg);
+      android_log(WARN_LEVEL, msg);
   }
 
   public static void info(double n, bool nline = true) {
     if (nline)
-      android_log(to!string(n) ~ "\n");
+      android_log(WARN_LEVEL, to!string(n) ~ "\n");
     else
-      android_log(to!string(n) ~ " ");
+      android_log(WARN_LEVEL, to!string(n) ~ " ");
   }
 
   public static void error(string msg) {
-    android_log("Error: " ~ msg ~ "\n");
+    android_log(ERROR_LEVEL, "Error: " ~ msg ~ "\n");
   }
 
   public static void error(Exception e) {
-    android_log("Error: " ~ e.toString() ~ "\n");
+    android_log(ERROR_LEVEL, "Error: " ~ e.toString() ~ "\n");
   }
 
   public static void error(Error e) {
-    android_log("Error: " ~ e.toString() ~ "\n");
+    android_log(ERROR_LEVEL, "Error: " ~ e.toString() ~ "\n");
     if (e.next)
       error(to!Exception(e.next));
   }
