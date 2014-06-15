@@ -24,6 +24,10 @@ list(APPEND components freetype)
 set(freetype_libname FT)
 set(freetype_file ft)
 
+list(APPEND components gles)
+set(gles_libname gles)
+set(gles_file gles2)
+
 list(APPEND components glfw3)
 set(glfw3_libname GLFW3)
 set(glfw3_file glfw3)
