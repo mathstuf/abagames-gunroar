@@ -10,7 +10,6 @@ private import std.math;
 private import abagames.util.vector;
 private import abagames.util.rand;
 private import abagames.util.math;
-private import abagames.util.sdl.displaylist;
 private import abagames.gr.screen;
 private import abagames.gr.stagemanager;
 private import abagames.gr.ship;
