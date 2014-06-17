@@ -174,7 +174,7 @@ public class Shot: Actor {
     }
   }
 
-  public override void draw() {
+  public override void draw(mat4 view) {
     if (lance) {
       float x = pos.x, y = pos.y;
       float size = 0.25f, a = 0.6f;
@@ -217,7 +217,7 @@ public class Shot: Actor {
       Screen.glTranslate(pos);
       glRotatef(-_deg * 180 / PI, 0, 0, 1);
       glRotatef(cnt * 31, 0, 1, 0);
-      shape.draw();
+      shape.draw(view);
       glPopMatrix();
     }
   }

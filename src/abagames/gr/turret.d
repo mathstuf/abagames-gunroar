@@ -186,7 +186,7 @@ public class Turret {
     return true;
   }
 
-  public void draw() {
+  public void draw(mat4 view) {
     if (spec.invisible)
       return;
     glPushMatrix();
@@ -199,11 +199,11 @@ public class Turret {
     }
     glRotatef(-(baseDeg + deg) * 180 / PI, 0, 0, 1);
     if (destroyedCnt >= 0)
-      spec.destroyedShape.draw();
+      spec.destroyedShape.draw(view);
     else if (!damaged)
-      spec.shape.draw();
+      spec.shape.draw(view);
     else
-      spec.damagedShape.draw();
+      spec.damagedShape.draw(view);
     glPopMatrix();
     if (destroyedCnt >= 0)
       return;
@@ -674,9 +674,9 @@ public class TurretGroup {
     return alive;
   }
 
-  public void draw() {
+  public void draw(mat4 view) {
     for (int i = 0; i < spec.num; i++)
-      turret[i].draw();
+      turret[i].draw(view);
   }
 
   public void remove() {
@@ -873,9 +873,9 @@ public class MovingTurretGroup {
     d = deg - md - ad / 2;
   }
 
-  public void draw() {
+  public void draw(mat4 view) {
     for (int i = 0; i < spec.num; i++)
-      turret[i].draw();
+      turret[i].draw(view);
   }
 
   public void remove() {

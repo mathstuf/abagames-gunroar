@@ -49,10 +49,10 @@ public class ScoreReel {
       numReel[i].move();
   }
 
-  public void draw(float x, float y, float s) {
+  public void draw(mat4 view, float x, float y, float s) {
     float lx = x, ly = y;
     for (int i = 0; i < digit; i++) {
-      numReel[i].draw(lx, ly, s);
+      numReel[i].draw(view, lx, ly, s);
       lx -= s * 2;
     }
   }
@@ -129,7 +129,7 @@ public class NumReel {
       deg = _targetDeg;
   }
 
-  public void draw(float x, float y, float s) {
+  public void draw(mat4 view, float x, float y, float s) {
     int n = cast(int) ((deg * 10 / 360 + 0.99f) + 1) % 10;
     float d = deg % 360;
     float od = d - n * 360 / 10;
@@ -149,9 +149,9 @@ public class NumReel {
       if (a < 0)
         a = 0;
       Screen.setColor(a, a, a);
-      Letter.drawLetter(n, 2);
+      Letter.drawLetter(view, n, 2);
       Screen.setColor(a / 2, a / 2, a / 2);
-      Letter.drawLetter(n, 3);
+      Letter.drawLetter(view, n, 3);
       glPopMatrix();
       n--;
       if (n < 0)
@@ -376,15 +376,15 @@ public class NumIndicator: Actor {
       gotoNextTarget();
   }
 
-  public override void draw() {
+  public override void draw(mat4 view) {
     Screen.setColor(alpha, alpha, alpha);
     switch (type) {
     case IndicatorType.SCORE:
-      Letter.drawNumSign(n, pos.x, pos.y, size, Letter.LINE_COLOR);
+      Letter.drawNumSign(view, n, pos.x, pos.y, size, Letter.LINE_COLOR);
       break;
     case IndicatorType.MULTIPLIER:
       Screen.setColor(alpha, alpha, alpha);
-      Letter.drawNumSign(n, pos.x, pos.y, size, Letter.LINE_COLOR, 33, 3);
+      Letter.drawNumSign(view, n, pos.x, pos.y, size, Letter.LINE_COLOR, 33, 3);
       break;
     default:
       assert(0);

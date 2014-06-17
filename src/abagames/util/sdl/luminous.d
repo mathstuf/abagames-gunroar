@@ -8,6 +8,7 @@ module abagames.util.sdl.luminous;
 private import std.math;
 private import std.c.string;
 private import derelict.opengl3.gl;
+private import gl3n.linalg;
 private import abagames.util.actor;
 
 /**
@@ -63,7 +64,7 @@ public class LuminousScreen {
     glViewport(0, 0, screenWidth, screenHeight);
   }
 
-  private void viewOrtho() {
+  private mat4 viewOrtho() {
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
@@ -71,6 +72,7 @@ public class LuminousScreen {
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
+    return mat4.orthographic(0, screenWidth, screenHeight, 0, -1, 1);
   }
 
   private void viewPerspective() {
@@ -85,10 +87,10 @@ public class LuminousScreen {
   private static const float lmOfs[2][2] = [[-2, -1], [2, 1]];
   private static const float lmOfsBs = 3;
 
-  public void draw() {
+  public void draw(mat4 /*view*/) {
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, luminousTexture);
-    viewOrtho();
+    mat4 view = viewOrtho();
     glColor4f(1, 0.8, 0.9, luminosity);
     glBegin(GL_QUADS);
     //for (int i = 0; i < 5; i++) {
@@ -113,7 +115,7 @@ public class LuminousScreen {
  * Actor with the luminous effect.
  */
 public class LuminousActor: Actor {
-  public abstract void drawLuminous();
+  public abstract void drawLuminous(mat4 view);
 }
 
 /**
@@ -124,9 +126,9 @@ public class LuminousActorPool(T): ActorPool!(T) {
     createActors(n, args);
   }
 
-  public void drawLuminous() {
+  public void drawLuminous(mat4 view) {
     for (int i = 0; i < actor.length; i++)
       if (actor[i].exists)
-        actor[i].drawLuminous();
+        actor[i].drawLuminous(view);
   }
 }

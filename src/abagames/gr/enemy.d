@@ -91,8 +91,8 @@ public class Enemy: Actor {
     exists = false;
   }
 
-  public override void draw() {
-    spec.draw(_state);
+  public override void draw(mat4 view) {
+    spec.draw(view, _state);
   }
 
   public EnemyState state() {
@@ -516,7 +516,7 @@ public class EnemyState {
       movingTurretGroup[i].remove();
   }
 
-  public void draw() {
+  public void draw(mat4 view) {
     glPushMatrix();
     if (destroyedCnt < 0 && damagedCnt > 0) {
       damagedPos.x = pos.x + rand.nextSignedFloat(damagedCnt * 0.01f);
@@ -527,18 +527,18 @@ public class EnemyState {
     }
     glRotatef(-deg * 180 / PI, 0, 0, 1);
     if (destroyedCnt >= 0)
-      spec.destroyedShape.draw();
+      spec.destroyedShape.draw(view);
     else if (!damaged)
-      spec.shape.draw();
+      spec.shape.draw(view);
     else
-      spec.damagedShape.draw();
+      spec.damagedShape.draw(view);
     if (destroyedCnt < 0)
-      spec.bridgeShape.draw();
+      spec.bridgeShape.draw(view);
     glPopMatrix();
     if (destroyedCnt >= 0)
       return;
     for (int i = 0; i < spec.turretGroupNum; i++)
-      turretGroup[i].draw();
+      turretGroup[i].draw(view);
     if (multiplier > 1) {
       float ox, oy;
       if (multiplier < 10)
@@ -550,7 +550,7 @@ public class EnemyState {
         ox += 4;
         oy -= 1.25f;
       }
-      Letter.drawNumSign(cast(int) (multiplier * 1000),
+      Letter.drawNumSign(view, cast(int) (multiplier * 1000),
                          pos.x + ox, pos.y + oy, 0.33f, 1, 33, 3);
     }
   }
@@ -770,8 +770,8 @@ public class EnemySpec {
     return es.move();
   }
 
-  public void draw(EnemyState es) {
-    es.draw();
+  public void draw(mat4 view, EnemyState es) {
+    es.draw(view);
   }
 
   public float size() {
@@ -1263,13 +1263,13 @@ public class ShipEnemySpec: EnemySpec, HasAppearType {
     return true;
   }
 
-  public override void draw(EnemyState es) {
+  public override void draw(mat4 view, EnemyState es) {
     if (es.destroyedCnt >= 0)
       Screen.setColor(
         EnemyShape.MIDDLE_COLOR_R * (1 - cast(float) es.destroyedCnt / SINK_INTERVAL) * 0.5f,
         EnemyShape.MIDDLE_COLOR_G * (1 - cast(float) es.destroyedCnt / SINK_INTERVAL) * 0.5f,
         EnemyShape.MIDDLE_COLOR_B * (1 - cast(float) es.destroyedCnt / SINK_INTERVAL) * 0.5f);
-    super.draw(es);
+    super.draw(view, es);
   }
 
   public override int score() {

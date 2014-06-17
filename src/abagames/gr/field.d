@@ -342,11 +342,11 @@ public class Field {
       time -= TIME_COLOR_INDEX;
   }
 
-  public void draw() {
-    drawPanel();
+  public void draw(mat4 view) {
+    drawPanel(view);
   }
 
-  public void drawSideWalls() {
+  public void drawSideWalls(mat4 view) {
     glDisable(GL_BLEND);
     Screen.setColor(0, 0, 0, 1);
     glBegin(GL_TRIANGLE_FAN);
@@ -364,7 +364,7 @@ public class Field {
     glEnable(GL_BLEND);
   }
 
-  private void drawPanel() {
+  private void drawPanel(mat4 view) {
     int ci = cast(int) time;
     int nci = ci + 1;
     if (nci >= TIME_COLOR_INDEX)

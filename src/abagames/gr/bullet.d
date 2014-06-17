@@ -157,7 +157,7 @@ public class Bullet: Actor {
     exists = false;
   }
 
-  public override void draw() {
+  public override void draw(mat4 view) {
     if (!field.checkInOuterField(pos))
       return;
     glPushMatrix();
@@ -168,7 +168,7 @@ public class Bullet: Actor {
       glRotatef(-deg * 180 / PI, 0, 0, 1);
       glRotatef(cnt * 13, 0, 1, 0);
     }
-    shape.draw();
+    shape.draw(view);
     glPopMatrix();
   }
 

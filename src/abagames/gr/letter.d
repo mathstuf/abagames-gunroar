@@ -7,6 +7,7 @@ module abagames.gr.letter;
 
 private import std.math;
 private import derelict.opengl3.gl;
+private import gl3n.linalg;
 private import abagames.util.sdl.displaylist;
 private import abagames.gr.screen;
 
@@ -50,11 +51,11 @@ public class Letter {
     return s * LETTER_HEIGHT;
   }
 
-  public static void drawLetter(int n, int c) {
+  public static void drawLetter(mat4 view, int n, int c) {
     displayList.call(n + c * LETTER_NUM);
   }
 
-  private static void drawLetter(int n, float x, float y, float s, float d, int c) {
+  private static void drawLetter(mat4 view, int n, float x, float y, float s, float d, int c) {
     glPushMatrix();
     glTranslatef(x, y, 0);
     glScalef(s, s, s);
@@ -63,7 +64,7 @@ public class Letter {
     glPopMatrix();
   }
 
-  private static void drawLetterRev(int n, float x, float y, float s, float d, int c) {
+  private static void drawLetterRev(mat4 view, int n, float x, float y, float s, float d, int c) {
     glPushMatrix();
     glTranslatef(x, y, 0);
     glScalef(s, -s, s);
@@ -100,7 +101,7 @@ public class Letter {
     return idx;
   }
 
-  public static void drawString(string str, float lx, float y, float s,
+  public static void drawString(mat4 view, string str, float lx, float y, float s,
                                 int d = Direction.TO_RIGHT, int cl = 0,
                                 bool rev = false, float od = 0) {
     lx += LETTER_WIDTH * s / 2;
@@ -129,9 +130,9 @@ public class Letter {
       if (c != ' ') {
         idx = convertCharToInt(c);
         if (rev)
-          drawLetterRev(idx, x, y, s, ld, cl);
+          drawLetterRev(view, idx, x, y, s, ld, cl);
         else
-          drawLetter(idx, x, y, s, ld, cl);
+          drawLetter(view, idx, x, y, s, ld, cl);
       }
       if (od == 0) {
         switch(d) {
@@ -157,7 +158,7 @@ public class Letter {
     }
   }
 
-  public static void drawNum(int num, float lx, float y, float s,
+  public static void drawNum(mat4 view, int num, float lx, float y, float s,
                              int cl = 0, int dg = 0,
                              int headChar = -1, int floatDigit = -1) {
     lx += LETTER_WIDTH * s / 2;
@@ -169,10 +170,10 @@ public class Letter {
     int fd = floatDigit;
     for (;;) {
       if (fd <= 0) {
-        drawLetter(n % 10, x, y, s, ld, cl);
+        drawLetter(view, n % 10, x, y, s, ld, cl);
         x -= s * LETTER_WIDTH;
       } else {
-        drawLetter(n % 10, x, y + s * LETTER_WIDTH * 0.25f, s * 0.5f, ld, cl);
+        drawLetter(view, n % 10, x, y + s * LETTER_WIDTH * 0.25f, s * 0.5f, ld, cl);
         x -= s * LETTER_WIDTH * 0.5f;
       }
       n /= 10;
@@ -181,16 +182,16 @@ public class Letter {
       if (n <= 0 && digit <= 0 && fd < 0)
         break;
       if (fd == 0) {
-        drawLetter(36, x, y + s * LETTER_WIDTH * 0.25f, s * 0.5f, ld, cl);
+        drawLetter(view, 36, x, y + s * LETTER_WIDTH * 0.25f, s * 0.5f, ld, cl);
         x -= s * LETTER_WIDTH * 0.5f;
       }
     }
     if (headChar >= 0)
-      drawLetter(headChar, x + s * LETTER_WIDTH * 0.2f, y + s * LETTER_WIDTH * 0.2f,
+      drawLetter(view, headChar, x + s * LETTER_WIDTH * 0.2f, y + s * LETTER_WIDTH * 0.2f,
                  s * 0.6f, ld, cl);
   }
 
-  public static void drawNumSign(int num, float lx, float ly, float s, int cl = 0,
+  public static void drawNumSign(mat4 view, int num, float lx, float ly, float s, int cl = 0,
                                  int headChar = -1, int floatDigit = -1) {
     float x = lx;
     float y = ly;
@@ -198,10 +199,10 @@ public class Letter {
     int fd = floatDigit;
     for (;;) {
       if (fd <= 0) {
-        drawLetterRev(n % 10, x, y, s, 0, cl);
+        drawLetterRev(view, n % 10, x, y, s, 0, cl);
         x -= s * LETTER_WIDTH;
       } else {
-        drawLetterRev(n % 10, x, y - s * LETTER_WIDTH * 0.25f, s * 0.5f, 0, cl);
+        drawLetterRev(view, n % 10, x, y - s * LETTER_WIDTH * 0.25f, s * 0.5f, 0, cl);
         x -= s * LETTER_WIDTH * 0.5f;
       }
       n /= 10;
@@ -209,35 +210,35 @@ public class Letter {
         break;
       fd--;
       if (fd == 0) {
-        drawLetterRev(36, x, y - s * LETTER_WIDTH * 0.25f, s * 0.5f, 0, cl);
+        drawLetterRev(view, 36, x, y - s * LETTER_WIDTH * 0.25f, s * 0.5f, 0, cl);
         x -= s * LETTER_WIDTH * 0.5f;
       }
     }
     if (headChar >= 0)
-      drawLetterRev(headChar, x + s * LETTER_WIDTH * 0.2f, y - s * LETTER_WIDTH * 0.2f,
+      drawLetterRev(view, headChar, x + s * LETTER_WIDTH * 0.2f, y - s * LETTER_WIDTH * 0.2f,
                     s * 0.6f, 0, cl);
   }
 
-  public static void drawTime(int time, float lx, float y, float s, int cl = 0) {
+  public static void drawTime(mat4 view, int time, float lx, float y, float s, int cl = 0) {
     int n = time;
     if (n < 0)
       n = 0;
     float x = lx;
     for (int i = 0; i < 7; i++) {
       if (i != 4) {
-        drawLetter(n % 10, x, y, s, Direction.TO_RIGHT, cl);
+        drawLetter(view, n % 10, x, y, s, Direction.TO_RIGHT, cl);
         n /= 10;
       } else {
-        drawLetter(n % 6, x, y, s, Direction.TO_RIGHT, cl);
+        drawLetter(view, n % 6, x, y, s, Direction.TO_RIGHT, cl);
         n /= 6;
       }
       if ((i & 1) == 1 || i == 0) {
         switch (i) {
         case 3:
-          drawLetter(41, x + s * 1.16f, y, s, Direction.TO_RIGHT, cl);
+          drawLetter(view, 41, x + s * 1.16f, y, s, Direction.TO_RIGHT, cl);
           break;
         case 5:
-          drawLetter(40, x + s * 1.16f, y, s, Direction.TO_RIGHT, cl);
+          drawLetter(view, 40, x + s * 1.16f, y, s, Direction.TO_RIGHT, cl);
           break;
         default:
           break;

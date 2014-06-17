@@ -77,7 +77,7 @@ public class Crystal: Actor {
     pos += vel;
   }
 
-  public override void draw() {
+  public override void draw(mat4 view) {
     float r = 0.25f;
     float d = cnt * 0.1f;
     if (cnt > PULLIN_COUNT)
@@ -85,7 +85,7 @@ public class Crystal: Actor {
     for (int i = 0; i < 4; i++) {
       glPushMatrix();
       glTranslatef(pos.x + sin(d) * r, pos.y + cos(d) * r, 0);
-      _shape.draw();
+      _shape.draw(view);
       glPopMatrix();
       d += PI / 2;
     }

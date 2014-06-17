@@ -83,7 +83,7 @@ public class Spark: LuminousActor {
     vel *= 0.96f;
   }
 
-  public override void draw() {
+  public override void draw(mat4 view) {
     float ox = vel.x;
     float oy = vel.y;
     Screen.setColor(r, g, b, 1);
@@ -97,7 +97,7 @@ public class Spark: LuminousActor {
     glVertex3f(pos.x + oy, pos.y - ox, 0);
   }
 
-  public override void drawLuminous() {
+  public override void drawLuminous(mat4 view) {
     float ox = vel.x;
     float oy = vel.y;
     Screen.setColor(r, g, b, 1);
@@ -334,7 +334,7 @@ public class Smoke: LuminousActor {
     }
   }
 
-  public override void draw() {
+  public override void draw(mat4 view) {
     float quadSize = size / 2;
     Screen.setColor(r, g, b, a);
     glVertex3f(pos.x - quadSize, pos.y - quadSize, pos.z);
@@ -343,7 +343,7 @@ public class Smoke: LuminousActor {
     glVertex3f(pos.x - quadSize, pos.y + quadSize, pos.z);
   }
 
-  public override void drawLuminous() {
+  public override void drawLuminous(mat4 view) {
     if (r + g > 0.8f && b < 0.5f) {
       float quadSize = size / 2;
       Screen.setColor(r, g, b, a);
@@ -467,7 +467,7 @@ public class Fragment: Actor {
     d2 += md2;
   }
 
-  public override void draw() {
+  public override void draw(mat4 view) {
     glPushMatrix();
     Screen.glTranslate(pos);
     glRotatef(d2, 1, 0, 0);
@@ -596,7 +596,7 @@ public class SparkFragment: LuminousActor {
     }
   }
 
-  public override void draw() {
+  public override void draw(mat4 view) {
     glPushMatrix();
     Screen.setColor(1, rand.nextFloat(1), 0, 0.8f);
     Screen.glTranslate(pos);
@@ -606,7 +606,7 @@ public class SparkFragment: LuminousActor {
     glPopMatrix();
   }
 
-  public override void drawLuminous() {
+  public override void drawLuminous(mat4 view) {
     glPushMatrix();
     Screen.setColor(1, rand.nextFloat(1), 0, 0.8f);
     Screen.glTranslate(pos);
@@ -688,7 +688,7 @@ public class Wake: Actor {
     size *= 1.02f;
   }
 
-  public override void draw() {
+  public override void draw(mat4 view) {
     float ox = vel.x;
     float oy = vel.y;
     Screen.setColor(0.33f, 0.33f, 1);

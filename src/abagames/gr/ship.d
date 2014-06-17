@@ -164,9 +164,9 @@ public class Ship {
       boat[i].destroyedBoat();
   }
 
-  public void draw() {
+  public void draw(mat4 view) {
     for (int i = 0; i < boatNum; i++)
-      boat[i].draw();
+      boat[i].draw(view);
     if ((gameMode == InGameState.GameMode.DOUBLE_PLAY ||
          gameMode == InGameState.GameMode.DOUBLE_PLAY_TOUCH) && boat[0].hasCollision) {
       Screen.setColor(0.5f, 0.5f, 0.9f, 0.8f);
@@ -180,18 +180,18 @@ public class Ship {
       glPushMatrix();
       Screen.glTranslate(midstPos);
       glRotatef(-degAmongBoats * 180 / PI, 0, 0, 1);
-      bridgeShape.draw();
+      bridgeShape.draw(view);
       glPopMatrix();
     }
   }
 
-  public void drawFront() {
+  public void drawFront(mat4 view) {
     for (int i = 0; i < boatNum; i++)
-      boat[i].drawFront();
+      boat[i].drawFront(view);
   }
 
-  public void drawShape() {
-    boat[0].drawShape();
+  public void drawShape(mat4 view) {
+    boat[0].drawShape(view);
   }
 
   public float scrollSpeedBase() {
@@ -1126,7 +1126,7 @@ public class Boat {
       return true;
   }
 
-  public void draw() {
+  public void draw(mat4 view) {
     if (cnt < -INVINCIBLE_CNT)
       return;
     if (fireDeg < 99999) {
@@ -1142,20 +1142,20 @@ public class Boat {
     glPushMatrix();
     Screen.glTranslate(pos);
     glRotatef(-deg * 180 / PI, 0, 0, 1);
-    _shape.draw();
-    bridgeShape.draw();
+    _shape.draw(view);
+    bridgeShape.draw(view);
     if (shieldCnt > 0) {
       float ss = 0.66f;
       if (shieldCnt < 120)
         ss *= cast(float) shieldCnt / 120;
       glScalef(ss, ss, ss);
       glRotatef(shieldCnt * 5, 0, 0, 1);
-      shieldShape.draw();
+      shieldShape.draw(view);
     }
     glPopMatrix();
   }
 
-  public void drawFront() {
+  public void drawFront(mat4 view) {
     if (cnt < -INVINCIBLE_CNT)
       return;
     if (gameMode == InGameState.GameMode.MOUSE) {
@@ -1192,9 +1192,9 @@ public class Boat {
     glEnd();
   }
 
-  public void drawShape() {
-    _shape.draw();
-    bridgeShape.draw();
+  public void drawShape(mat4 view) {
+    _shape.draw(view);
+    bridgeShape.draw(view);
   }
 
   public void clearBullets() {
