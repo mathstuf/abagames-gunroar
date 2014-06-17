@@ -1,3 +1,4 @@
+find_package(GL3N REQUIRED)
 find_package(Derelict REQUIRED
     COMPONENTS
         opengl3
