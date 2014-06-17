@@ -8,7 +8,7 @@ module abagames.util.sdl.accelerometer;
 private import std.stream;
 private import std.math;
 private import derelict.sdl2.sdl;
-private import abagames.util.vector;
+private import gl3n.linalg;
 private import abagames.util.sdl.input;
 private import abagames.util.sdl.recordableinput;
 
@@ -69,7 +69,7 @@ public class Accelerometer: Input {
 
 public class AccelerometerState {
  public:
-  Vector tilt;
+  vec2 tilt;
  private:
 
   invariant() {
@@ -86,7 +86,7 @@ public class AccelerometerState {
   }
 
   public this() {
-    tilt = new Vector;
+    tilt = vec2(0);
   }
 
   public this(AccelerometerState s) {

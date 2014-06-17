@@ -7,8 +7,9 @@ module abagames.gr.particle;
 
 private import std.math;
 private import derelict.opengl3.gl;
+private import gl3n.linalg;
 private import abagames.util.actor;
-private import abagames.util.vector;
+private import abagames.util.math;
 private import abagames.util.rand;
 private import abagames.util.sdl.luminous;
 private import abagames.util.sdl.displaylist;
@@ -21,8 +22,8 @@ private import abagames.gr.screen;
 public class Spark: LuminousActor {
  private:
   static Rand rand;
-  Vector pos, ppos;
-  Vector vel;
+  vec2 pos, ppos;
+  vec2 vel;
   float r, g, b;
   int cnt;
 
@@ -48,9 +49,9 @@ public class Spark: LuminousActor {
   }
 
   public this() {
-    pos = new Vector;
-    ppos = new Vector;
-    vel = new Vector;
+    pos = vec2(0);
+    ppos = vec2(0);
+    vel = vec2(0);
     r = g = b = 0;
     cnt = 0;
   }
@@ -58,7 +59,7 @@ public class Spark: LuminousActor {
   public override void init(Object[] args) {
   }
 
-  public void set(Vector p, float vx, float vy, float r, float g, float b, int c) {
+  public void set(vec2 p, float vx, float vy, float r, float g, float b, int c) {
     ppos.x = pos.x = p.x;
     ppos.y = pos.y = p.y;
     vel.x = vx;
@@ -72,7 +73,7 @@ public class Spark: LuminousActor {
 
   public override void move() {
     cnt--;
-    if (cnt <= 0 || vel.dist() < 0.005f) {
+    if (cnt <= 0 || vel.fastdist() < 0.005f) {
       exists = false;
       return;
     }
@@ -127,12 +128,12 @@ public class Smoke: LuminousActor {
   };
  private:
   static Rand rand;
-  static Vector3 windVel;
-  static Vector wakePos;
+  static vec3 windVel;
+  static vec2 wakePos;
   Field field;
   WakePool wakes;
-  Vector3 pos;
-  Vector3 vel;
+  vec3 pos;
+  vec3 vel;
   int type;
   int cnt, startCnt;
   float size;
@@ -161,8 +162,8 @@ public class Smoke: LuminousActor {
 
   public static this() {
     rand = new Rand;
-    wakePos = new Vector;
-    windVel = new Vector3(0.04f, 0.04f, 0.02f);
+    wakePos = vec2(0);
+    windVel = vec3(0.04f, 0.04f, 0.02f);
   }
 
   public static void setRandSeed(long seed) {
@@ -170,8 +171,8 @@ public class Smoke: LuminousActor {
   }
 
   public this() {
-    pos = new Vector3;
-    vel = new Vector3;
+    pos = vec3(0);
+    vel = vec3(0);
     type = 0;
     cnt = 0;
     startCnt = 1;
@@ -184,11 +185,11 @@ public class Smoke: LuminousActor {
     wakes = cast(WakePool) args[1];
   }
 
-  public void set(Vector p, float mx, float my, float mz, int t, int c = 60, float sz = 2) {
+  public void set(vec2 p, float mx, float my, float mz, int t, int c = 60, float sz = 2) {
     set(p.x, p.y, mx, my, mz, t, c, sz);
   }
 
-  public void set(Vector3 p, float mx, float my, float mz, int t, int c = 60, float sz = 2) {
+  public void set(vec3 p, float mx, float my, float mz, int t, int c = 60, float sz = 2) {
     set(p.x, p.y, mx, my, mz, t, c, sz);
     pos.z = p.z;
   }
@@ -369,8 +370,8 @@ public class Fragment: Actor {
   static Rand rand;
   Field field;
   SmokePool smokes;
-  Vector3 pos;
-  Vector3 vel;
+  vec3 pos;
+  vec3 vel;
   float size;
   float d2, md2;
 
@@ -416,8 +417,8 @@ public class Fragment: Actor {
   }
 
   public this() {
-    pos = new Vector3;
-    vel = new Vector3;
+    pos = vec3(0);
+    vel = vec3(0);
     size = 1;
     d2 = md2 = 0;
   }
@@ -427,7 +428,7 @@ public class Fragment: Actor {
     smokes = cast(SmokePool) args[1];
   }
 
-  public void set(Vector p, float mx, float my, float mz, float sz = 1) {
+  public void set(vec2 p, float mx, float my, float mz, float sz = 1) {
     if (!field.checkInOuterField(p.x, p.y))
       return;
     pos.x = p.x;
@@ -491,8 +492,8 @@ public class SparkFragment: LuminousActor {
   static Rand rand;
   Field field;
   SmokePool smokes;
-  Vector3 pos;
-  Vector3 vel;
+  vec3 pos;
+  vec3 vel;
   float size;
   float d2, md2;
   int cnt;
@@ -533,8 +534,8 @@ public class SparkFragment: LuminousActor {
   }
 
   public this() {
-    pos = new Vector3;
-    vel = new Vector3;
+    pos = vec3(0);
+    vel = vec3(0);
     size = 1;
     d2 = md2 = 0;
     cnt = 0;
@@ -545,7 +546,7 @@ public class SparkFragment: LuminousActor {
     smokes = cast(SmokePool) args[1];
   }
 
-  public void set(Vector p, float mx, float my, float mz, float sz = 1) {
+  public void set(vec2 p, float mx, float my, float mz, float sz = 1) {
     if (!field.checkInOuterField(p.x, p.y))
       return;
     pos.x = p.x;
@@ -628,8 +629,8 @@ public class SparkFragmentPool: LuminousActorPool!(SparkFragment) {
 public class Wake: Actor {
  private:
   Field field;
-  Vector pos;
-  Vector vel;
+  vec2 pos;
+  vec2 vel;
   float deg;
   float speed;
   float size;
@@ -648,8 +649,8 @@ public class Wake: Actor {
   }
 
   public this() {
-    pos = new Vector;
-    vel = new Vector;
+    pos = vec2(0);
+    vel = vec2(0);
     size = 1;
     deg = 0;
     speed = 0;
@@ -660,7 +661,7 @@ public class Wake: Actor {
     field = cast(Field) args[0];
   }
 
-  public void set(Vector p, float deg, float speed, int c = 60, float sz = 1, bool rs = false) {
+  public void set(vec2 p, float deg, float speed, int c = 60, float sz = 1, bool rs = false) {
     if (!field.checkInOuterField(p.x, p.y))
       return;
     pos.x = p.x;
@@ -677,7 +678,7 @@ public class Wake: Actor {
 
   public override void move() {
     cnt--;
-    if (cnt <= 0 || vel.dist() < 0.005f || !field.checkInOuterField(pos.x, pos.y)) {
+    if (cnt <= 0 || vel.fastdist() < 0.005f || !field.checkInOuterField(pos.x, pos.y)) {
       exists = false;
       return;
     }

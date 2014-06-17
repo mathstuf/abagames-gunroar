@@ -8,7 +8,7 @@ module abagames.gr.gamemanager;
 private import std.math;
 private import derelict.opengl3.gl;
 private import derelict.sdl2.sdl;
-private import abagames.util.vector;
+private import gl3n.linalg;
 private import abagames.util.rand;
 private import abagames.util.sdl.gamemanager;
 private import abagames.util.sdl.texture;
@@ -480,8 +480,8 @@ public class InGameState: GameState {
     _touchRadius = Touch.touchRadius();
     // TODO: Are these sensible values?
     float touchPos = 1.5 * _touchRadius;
-    _movementRegion = new CircularTouchRegion(new Vector(touchPos, 1.0 - touchPos), _touchRadius);
-    _fireRegion = new CircularTouchRegion(new Vector(1.0 - touchPos, 1.0 - touchPos), _touchRadius);
+    _movementRegion = new CircularTouchRegion(vec2(touchPos, 1.0 - touchPos), _touchRadius);
+    _fireRegion = new CircularTouchRegion(vec2(1.0 - touchPos, 1.0 - touchPos), _touchRadius);
   }
 
   public override void start() {

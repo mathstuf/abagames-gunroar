@@ -6,7 +6,7 @@
 module abagames.util.sdl.shape;
 
 private import derelict.opengl3.gl;
-private import abagames.util.vector;
+private import gl3n.linalg;
 private import abagames.util.sdl.displaylist;
 
 /**
@@ -20,7 +20,7 @@ public interface Drawable {
  * Interface and implmentation for a shape that has a collision.
  */
 public interface Collidable {
-  public Vector collision();
+  public vec2 collision();
   public bool checkCollision(float ax, float ay, Collidable shape = null);
 }
 
@@ -71,7 +71,7 @@ public abstract class DrawableShape: Drawable {
  */
 public abstract class CollidableDrawable: DrawableShape, Collidable {
   mixin CollidableImpl;
-  protected Vector _collision;
+  protected vec2 _collision;
  private:
 
   public this() {
@@ -81,7 +81,7 @@ public abstract class CollidableDrawable: DrawableShape, Collidable {
 
   protected abstract void setCollision();
 
-  public Vector collision() {
+  public vec2 collision() {
     return _collision;
   }
 }
@@ -94,7 +94,7 @@ public class ResizableDrawable: Drawable, Collidable {
  private:
   Drawable _shape;
   float _size;
-  Vector _collision;
+  vec2 _collision;
 
   public void draw() {
     glScalef(_size, _size, _size);
@@ -102,7 +102,7 @@ public class ResizableDrawable: Drawable, Collidable {
   }
 
   public Drawable shape(Drawable v) {
-    _collision = new Vector;
+    _collision = vec2(0);
     return _shape = v;
   }
 
@@ -118,14 +118,14 @@ public class ResizableDrawable: Drawable, Collidable {
     return _size;
   }
 
-  public Vector collision() {
+  public vec2 collision() {
     Collidable cd = cast(Collidable) _shape;
     if (cd) {
       _collision.x = cd.collision.x * _size;
       _collision.y = cd.collision.y * _size;
       return _collision;
     } else {
-      return null;
+      return vec2(0);
     }
   }
 }

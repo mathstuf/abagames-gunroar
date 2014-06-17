@@ -7,8 +7,8 @@ module abagames.gr.reel;
 
 private import std.math;
 private import derelict.opengl3.gl;
+private import gl3n.linalg;
 private import abagames.util.math;
-private import abagames.util.vector;
 private import abagames.util.actor;
 private import abagames.util.rand;
 private import abagames.gr.letter;
@@ -190,7 +190,7 @@ public class NumIndicator: Actor {
   static const float TARGET_Y_INTERVAL = 1;
   static float targetY;
   struct Target {
-    Vector pos;
+    vec2 pos;
     int flyingTo;
     float initialVelRatio;
     float size;
@@ -198,7 +198,7 @@ public class NumIndicator: Actor {
     int cnt;
   };
   ScoreReel scoreReel;
-  Vector pos, vel;
+  vec2 pos, vel;
   int n, type;
   float size;
   int cnt;
@@ -252,10 +252,10 @@ public class NumIndicator: Actor {
   }
 
   public this() {
-    pos = new Vector;
-    vel = new Vector;
+    pos = vec2(0);
+    vel = vec2(0);
     foreach (ref Target t; target) {
-      t.pos = new Vector;
+      t.pos = vec2(0);
       t.initialVelRatio = 0;
       t.size = 0;
     }
@@ -267,7 +267,7 @@ public class NumIndicator: Actor {
     scoreReel = cast(ScoreReel) args[0];
   }
 
-  public void set(int n, IndicatorType type, float size, Vector p) {
+  public void set(int n, IndicatorType type, float size, vec2 p) {
     set(n, type, size, p.x, p.y);
   }
 
@@ -330,7 +330,7 @@ public class NumIndicator: Actor {
   public override void move() {
     if (targetIdx < 0)
       return;
-    Vector tp = target[targetIdx].pos;
+    vec2 tp = target[targetIdx].pos;
     switch (target[targetIdx].flyingTo) {
     case FlyingToType.RIGHT:
       vel.x += (tp.x - pos.x) * 0.0036f;

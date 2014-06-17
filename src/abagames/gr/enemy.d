@@ -7,7 +7,7 @@ module abagames.gr.enemy;
 
 private import std.math;
 private import derelict.opengl3.gl;
-private import abagames.util.vector;
+private import gl3n.linalg;
 private import abagames.util.actor;
 private import abagames.util.rand;
 private import abagames.util.math;
@@ -61,7 +61,7 @@ public class Enemy: Actor {
       remove();
   }
 
-  public void checkShotHit(Vector p, Collidable shape, Shot shot) {
+  public void checkShotHit(vec2 p, Collidable shape, Shot shot) {
     if (_state.destroyedCnt >= 0)
       return;
     if (spec.checkCollision(_state, p.x, p.y, shape, shot)) {
@@ -99,7 +99,7 @@ public class Enemy: Actor {
     return _state;
   }
 
-  public Vector pos() {
+  public vec2 pos() {
     return _state.pos;
   }
 
@@ -128,8 +128,8 @@ public class EnemyState {
   static const int MOVING_TURRET_GROUP_MAX = 4;
   static const float MULTIPLIER_DECREASE_RATIO = 0.005f;
   int appType;
-  Vector pos;
-  Vector ppos;
+  vec2 pos;
+  vec2 ppos;
   int shield;
   float deg;
   float velDeg;
@@ -139,7 +139,7 @@ public class EnemyState {
   int turnCnt;
   int state;
   int cnt;
-  Vector vel;
+  vec2 vel;
   TurretGroup[TURRET_GROUP_MAX] turretGroup;
   MovingTurretGroup[MOVING_TURRET_GROUP_MAX] movingTurretGroup;
   bool damaged;
@@ -151,7 +151,7 @@ public class EnemyState {
   EnemySpec spec;
  private:
   static Rand rand;
-  static Vector edgePos, explodeVel, damagedPos;
+  static vec2 edgePos, explodeVel, damagedPos;
   static int idxCount = 0;
   Field field;
   Screen screen;
@@ -193,9 +193,9 @@ public class EnemyState {
 
   public static this() {
     rand = new Rand;
-    edgePos = new Vector;
-    explodeVel = new Vector;
-    damagedPos = new Vector;
+    edgePos = vec2(0);
+    explodeVel = vec2(0);
+    damagedPos = vec2(0);
   }
 
   public static void setRandSeed(long seed) {
@@ -218,9 +218,9 @@ public class EnemyState {
     this.sparkFragments = sparkFragments;
     this.numIndicators = numIndicators;
     this.scoreReel = scoreReel;
-    pos = new Vector;
-    ppos = new Vector;
-    vel = new Vector;
+    pos = vec2(0);
+    ppos = vec2(0);
+    vel = vec2(0);
     deg = velDeg = speed = 0;
     turnWay = 1;
     explodeItv = 1;
@@ -481,7 +481,7 @@ public class EnemyState {
     int sn = n;
     if (sn > 48)
       sn = 48;
-    Vector[] spp = (cast(BaseShape) spec.shape.shape).pointPos;
+    vec2[] spp = (cast(BaseShape) spec.shape.shape).pointPos;
     float[] spd = (cast(BaseShape)spec.shape.shape).pointDeg;
     int si = rand.nextInt(spp.length);
     edgePos.x = spp[si].x * spec.size + pos.x;
@@ -946,8 +946,8 @@ public class SmallShipEnemySpec: EnemySpec, HasAppearType {
         es.pos.y += cos(es.velDeg) * es.speed * 2;
       }
       float ad;
-      Vector shipPos = ship.nearPos(es.pos);
-      if (shipPos.dist(es.pos) < 0.1f)
+      vec2 shipPos = ship.nearPos(es.pos);
+      if (shipPos.fastdist(es.pos) < 0.1f)
         ad = 0;
       else
         ad = atan2(shipPos.x - es.pos.x, shipPos.y - es.pos.y);
@@ -1425,7 +1425,7 @@ public class EnemyPool: ActorPool!(Enemy) {
       e.setStageManager(stageManager);
   }
 
-  public void checkShotHit(Vector pos, Collidable shape, Shot shot = null) {
+  public void checkShotHit(vec2 pos, Collidable shape, Shot shot = null) {
     foreach (Enemy e; actor)
       if (e.exists)
         e.checkShotHit(pos, shape, shot);

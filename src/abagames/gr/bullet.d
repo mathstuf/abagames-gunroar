@@ -8,8 +8,8 @@ module abagames.gr.bullet;
 private import std.math;
 private import std.c.stdarg;
 private import derelict.opengl3.gl;
+private import gl3n.linalg;
 private import abagames.util.actor;
-private import abagames.util.vector;
 private import abagames.util.math;
 private import abagames.util.sdl.shape;
 private import abagames.gr.gamemanager;
@@ -33,8 +33,8 @@ public class Bullet: Actor {
   SmokePool smokes;
   WakePool wakes;
   CrystalPool crystals;
-  Vector pos;
-  Vector ppos;
+  vec2 pos;
+  vec2 ppos;
   float deg, speed;
   float trgDeg, trgSpeed;
   float size;
@@ -58,8 +58,8 @@ public class Bullet: Actor {
   }
 
   public this() {
-    pos = new Vector;
-    ppos = new Vector;
+    pos = vec2(0);
+    ppos = vec2(0);
     shape = new BulletShape;
     deg = trgDeg = 0;
     speed = trgSpeed = 1;
@@ -77,7 +77,7 @@ public class Bullet: Actor {
   }
 
   public void set(int enemyIdx,
-                  Vector p, float deg,
+                  vec2 p, float deg,
                   float speed, float size, int shapeType, float range,
                   float startSpeed = 0, float startDeg = -99999,
                   bool destructive = false) {
@@ -172,7 +172,7 @@ public class Bullet: Actor {
     glPopMatrix();
   }
 
-  public void checkShotHit(Vector p, Collidable s, Shot shot) {
+  public void checkShotHit(vec2 p, Collidable s, Shot shot) {
     float ox = fabs(pos.x - p.x), oy = fabs(pos.y - p.y);
     if (ox + oy < 0.5f) {
     //if (shape.checkCollision(ox, oy, s)) {
@@ -210,7 +210,7 @@ public class BulletPool: ActorPool!(Bullet) {
     return n;
   }
 
-  public void checkShotHit(Vector pos, Collidable shape, Shot shot) {
+  public void checkShotHit(vec2 pos, Collidable shape, Shot shot) {
     foreach (Bullet b; actor)
       if (b.exists && b.destructive)
         b.checkShotHit(pos, shape, shot);

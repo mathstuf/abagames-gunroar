@@ -9,7 +9,7 @@ private import std.string;
 private import std.stream;
 private import std.math;
 private import derelict.sdl2.sdl;
-private import abagames.util.vector;
+private import gl3n.linalg;
 private import abagames.util.sdl.input;
 private import abagames.util.sdl.recordableinput;
 
@@ -113,7 +113,7 @@ public class TwinStick: Input {
 
 public class TwinStickState {
  public:
-  Vector left, right;
+  vec2 left, right;
  private:
 
   invariant() {
@@ -132,8 +132,8 @@ public class TwinStickState {
   }
 
   public this() {
-    left = new Vector;
-    right = new Vector;
+    left = vec2(0);
+    right = vec2(0);
   }
 
   public this(TwinStickState s) {

@@ -7,7 +7,7 @@ module abagames.gr.turret;
 
 private import std.math;
 private import derelict.opengl3.gl;
-private import abagames.util.vector;
+private import gl3n.linalg;
 private import abagames.util.actor;
 private import abagames.util.rand;
 private import abagames.util.math;
@@ -28,7 +28,7 @@ private import abagames.gr.soundmanager;
 public class Turret {
  private:
   static Rand rand;
-  static Vector damagedPos;
+  static vec2 damagedPos;
   Field field;
   BulletPool bullets;
   Ship ship;
@@ -36,7 +36,7 @@ public class Turret {
   SmokePool smokes;
   FragmentPool fragments;
   TurretSpec spec;
-  Vector pos;
+  vec2 pos;
   float deg, baseDeg;
   int cnt;
   int appCnt;
@@ -59,7 +59,7 @@ public class Turret {
 
   public static void init() {
     rand = new Rand;
-    damagedPos = new Vector;
+    damagedPos = vec2(0);
   }
 
   public static void setRandSeed(long seed) {
@@ -76,7 +76,7 @@ public class Turret {
     this.smokes = smokes;
     this.fragments = fragments;
     this.parent = parent;
-    pos = new Vector;
+    pos = vec2(0);
     deg = baseDeg = 0;
     bulletSpeed = 1;
   }
@@ -108,12 +108,12 @@ public class Turret {
       return false;
     }
     float td = baseDeg + deg;
-    Vector shipPos = ship.nearPos(pos);
-    Vector shipVel = ship.nearVel(pos);
+    vec2 shipPos = ship.nearPos(pos);
+    vec2 shipVel = ship.nearVel(pos);
     float ax = shipPos.x - pos.x;
     float ay = shipPos.y - pos.y;
     if (spec.lookAheadRatio != 0) {
-      float rd = pos.dist(shipPos) / spec.speed * 1.2f;
+      float rd = pos.fastdist(shipPos) / spec.speed * 1.2f;
       ax += shipVel.x * spec.lookAheadRatio * rd;
       ay += shipVel.y * spec.lookAheadRatio * rd;
     }
@@ -146,8 +146,8 @@ public class Turret {
       appCnt++;
     if (cnt >= spec.interval) {
       if (spec.blind || (fabs(od) <= spec.turnSpeed &&
-                         pos.dist(shipPos) < spec.maxRange * 1.1f &&
-                         pos.dist(shipPos) > spec.minRange)) {
+                         pos.fastdist(shipPos) < spec.maxRange * 1.1f &&
+                         pos.fastdist(shipPos) > spec.minRange)) {
         cnt = -(spec.burstNum - 1) * spec.burstInterval;
         bulletSpeed = spec.speed;
         burstCnt = 0;
@@ -157,7 +157,7 @@ public class Turret {
         ((spec.invisible && field.checkInField(pos)) ||
          (spec.invisible && parent.isBoss && field.checkInOuterField(pos)) ||
          (!spec.invisible && field.checkInFieldExceptTop(pos))) &&
-        pos.dist(shipPos) > spec.minRange) {
+        pos.fastdist(shipPos) > spec.minRange) {
       float bd = baseDeg + deg;
       Smoke s = smokes.getInstance();
       if (s)
@@ -599,7 +599,7 @@ public class TurretGroup {
   SmokePool smokes;
   FragmentPool fragments;
   TurretGroupSpec spec;
-  Vector centerPos;
+  vec2 centerPos;
   Turret[MAX_NUM] turret;
   int cnt;
 
@@ -612,7 +612,7 @@ public class TurretGroup {
               SparkPool sparks, SmokePool smokes, FragmentPool fragments,
               Enemy parent) {
     this.ship = ship;
-    centerPos = new Vector;
+    centerPos = vec2(0);
     foreach (ref Turret t; turret)
       t = new Turret(field, bullets, ship, sparks, smokes, fragments, parent);
   }
@@ -624,7 +624,7 @@ public class TurretGroup {
     cnt = 0;
   }
 
-  public bool move(Vector p, float deg) {
+  public bool move(vec2 p, float deg) {
     bool alive = false;
     centerPos.x = p.x;
     centerPos.y = p.y;
@@ -704,7 +704,7 @@ public class TurretGroupSpec {
   float alignWidth;
   float radius;
   float distRatio;
-  Vector offset;
+  vec2 offset;
 
   invariant() {
     assert(num >= 1 && num < 20);
@@ -718,7 +718,7 @@ public class TurretGroupSpec {
 
   public this() {
     turretSpec = new TurretSpec;
-    offset = new Vector;
+    offset = vec2(0);
     num = 1;
     alignDeg = alignWidth = 0;
     radius = 0;
@@ -752,7 +752,7 @@ public class MovingTurretGroup {
   float distDeg;
   float distAmpCnt;
   int cnt;
-  Vector centerPos;
+  vec2 centerPos;
   Turret[MAX_NUM] turret;
 
   invariant() {
@@ -774,7 +774,7 @@ public class MovingTurretGroup {
               SparkPool sparks, SmokePool smokes, FragmentPool fragments,
               Enemy parent) {
     this.ship = ship;
-    centerPos = new Vector;
+    centerPos = vec2(0);
     foreach (ref Turret t; turret)
       t = new Turret(field, bullets, ship, sparks, smokes, fragments, parent);
     radius = radiusAmpCnt = 0;
@@ -796,7 +796,7 @@ public class MovingTurretGroup {
     cnt = 0;
   }
 
-  public void move(Vector p, float ed) {
+  public void move(vec2 p, float ed) {
     if (spec.moveType == MovingTurretGroupSpec.MoveType.SWING_FIX)
       swingFixDeg = ed;
     centerPos.x = p.x;
@@ -823,8 +823,8 @@ public class MovingTurretGroup {
       }
       if (spec.moveType == MovingTurretGroupSpec.MoveType.SWING_AIM) {
         float od;
-        Vector shipPos = ship.nearPos(centerPos);
-        if (shipPos.dist(centerPos) < 0.1f)
+        vec2 shipPos = ship.nearPos(centerPos);
+        if (shipPos.fastdist(centerPos) < 0.1f)
           od = 0;
         else
           od = atan2(shipPos.x - centerPos.x, shipPos.y - centerPos.y);

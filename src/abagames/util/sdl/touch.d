@@ -7,9 +7,10 @@ module abagames.util.sdl.touch;
 
 private import std.stream;
 private import derelict.sdl2.sdl;
-private import abagames.util.vector;
+private import gl3n.linalg;
 private import abagames.util.sdl.input;
 private import abagames.util.sdl.recordableinput;
+private import abagames.util.math;
 
 /**
  * Touch input.
@@ -74,7 +75,7 @@ public class Touch: Input {
 
 public class FingerState {
  public:
-  Vector position;
+  vec2 position;
   TouchVector normPosition;
   int active;
   long id;
@@ -86,7 +87,7 @@ public class FingerState {
   }
 
   public this() {
-    position = new Vector(0, 0);
+    position = vec2(0, 0);
     active = false;
   }
 
@@ -127,7 +128,7 @@ public class FingerState {
 
 public interface TouchRegion {
   public bool contains(TouchVector position);
-  public Vector center();
+  public vec2 center();
 }
 
 public class InvertedTouchRegion {
@@ -142,7 +143,7 @@ public class InvertedTouchRegion {
     return !ignore.contains(position);
   }
 
-  public Vector center() {
+  public vec2 center() {
     return ignore.center();
   }
 }
@@ -152,17 +153,17 @@ public class CircularTouchRegion: TouchRegion {
   TouchVector center_;
   float radius;
 
-  public this(Vector center_, float radius) {
+  public this(vec2 center_, float radius) {
     this.center_ = new TouchVector(center_);
     this.radius = radius;
   }
 
   public bool contains(TouchVector position) {
-    return center_.dist(position) <= radius;
+    return center_.vec.fastdist(position.vec) <= radius;
   }
 
-  public Vector center() {
-    return center_;
+  public vec2 center() {
+    return center_.vec;
   }
 }
 
@@ -171,8 +172,8 @@ public class EntireScreenRegion: TouchRegion {
     return true;
   }
 
-  public Vector center() {
-    return new Vector(0.5, 0.5);
+  public vec2 center() {
+    return vec2(0.5, 0.5);
   }
 }
 
@@ -180,7 +181,9 @@ public class EntireScreenRegion: TouchRegion {
 // (in physical space) as the 'x' axis. This is required since SDL uses a 0..1
 // scale for each axis and testing whether a region is used should be based on
 // what the user actually sees.
-public class TouchVector: Vector {
+public class TouchVector {
+ public:
+   vec2 vec;
  private:
   static float aspect = 0.0;
 
@@ -195,16 +198,16 @@ public class TouchVector: Vector {
 
   public this(float x, float y) {
     init();
-    super(x, y * aspect);
+    vec = vec2(x, y * aspect);
   }
 
-  public this(Vector input) {
+  public this(vec2 input) {
     init();
-    super(input.x, input.y * aspect);
+    vec = vec2(input.x, input.y * aspect);
   }
 
-  public Vector normalized() {
-    return new Vector(x, y / aspect);
+  public vec2 touchNormalized() {
+    return vec2(vec.x, vec.y / aspect);
   }
 }
 
@@ -266,16 +269,16 @@ public class TouchState {
   }
 
   // Utility methods
-  public Vector getPrimaryTouch(TouchRegion region) {
+  public vec2 getPrimaryTouch(TouchRegion region) {
     foreach (FingerState f; fingers) {
       if (f.active && region.contains(f.normPosition)) {
         return f.position;
       }
     }
-    return new Vector;
+    return vec2(0);
   }
 
-  public Vector getSecondaryTouch(TouchRegion region, TouchRegion[] ignores, uint ignoreCount) {
+  public vec2 getSecondaryTouch(TouchRegion region, TouchRegion[] ignores, uint ignoreCount) {
     foreach (FingerState f; fingers) {
       if (f.active && region.contains(f.normPosition)) {
         if (ignoreCount) {
@@ -290,7 +293,7 @@ public class TouchState {
         return f.position;
       }
     }
-    return new Vector;
+    return vec2(0);
   }
 }
 

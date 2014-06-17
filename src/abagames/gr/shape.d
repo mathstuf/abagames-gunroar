@@ -7,7 +7,7 @@ module abagames.gr.shape;
 
 private import std.math;
 private import derelict.opengl3.gl;
-private import abagames.util.vector;
+private import gl3n.linalg;
 private import abagames.util.rand;
 private import abagames.util.sdl.shape;
 private import abagames.gr.screen;
@@ -27,13 +27,13 @@ public class BaseShape: DrawableShape {
  private:
   static const int POINT_NUM = 16;
   static Rand rand;
-  static Vector wakePos;
+  static vec2 wakePos;
   float size, distRatio, spinyRatio;
   int type;
   float r, g, b;
   static const int PILLAR_POINT_NUM = 8;
-  Vector[] pillarPos;
-  Vector[] _pointPos;
+  vec2[] pillarPos;
+  vec2[] _pointPos;
   float[] _pointDeg;
 
   invariant() {
@@ -46,11 +46,11 @@ public class BaseShape: DrawableShape {
     assert(r >= 0 && r <= 1);
     assert(g >= 0 && g <= 1);
     assert(b >= 0 && b <= 1);
-    foreach (const(Vector) p; pillarPos) {
+    foreach (const(vec2) p; pillarPos) {
       assert(p.x < 20 && p.x > -20);
       assert(p.y < 20 && p.x > -20);
     }
-    foreach (const(Vector) p; _pointPos) {
+    foreach (const(vec2) p; _pointPos) {
       assert(p.x < 20 && p.x > -20);
       assert(p.y < 20 && p.x > -20);
     }
@@ -60,7 +60,7 @@ public class BaseShape: DrawableShape {
 
   public static this() {
     rand = new Rand;
-    wakePos = new Vector;
+    wakePos = vec2(0);
   }
 
   public static void setRandSeed(long seed) {
@@ -122,7 +122,7 @@ public class BaseShape: DrawableShape {
       Screen.setColor(r * 0.4f, g * 0.4f, b * 0.4f);
       for (int i = 0; i < 3; i++) {
         z -= height / 3;
-        foreach (Vector pp; pillarPos) {
+        foreach (vec2 pp; pillarPos) {
           glBegin(GL_LINE_LOOP);
           createPillar(pp, size * 0.2f, z);
           glEnd();
@@ -195,8 +195,8 @@ public class BaseShape: DrawableShape {
       if (record) {
         if (i == POINT_NUM / 8 || i == POINT_NUM / 8 * 3 ||
             i == POINT_NUM / 8 * 5 || i == POINT_NUM / 8 * 7)
-          pillarPos ~= new Vector(px * 0.8f, py * 0.8f);
-        _pointPos ~= new Vector(px, py);
+          pillarPos ~= vec2(px * 0.8f, py * 0.8f);
+        _pointPos ~= vec2(px, py);
         _pointDeg ~= d;
       }
     }
@@ -221,7 +221,7 @@ public class BaseShape: DrawableShape {
     }
   }
 
-  private void createPillar(Vector p, float s, float z) {
+  private void createPillar(vec2 p, float s, float z) {
     float d;
     for (int i = 0; i < PILLAR_POINT_NUM; i++) {
       d = PI * 2 * i / PILLAR_POINT_NUM;
@@ -229,7 +229,7 @@ public class BaseShape: DrawableShape {
     }
   }
 
-  public void addWake(WakePool wakes, Vector pos, float deg, float spd, float sr = 1) {
+  public void addWake(WakePool wakes, vec2 pos, float deg, float spd, float sr = 1) {
     float sp = spd;
     if (sp > 0.1f)
       sp = 0.1f;
@@ -246,7 +246,7 @@ public class BaseShape: DrawableShape {
     w.set(wakePos, deg + PI + 0.2f + rand.nextSignedFloat(0.1f), sp, 40, sz * 32 * sr);
   }
 
-  public Vector[] pointPos() {
+  public vec2[] pointPos() {
     return _pointPos;
   }
 
@@ -284,16 +284,16 @@ public class BaseShape: DrawableShape {
 public class CollidableBaseShape: BaseShape, Collidable {
   mixin CollidableImpl;
  private:
-  Vector _collision;
+  vec2 _collision;
 
   public this(float size, float distRatio, float spinyRatio,
               int type,
               float r, float g, float b) {
     super(size, distRatio, spinyRatio, type, r, g, b);
-    _collision = new Vector(size / 2, size / 2);
+    _collision = vec2(size / 2, size / 2);
   }
 
-  public Vector collision() {
+  public vec2 collision() {
     return _collision;
   }
 }
@@ -367,7 +367,7 @@ public class EnemyShape: ResizableDrawable {
     shape = shapes[t];
   }
 
-  public void addWake(WakePool wakes, Vector pos, float deg, float sp) {
+  public void addWake(WakePool wakes, vec2 pos, float deg, float sp) {
     (cast(BaseShape) shape).addWake(wakes, pos, deg, sp, size);
   }
 
@@ -485,7 +485,7 @@ public class MovingTurretBulletShape: DrawableShape {
 public class DestructiveBulletShape: DrawableShape, Collidable {
   mixin CollidableImpl;
  private:
-  Vector _collision;
+  vec2 _collision;
 
   public override void createDisplayList() {
     glDisable(GL_BLEND);
@@ -504,10 +504,10 @@ public class DestructiveBulletShape: DrawableShape, Collidable {
     glVertex3f(-0.2f, 0, 0);
     glVertex3f(0, -0.4f, 0);
     glEnd();
-    _collision = new Vector(0.4f, 0.4f);
+    _collision = vec2(0.4f, 0.4f);
   }
 
-  public Vector collision() {
+  public vec2 collision() {
     return _collision;
   }
 }

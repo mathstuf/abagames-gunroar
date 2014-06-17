@@ -10,7 +10,7 @@ private import std.conv;
 private import std.string;
 private import derelict.sdl2.sdl;
 private import derelict.opengl3.gl;
-private import abagames.util.vector;
+private import gl3n.linalg;
 private import abagames.util.sdl.screen;
 private import abagames.util.sdl.sdlexception;
 
@@ -144,19 +144,19 @@ public class Screen3D: Screen, SizableScreen {
     return _height;
   }
 
-  public static void glVertex(Vector v) {
+  public static void glVertex(vec2 v) {
     glVertex3f(v.x, v.y, 0);
   }
 
-  public static void glVertex(Vector3 v) {
+  public static void glVertex(vec3 v) {
     glVertex3f(v.x, v.y, v.z);
   }
 
-  public static void glTranslate(Vector v) {
+  public static void glTranslate(vec2 v) {
     glTranslatef(v.x, v.y, 0);
   }
 
-  public static void glTranslate(Vector3 v) {
+  public static void glTranslate(vec3 v) {
     glTranslatef(v.x, v.y, v.z);
   }
 

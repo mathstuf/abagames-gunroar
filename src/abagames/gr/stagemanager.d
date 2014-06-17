@@ -7,7 +7,7 @@ module abagames.gr.stagemanager;
 
 private import std.string;
 private import std.math;
-private import abagames.util.vector;
+private import gl3n.linalg;
 private import abagames.util.rand;
 private import abagames.util.sdl.shape;
 private import abagames.gr.enemy;
@@ -257,7 +257,7 @@ public class StageManager {
         break;
       platformPos[ppi].used = true;
       ppn--;
-      Vector p = field.convertToScreenPos
+      vec2 p = field.convertToScreenPos
         (cast(int) platformPos[ppi].pos.x, cast(int) platformPos[ppi].pos.y);
       if (!platformEnemySpec.setFirstState(en.state, p.x, p.y, platformPos[ppi].deg))
         continue;

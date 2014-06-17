@@ -26,6 +26,7 @@ add_library(gr STATIC
 target_link_libraries(gr
     gr_util
     gr_util_sdl
+    gl3n
     Derelict::opengl3
     Derelict::sdl2
     Derelict::util)

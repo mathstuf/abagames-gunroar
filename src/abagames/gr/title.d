@@ -8,7 +8,6 @@ module abagames.gr.title;
 private import std.math;
 private import derelict.sdl2.sdl;
 private import derelict.opengl3.gl;
-private import abagames.util.vector;
 private import abagames.util.sdl.displaylist;
 private import abagames.util.sdl.texture;
 private import abagames.util.sdl.pad;

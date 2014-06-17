@@ -8,8 +8,8 @@ module abagames.gr.shot;
 private import std.math;
 private import std.string;
 private import derelict.opengl3.gl;
+private import gl3n.linalg;
 private import abagames.util.actor;
-private import abagames.util.vector;
 private import abagames.util.rand;
 private import abagames.util.sdl.shape;
 private import abagames.gr.field;
@@ -35,7 +35,7 @@ public class Shot: Actor {
   SparkPool sparks;
   SmokePool smokes;
   BulletPool bullets;
-  Vector pos;
+  vec2 pos;
   int cnt;
   int hitCnt;
   float _deg;
@@ -66,7 +66,7 @@ public class Shot: Actor {
   }
 
   public this() {
-    pos = new Vector;
+    pos = vec2(0);
     cnt = hitCnt = 0;
     _deg = 0;
     _damage = 1;
@@ -81,7 +81,7 @@ public class Shot: Actor {
     bullets = cast(BulletPool) args[4];
   }
 
-  public void set(Vector p, float d, bool lance = false, int dmg = -1) {
+  public void set(vec2 p, float d, bool lance = false, int dmg = -1) {
     pos.x = p.x;
     pos.y = p.y;
     cnt = hitCnt = 0;
@@ -272,20 +272,20 @@ public class ShotShape: CollidableDrawable {
   }
 
   protected override void setCollision() {
-    _collision = new Vector(0.33f, 0.33f);
+    _collision = vec2(0.33f, 0.33f);
   }
 }
 
 public class LanceShape: Collidable {
   mixin CollidableImpl;
  private:
-  Vector _collision;
+  vec2 _collision;
 
   public this() {
-    _collision = new Vector(0.66f, 0.66f);
+    _collision = vec2(0.66f, 0.66f);
   }
 
-  public Vector collision() {
+  public vec2 collision() {
     return _collision;
   }
 }

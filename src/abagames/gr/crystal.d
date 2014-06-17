@@ -7,8 +7,9 @@ module abagames.gr.crystal;
 
 private import std.math;
 private import derelict.opengl3.gl;
+private import gl3n.linalg;
 private import abagames.util.actor;
-private import abagames.util.vector;
+private import abagames.util.math;
 private import abagames.gr.ship;
 private import abagames.gr.screen;
 private import abagames.gr.shape;
@@ -22,8 +23,8 @@ public class Crystal: Actor {
   static const int PULLIN_COUNT = cast(int) (COUNT * 0.8f);
   static CrystalShape _shape;
   Ship ship;
-  Vector pos;
-  Vector vel;
+  vec2 pos;
+  vec2 vel;
   int cnt;
 
   invariant() {
@@ -42,15 +43,15 @@ public class Crystal: Actor {
   }
 
   public this() {
-    pos = new Vector;
-    vel = new Vector;
+    pos = vec2(0);
+    vel = vec2(0);
   }
 
   public override void init(Object[] args) {
     ship = cast(Ship) args[0];
   }
 
-  public void set(Vector p) {
+  public void set(vec2 p) {
     pos.x = p.x;
     pos.y = p.y;
     cnt = COUNT;
@@ -61,7 +62,7 @@ public class Crystal: Actor {
 
   public override void move() {
     cnt--;
-    float dist = pos.dist(ship.midstPos);
+    float dist = pos.fastdist(ship.midstPos);
     if (dist < 0.1f)
       dist = 0.1f;
     if (cnt < PULLIN_COUNT) {

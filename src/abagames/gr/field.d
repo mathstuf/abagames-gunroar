@@ -7,7 +7,7 @@ module abagames.gr.field;
 
 private import derelict.opengl3.gl;
 private import std.math;
-private import abagames.util.vector;
+private import gl3n.linalg;
 private import abagames.util.rand;
 private import abagames.util.math;
 private import abagames.gr.screen;
@@ -15,7 +15,7 @@ private import abagames.gr.stagemanager;
 private import abagames.gr.ship;
 
 public struct PlatformPos {
-  Vector pos;
+  vec2 pos;
   float deg;
   bool used;
 };
@@ -38,7 +38,7 @@ public class Field {
   StageManager stageManager;
   Ship ship;
   Rand rand;
-  Vector _size, _outerSize;
+  vec2 _size, _outerSize;
   const int SCREEN_BLOCK_SIZE_X = 20;
   const int SCREEN_BLOCK_SIZE_Y = 24;
   const float BLOCK_WIDTH = 1;
@@ -54,7 +54,7 @@ public class Field {
   int nextBlockY;
   float screenY, blockCreateCnt;
   float _lastScrollY;
-  Vector screenPos;
+  vec2 screenPos;
   PlatformPos[SCREEN_BLOCK_SIZE_X * NEXT_BLOCK_AREA_SIZE] platformPos;
   int platformPosNum;
   float[3][6][TIME_COLOR_INDEX] baseColorTime = [
@@ -82,11 +82,11 @@ public class Field {
 
   public this() {
     rand = new Rand();
-    _size = new Vector(SCREEN_BLOCK_SIZE_X / 2 * 0.9f, SCREEN_BLOCK_SIZE_Y / 2 * 0.8f);
-    _outerSize = new Vector(SCREEN_BLOCK_SIZE_X / 2, SCREEN_BLOCK_SIZE_Y / 2);
-    screenPos = new Vector;
+    _size = vec2(SCREEN_BLOCK_SIZE_X / 2 * 0.9f, SCREEN_BLOCK_SIZE_Y / 2 * 0.8f);
+    _outerSize = vec2(SCREEN_BLOCK_SIZE_X / 2, SCREEN_BLOCK_SIZE_Y / 2);
+    screenPos = vec2(0);
     foreach (ref PlatformPos pp; platformPos)
-      pp.pos = new Vector;
+      pp.pos = vec2(0);
     _lastScrollY = 0;
     platformPosNum = 0;
     time = 0;
@@ -306,7 +306,7 @@ public class Field {
       nextBlockY += BLOCK_SIZE_Y;
   }
 
-  public int getBlock(Vector p) {
+  public int getBlock(vec2 p) {
     return getBlock(p.x, p.y);
   }
 
@@ -324,7 +324,7 @@ public class Field {
     return block[bx][by];
   }
 
-  public Vector convertToScreenPos(int bx, int y) {
+  public vec2 convertToScreenPos(int bx, int y) {
     float oy = screenY - cast(int) screenY;
     int by = y - cast(int) screenY;
     if (by <= -BLOCK_SIZE_Y)
@@ -467,7 +467,7 @@ public class Field {
     return (block[x][by] >= th);
   }
 
-  public bool checkInField(Vector p) {
+  public bool checkInField(vec2 p) {
     return _size.contains(p);
   }
 
@@ -475,7 +475,7 @@ public class Field {
     return _size.contains(x, y);
   }
 
-  public bool checkInOuterField(Vector p) {
+  public bool checkInOuterField(vec2 p) {
     return _outerSize.contains(p);
   }
 
@@ -483,21 +483,21 @@ public class Field {
     return _outerSize.contains(x, y);
   }
 
-  public bool checkInOuterHeightField(Vector p) {
+  public bool checkInOuterHeightField(vec2 p) {
     if (p.x >= -_size.x && p.x <= _size.x && p.y >= -_outerSize.y && p.y <= _outerSize.y)
       return true;
     else
       return false;
   }
 
-  public bool checkInFieldExceptTop(Vector p) {
+  public bool checkInFieldExceptTop(vec2 p) {
     if (p.x >= -_size.x && p.x <= _size.x && p.y >= -_size.y)
       return true;
     else
       return false;
   }
 
-  public bool checkInOuterFieldExceptTop(Vector p) {
+  public bool checkInOuterFieldExceptTop(vec2 p) {
     if (p.x >= -_outerSize.x && p.x <= _outerSize.x &&
         p.y >= -_outerSize.y && p.y <= _outerSize.y * 2)
       return true;
@@ -505,11 +505,11 @@ public class Field {
       return false;
   }
 
-  public Vector size() {
+  public vec2 size() {
     return _size;
   }
 
-  public Vector outerSize() {
+  public vec2 outerSize() {
     return _outerSize;
   }
 

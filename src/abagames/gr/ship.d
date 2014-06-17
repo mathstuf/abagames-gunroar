@@ -7,7 +7,7 @@ module abagames.gr.ship;
 
 private import std.math;
 private import derelict.opengl3.gl;
-private import abagames.util.vector;
+private import gl3n.linalg;
 private import abagames.util.rand;
 private import abagames.util.math;
 private import abagames.util.sdl.pad;
@@ -45,7 +45,7 @@ public class Ship {
   int boatNum;
   InGameState gameState;
   float scrollSpeed, _scrollSpeedBase;
-  Vector _midstPos, _higherPos, _lowerPos, _nearPos, _nearVel;
+  vec2 _midstPos, _higherPos, _lowerPos, _nearPos, _nearVel;
   BaseShape bridgeShape;
 
   invariant() {
@@ -68,11 +68,11 @@ public class Ship {
     }
     boatNum = 1;
     scrollSpeed = _scrollSpeedBase = SCROLL_SPEED_BASE;
-    _midstPos = new Vector;
-    _higherPos = new Vector;
-    _lowerPos = new Vector;
-    _nearPos = new Vector;
-    _nearVel = new Vector;
+    _midstPos = vec2(0);
+    _higherPos = vec2(0);
+    _lowerPos = vec2(0);
+    _nearPos = vec2(0);
+    _nearVel = vec2(0);
     bridgeShape = new BaseShape(0.3f, 0.2f, 0.1f, BaseShape.ShapeType.BRIDGE, 0.3f, 0.7f, 0.7f);
   }
 
@@ -148,7 +148,7 @@ public class Ship {
     _scrollSpeedBase += (SCROLL_SPEED_MAX - _scrollSpeedBase) * 0.00001f;
   }
 
-  public bool checkBulletHit(Vector p, Vector pp) {
+  public bool checkBulletHit(vec2 p, vec2 pp) {
     for (int i = 0; i < boatNum; i++)
       if (boat[i].checkBulletHit(p, pp))
         return true;
@@ -212,17 +212,19 @@ public class Ship {
     return boat[0].replayMode();
   }
 
-  public Vector midstPos() {
+  public vec2 midstPos() {
     _midstPos.x = _midstPos.y = 0;
     for (int i = 0; i < boatNum; i++) {
       _midstPos.x += boat[i].pos.x;
       _midstPos.y += boat[i].pos.y;
     }
-    _midstPos /= boatNum;
+    // FIXME: Why does _midstPos /= boatNum not work?
+    _midstPos.x /= boatNum;
+    _midstPos.y /= boatNum;
     return _midstPos;
   }
 
-  public Vector higherPos() {
+  public vec2 higherPos() {
     _higherPos.y = -99999;
     for (int i = 0; i < boatNum; i++) {
       if (boat[i].pos.y > _higherPos.y) {
@@ -233,7 +235,7 @@ public class Ship {
     return _higherPos;
   }
 
-  public Vector lowerPos() {
+  public vec2 lowerPos() {
     _lowerPos.y = 99999;
     for (int i = 0; i < boatNum; i++) {
       if (boat[i].pos.y < _lowerPos.y) {
@@ -244,11 +246,11 @@ public class Ship {
     return _lowerPos;
   }
 
-  public Vector nearPos(Vector p) {
+  public vec2 nearPos(vec2 p) {
     float dist = 99999;
     for (int i = 0; i < boatNum; i++) {
-      if (boat[i].pos.dist(p) < dist) {
-        dist = boat[i].pos.dist(p);
+      if (boat[i].pos.fastdist(p) < dist) {
+        dist = boat[i].pos.fastdist(p);
         _nearPos.x = boat[i].pos.x;
         _nearPos.y = boat[i].pos.y;
       }
@@ -256,11 +258,11 @@ public class Ship {
     return _nearPos;
   }
 
-  public Vector nearVel(Vector p) {
+  public vec2 nearVel(vec2 p) {
     float dist = 99999;
     for (int i = 0; i < boatNum; i++) {
-      if (boat[i].pos.dist(p) < dist) {
-        dist = boat[i].pos.dist(p);
+      if (boat[i].pos.fastdist(p) < dist) {
+        dist = boat[i].pos.fastdist(p);
         _nearVel.x = boat[i].vel.x;
         _nearVel.y = boat[i].vel.y;
       }
@@ -269,7 +271,7 @@ public class Ship {
   }
 
   public float distAmongBoats() {
-    return boat[0].pos.dist(boat[1].pos);
+    return boat[0].pos.fastdist(boat[1].pos);
   }
 
   public float degAmongBoats() {
@@ -315,8 +317,8 @@ public class Boat {
   EnemyPool enemies;
   StageManager stageManager;
   InGameState gameState;
-  Vector _pos;
-  Vector firePos;
+  vec2 _pos;
+  vec2 firePos;
   float deg;
   float speed;
   float turnRatio;
@@ -331,8 +333,8 @@ public class Boat {
   bool aPressed, bPressed;
   int cnt;
   bool onBlock;
-  Vector _vel;
-  Vector refVel;
+  vec2 _vel;
+  vec2 refVel;
   int shieldCnt;
   ShieldShape shieldShape;
   bool _replayMode;
@@ -391,10 +393,10 @@ public class Boat {
     this.smokes = smokes;
     this.fragments = fragments;
     this.wakes = wakes;
-    _pos = new Vector;
-    firePos = new Vector;
-    _vel = new Vector;
-    refVel = new Vector;
+    _pos = vec2(0);
+    firePos = vec2(0);
+    _vel = vec2(0);
+    refVel = vec2(0);
     switch (idx) {
     case 0:
       _shape = new BaseShape(0.7f, 0.6f, 0.6f, BaseShape.ShapeType.SHIP_ROUNDTAIL, 0.5f, 0.7f, 0.5f);
@@ -612,7 +614,7 @@ public class Boat {
     Enemy he = enemies.checkHitShip(pos.x, pos.y);
     if (he) {
       float rd;
-      if (pos.dist(he.pos) < 0.1f)
+      if (pos.fastdist(he.pos) < 0.1f)
         rd = 0;
       else
         rd = atan2(_pos.x - he.pos.x, _pos.y - he.pos.y);
@@ -620,7 +622,7 @@ public class Boat {
       float sz = he.size;
       refVel.x = sin(rd) * sz * 0.1f;
       refVel.y = cos(rd) * sz * 0.1f;
-      float rs = refVel.vctSize;
+      float rs = refVel.length;
       if (rs > 1) {
         refVel.x /= rs;
         refVel.y /= rs;
@@ -689,7 +691,7 @@ public class Boat {
     }
     if (gameState.isGameOver || cnt < -INVINCIBLE_CNT)
       touchInput.clear();
-    Vector location = touchInput.getPrimaryTouch(gameState.movementRegion());
+    vec2 location = touchInput.getPrimaryTouch(gameState.movementRegion());
     location -= gameState.movementRegion().center();
     vx = location.x;
     vy = location.y;
@@ -740,7 +742,7 @@ public class Boat {
       }
       if (gameState.isGameOver || cnt < -INVINCIBLE_CNT)
         touchInput.clear();
-      Vector location = touchInput.getPrimaryTouch(boatRegion);
+      vec2 location = touchInput.getPrimaryTouch(boatRegion);
       location -= boatRegion.center();
       vx = location.x;
       vy = location.y;
@@ -749,7 +751,7 @@ public class Boat {
       TouchRegion[1] ignores;
       ignores[0] = boatRegion;
       CircularTouchRegion secondBoatRegion = new CircularTouchRegion(ship.boat[1]._pos, gameState.touchRadius());
-      Vector location = touchInput.getSecondaryTouch(secondBoatRegion, ignores, 1);
+      vec2 location = touchInput.getSecondaryTouch(secondBoatRegion, ignores, 1);
       location -= secondBoatRegion.center();
       vx = location.x;
       vy = location.y;
@@ -896,7 +898,7 @@ public class Boat {
   }
 
   private void fireTouch() {
-   Vector location = touchInput.getPrimaryTouch(gameState.fireRegion());
+   vec2 location = touchInput.getPrimaryTouch(gameState.fireRegion());
    location -= gameState.fireRegion().center();
    vx = location.x;
    vy = location.y;
@@ -904,14 +906,14 @@ public class Boat {
    fireFromLocation(location);
   }
 
-  private void fireFromLocation(Vector angle) {
+  private void fireFromLocation(vec2 angle) {
    if (fabs(angle.x) + fabs(angle.y) > 0.01f) {
      fireDeg = atan2(angle.x, angle.y);
      assert(fireDeg <>= 0);
      if (fireCnt <= 0) {
        SoundManager.playSe("shot.wav");
        int foc = (fireSprCnt % 2) * 2 - 1;
-       float rsd = angle.vctSize;
+       float rsd = angle.length;
        if (rsd > 1)
          rsd = 1;
        fireSprDeg = 1 - rsd + 0.05f;
@@ -986,7 +988,7 @@ public class Boat {
 
   private void fireTilt() {
    CircularTouchRegion boatRegion = new CircularTouchRegion(ship.boat[0]._pos, gameState.touchRadius());
-   Vector location = touchInput.getPrimaryTouch(boatRegion);
+   vec2 location = touchInput.getPrimaryTouch(boatRegion);
    location -= boatRegion.center();
    vx = location.x;
    vy = location.y;
@@ -1046,7 +1048,7 @@ public class Boat {
            Smoke.SmokeType.SPARK, 10, 0.33f);
   }
 
-  public bool checkBulletHit(Vector p, Vector pp) {
+  public bool checkBulletHit(vec2 p, vec2 pp) {
     if (cnt <= 0)
       return false;
     float bmvx, bmvy, inaa;
@@ -1198,11 +1200,11 @@ public class Boat {
     gameState.clearBullets();
   }
 
-  public Vector pos() {
+  public vec2 pos() {
     return _pos;
   }
 
-  public Vector vel() {
+  public vec2 vel() {
     return _vel;
   }
 
