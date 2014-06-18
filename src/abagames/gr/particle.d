@@ -12,7 +12,6 @@ private import abagames.util.actor;
 private import abagames.util.math;
 private import abagames.util.rand;
 private import abagames.util.sdl.luminous;
-private import abagames.util.sdl.displaylist;
 private import abagames.util.sdl.shaderprogram;
 private import abagames.gr.field;
 private import abagames.gr.screen;
@@ -516,7 +515,9 @@ public class SmokePool: LuminousActorPool!(Smoke) {
  */
 public class Fragment: Actor {
  private:
-  static DisplayList displayList;
+  static ShaderProgram program;
+  static GLuint vao;
+  static GLuint vbo;
   static Rand rand;
   Field field;
   SmokePool smokes;
@@ -539,23 +540,54 @@ public class Fragment: Actor {
 
   public static void init() {
     rand = new Rand;
-    displayList = new DisplayList(1);
-    displayList.beginNewList();
-    Screen.setColor(0.7f, 0.5f, 0.5f, 0.5f);
-    glBegin(GL_TRIANGLE_FAN);
-    glVertex2f(-0.5f, -0.25f);
-    glVertex2f(0.5f, -0.25f);
-    glVertex2f(0.5f, 0.25f);
-    glVertex2f(-0.5f, 0.25f);
-    glEnd();
-    Screen.setColor(0.7f, 0.5f, 0.5f, 0.9f);
-    glBegin(GL_LINE_LOOP);
-    glVertex2f(-0.5f, -0.25f);
-    glVertex2f(0.5f, -0.25f);
-    glVertex2f(0.5f, 0.25f);
-    glVertex2f(-0.5f, 0.25f);
-    glEnd();
-    displayList.endNewList();
+
+    program = new ShaderProgram;
+    program.setVertexShader(
+      "uniform mat4 projmat;\n"
+      "uniform mat4 modelmat;\n"
+      "\n"
+      "attribute vec2 pos;\n"
+      "\n"
+      "void main() {\n"
+      "  gl_Position = projmat * modelmat * vec4(pos, 0, 1);\n"
+      "}\n"
+    );
+    program.setFragmentShader(
+      "uniform vec3 color;\n"
+      "uniform float brightness;\n"
+      "uniform float alpha;\n"
+      "\n"
+      "void main() {\n"
+      "  gl_FragColor = vec4(color * brightness, alpha);\n"
+      "}\n"
+    );
+    GLint posLoc = 0;
+    program.bindAttribLocation(posLoc, "pos");
+    program.link();
+    program.use();
+
+    program.setUniform("color", 0.7f, 0.5f, 0.5f);
+
+    glGenBuffers(1, &vbo);
+    glGenVertexArrays(1, &vao);
+
+    static const float[] VTX = [
+      -0.5f, -0.25f,
+       0.5f, -0.25f,
+       0.5f,  0.25f,
+      -0.5f,  0.25f
+    ];
+
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(posLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
   }
 
   public static void setRandSeed(long seed) {
@@ -563,7 +595,9 @@ public class Fragment: Actor {
   }
 
   public static void close() {
-    displayList.close();
+    glDeleteVertexArrays(1, &vao);
+    glDeleteBuffers(1, &vbo);
+    program.close();
   }
 
   public this() {
@@ -618,18 +652,27 @@ public class Fragment: Actor {
   }
 
   public override void draw(mat4 view) {
+    program.use();
+
     mat4 model = mat4.identity;
     model.scale(size, size, 1);
     model.rotate(-d2 / 180 * PI, vec3(1, 0, 0));
     model.translate(pos.x, pos.y, pos.z);
-    // TODO: set model.
 
-    glPushMatrix();
-    Screen.glTranslate(pos);
-    glRotatef(d2, 1, 0, 0);
-    glScalef(size, size, 1);
-    displayList.call(0);
-    glPopMatrix();
+    program.setUniform("projmat", view);
+    program.setUniform("modelmat", model);
+    program.setUniform("brightness", Screen.brightness);
+
+    glBindVertexArray(vao);
+
+    program.setUniform("alpha", 0.5f);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    program.setUniform("alpha", 0.9f);
+    glDrawArrays(GL_LINE_LOOP, 0, 4);
+
+    glBindVertexArray(0);
+    glUseProgram(0);
   }
 }
 
