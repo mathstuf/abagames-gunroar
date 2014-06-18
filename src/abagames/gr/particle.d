@@ -214,6 +214,9 @@ public class Smoke: LuminousActor {
   static Rand rand;
   static vec3 windVel;
   static vec2 wakePos;
+  static ShaderProgram program;
+  static GLuint vao;
+  static GLuint vbo;
   Field field;
   WakePool wakes;
   vec3 pos;
@@ -248,6 +251,13 @@ public class Smoke: LuminousActor {
     rand = new Rand;
     wakePos = vec2(0);
     windVel = vec3(0.04f, 0.04f, 0.02f);
+    program = null;
+  }
+
+  public static ~this() {
+    glDeleteVertexArrays(1, &vao);
+    glDeleteBuffers(1, &vbo);
+    program.close();
   }
 
   public static void setRandSeed(long seed) {
@@ -267,6 +277,56 @@ public class Smoke: LuminousActor {
   public override void init(Object[] args) {
     field = cast(Field) args[0];
     wakes = cast(WakePool) args[1];
+
+    if (program !is null) {
+      return;
+    }
+
+    program = new ShaderProgram;
+    program.setVertexShader(
+      "uniform mat4 projmat;\n"
+      "uniform vec3 pos;\n"
+      "uniform float size;\n"
+      "\n"
+      "attribute vec2 diff;\n"
+      "\n"
+      "void main() {\n"
+      "  gl_Position = projmat * vec4(pos + vec3(size * diff, 0), 1);\n"
+      "}\n"
+    );
+    program.setFragmentShader(
+      "uniform float brightness;\n"
+      "uniform vec4 color;\n"
+      "\n"
+      "void main() {\n"
+      "  gl_FragColor = color * vec4(vec3(brightness), 1);\n"
+      "}\n"
+    );
+    GLint diffLoc = 0;
+    program.bindAttribLocation(diffLoc, "diff");
+    program.link();
+    program.use();
+
+    glGenBuffers(1, &vbo);
+    glGenVertexArrays(1, &vao);
+
+    glBindVertexArray(vao);
+
+    const float[] DIFF = [
+      -0.5f, -0.5f,
+       0.5f, -0.5f,
+       0.5f,  0.5f,
+      -0.5f,  0.5f,
+    ];
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, DIFF.length * float.sizeof, DIFF.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(diffLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(diffLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
   }
 
   public void set(vec2 p, float mx, float my, float mz, int t, int c = 60, float sz = 2) {
@@ -419,23 +479,29 @@ public class Smoke: LuminousActor {
   }
 
   public override void draw(mat4 view) {
-    float quadSize = size / 2;
-    Screen.setColor(r, g, b, a);
-    glVertex3f(pos.x - quadSize, pos.y - quadSize, pos.z);
-    glVertex3f(pos.x + quadSize, pos.y - quadSize, pos.z);
-    glVertex3f(pos.x + quadSize, pos.y + quadSize, pos.z);
-    glVertex3f(pos.x - quadSize, pos.y + quadSize, pos.z);
+    drawCommon(view);
   }
 
   public override void drawLuminous(mat4 view) {
     if (r + g > 0.8f && b < 0.5f) {
-      float quadSize = size / 2;
-      Screen.setColor(r, g, b, a);
-      glVertex3f(pos.x - quadSize, pos.y - quadSize, pos.z);
-      glVertex3f(pos.x + quadSize, pos.y - quadSize, pos.z);
-      glVertex3f(pos.x + quadSize, pos.y + quadSize, pos.z);
-      glVertex3f(pos.x - quadSize, pos.y + quadSize, pos.z);
+      drawCommon(view);
     }
+  }
+
+  private void drawCommon(mat4 view) {
+    program.use();
+
+    program.setUniform("projmat", view);
+    program.setUniform("brightness", Screen.brightness);
+    program.setUniform("color", r, g, b, a);
+    program.setUniform("size", size);
+    program.setUniform("pos", pos);
+
+    glBindVertexArray(vao);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    glBindVertexArray(0);
+    glUseProgram(0);
   }
 }
 

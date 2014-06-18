@@ -635,9 +635,7 @@ public class InGameState: GameState {
     wakes.draw(view);
     sparks.draw(view);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBegin(GL_QUADS);
     smokes.draw(view);
-    glEnd();
     fragments.draw(view);
     sparkFragments.draw(view);
     crystals.draw(view);
@@ -688,9 +686,7 @@ public class InGameState: GameState {
   public override void drawLuminous(mat4 view) {
     sparks.drawLuminous(view);
     sparkFragments.drawLuminous(view);
-    glBegin(GL_QUADS);
     smokes.drawLuminous(view);
-    glEnd();
   }
 
   public void shipDestroyed() {
