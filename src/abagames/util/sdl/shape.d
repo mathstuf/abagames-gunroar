@@ -8,6 +8,7 @@ module abagames.util.sdl.shape;
 private import derelict.opengl3.gl;
 private import gl3n.linalg;
 private import abagames.util.sdl.displaylist;
+private import abagames.util.sdl.shaderprogram;
 
 /**
  * Interface for drawing a shape.
@@ -42,14 +43,60 @@ public template CollidableImpl() {
   }
 }
 
+public abstract class DrawableShape: Drawable {
+  public this() {
+    initShape();
+  }
+
+  public abstract void close();
+  protected abstract void initShape();
+}
+
 /**
  * Drawable that has a single displaylist.
  */
-public abstract class DrawableShape: Drawable {
+public abstract class DrawableShapeNew: DrawableShape {
+  private ShaderProgram program;
+  private bool hasModelmat;
+ private:
+
+  protected override void initShape() {
+    program = initShader();
+
+    hasModelmat = program.uniformLocation("modelmat") >= 0;
+  }
+
+  protected abstract ShaderProgram initShader();
+  protected abstract void drawShape();
+
+  public override void close() {
+    program.close();
+  }
+
+  public void draw(mat4 view) {
+    program.use();
+    program.setUniform("projmat", view);
+    drawShape();
+    glUseProgram(0);
+  }
+
+  public void setModelMatrix(mat4 model) {
+    if (hasModelmat) {
+      program.use();
+      program.setUniform("modelmat", model);
+      glUseProgram(0);
+    }
+  }
+}
+
+/**
+ * Drawable that has a single shader.
+ */
+public abstract class DrawableShapeOld: DrawableShape {
   protected DisplayList displayList;
  private:
 
-  public this() {
+  protected override void initShape() {
     displayList = new DisplayList(1);
     displayList.beginNewList();
     createDisplayList();
@@ -58,7 +105,7 @@ public abstract class DrawableShape: Drawable {
 
   protected abstract void createDisplayList();
 
-  public void close() {
+  public override void close() {
     displayList.close();
   }
 
@@ -74,7 +121,7 @@ public abstract class DrawableShape: Drawable {
 /**
  * DrawableShape that has a collision.
  */
-public abstract class CollidableDrawable: DrawableShape, Collidable {
+public abstract class CollidableDrawable(T: DrawableShape): T, Collidable {
   mixin CollidableImpl;
   protected vec2 _collision;
  private:
@@ -90,6 +137,9 @@ public abstract class CollidableDrawable: DrawableShape, Collidable {
     return _collision;
   }
 }
+
+alias CollidableDrawableOld = CollidableDrawable!DrawableShapeOld;
+alias CollidableDrawableNew = CollidableDrawable!DrawableShapeNew;
 
 /**
  * Drawable that can change a size.

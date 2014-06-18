@@ -16,7 +16,7 @@ private import abagames.gr.particle;
 /**
  * Shape of a ship/platform/turret/bridge.
  */
-public class BaseShape: DrawableShape {
+public class BaseShape: DrawableShapeOld {
  public:
   static enum ShapeType {
     SHIP, SHIP_ROUNDTAIL, SHIP_SHADOW, PLATFORM, TURRET, BRIDGE,
@@ -401,7 +401,7 @@ public class BulletShape: ResizableDrawable {
   }
 }
 
-public class NormalBulletShape: DrawableShape {
+public class NormalBulletShape: DrawableShapeOld {
   public override void createDisplayList() {
     glDisable(GL_BLEND);
     Screen.setColor(1, 1, 0.3f);
@@ -428,7 +428,7 @@ public class NormalBulletShape: DrawableShape {
   }
 }
 
-public class SmallBulletShape: DrawableShape {
+public class SmallBulletShape: DrawableShapeOld {
   public override void createDisplayList() {
     glDisable(GL_BLEND);
     Screen.setColor(0.6f, 0.9f, 0.3f);
@@ -455,7 +455,7 @@ public class SmallBulletShape: DrawableShape {
   }
 }
 
-public class MovingTurretBulletShape: DrawableShape {
+public class MovingTurretBulletShape: DrawableShapeOld {
   public override void createDisplayList() {
     glDisable(GL_BLEND);
     Screen.setColor(0.7f, 0.5f, 0.9f);
@@ -482,7 +482,7 @@ public class MovingTurretBulletShape: DrawableShape {
   }
 }
 
-public class DestructiveBulletShape: DrawableShape, Collidable {
+public class DestructiveBulletShape: DrawableShapeOld, Collidable {
   mixin CollidableImpl;
  private:
   vec2 _collision;
@@ -512,7 +512,7 @@ public class DestructiveBulletShape: DrawableShape, Collidable {
   }
 }
 
-public class CrystalShape: DrawableShape {
+public class CrystalShape: DrawableShapeOld {
   public override void createDisplayList() {
     Screen.setColor(0.6f, 1, 0.7f);
     glBegin(GL_LINE_LOOP);
@@ -524,7 +524,7 @@ public class CrystalShape: DrawableShape {
   }
 }
 
-public class ShieldShape: DrawableShape {
+public class ShieldShape: DrawableShapeOld {
   public override void createDisplayList() {
     Screen.setColor(0.5f, 0.5f, 0.7f);
     glBegin(GL_LINE_LOOP);

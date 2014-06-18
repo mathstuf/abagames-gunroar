@@ -264,7 +264,7 @@ public class ShotPool: ActorPool!(Shot) {
   }
 }
 
-public class ShotShape: CollidableDrawable {
+public class ShotShape: CollidableDrawableOld {
   protected override void createDisplayList() {
     Screen.setColor(0.1f, 0.33f, 0.1f);
     glBegin(GL_QUADS);
