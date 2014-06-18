@@ -177,4 +177,8 @@ public class Screen3D: Screen, SizableScreen {
   public static float brightness(float v) {
     return _brightness = v;
   }
+
+  public static float brightness() {
+    return _brightness;
+  }
 }
