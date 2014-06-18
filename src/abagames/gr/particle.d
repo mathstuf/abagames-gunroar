@@ -13,6 +13,7 @@ private import abagames.util.math;
 private import abagames.util.rand;
 private import abagames.util.sdl.luminous;
 private import abagames.util.sdl.displaylist;
+private import abagames.util.sdl.shaderprogram;
 private import abagames.gr.field;
 private import abagames.gr.screen;
 
@@ -22,6 +23,9 @@ private import abagames.gr.screen;
 public class Spark: LuminousActor {
  private:
   static Rand rand;
+  static ShaderProgram program;
+  static GLuint vao;
+  static GLuint[3] vbo;
   vec2 pos, ppos;
   vec2 vel;
   float r, g, b;
@@ -42,6 +46,13 @@ public class Spark: LuminousActor {
 
   public static this() {
     rand = new Rand;
+    program = null;
+  }
+
+  public static ~this() {
+    glDeleteVertexArrays(1, &vao);
+    glDeleteBuffers(3, vbo.ptr);
+    program.close();
   }
 
   public static void setRandSeed(long seed) {
@@ -57,6 +68,88 @@ public class Spark: LuminousActor {
   }
 
   public override void init(Object[] args) {
+    if (program !is null) {
+      return;
+    }
+
+    program = new ShaderProgram;
+    program.setVertexShader(
+      "uniform mat4 projmat;\n"
+      "uniform vec2 pos;\n"
+      "uniform vec2 vel;\n"
+      "\n"
+      "attribute vec2 velFactor;\n"
+      "attribute float velFlip;\n"
+      "attribute vec4 colorFactor;\n"
+      "\n"
+      "varying vec4 f_colorFactor;\n"
+      "\n"
+      "void main() {\n"
+      "  vec2 rvel = (velFlip > 0.) ? vel.yx : vel.xy;\n"
+      "  gl_Position = projmat * vec4(pos + velFactor * rvel, 0, 1);\n"
+      "  f_colorFactor = colorFactor;\n"
+      "}\n"
+    );
+    program.setFragmentShader(
+      "uniform vec3 color;\n"
+      "uniform float brightness;\n"
+      "\n"
+      "varying vec4 f_colorFactor;\n"
+      "\n"
+      "void main() {\n"
+      "  gl_FragColor = vec4(color * brightness, 1) * f_colorFactor;\n"
+      "}\n"
+    );
+    GLint velFactorLoc = 0;
+    GLint velFlipLoc = 1;
+    GLint colorFactorLoc = 2;
+    program.bindAttribLocation(velFactorLoc, "velFactor");
+    program.bindAttribLocation(velFlipLoc, "velFlip");
+    program.bindAttribLocation(colorFactorLoc, "colorFactor");
+    program.link();
+    program.use();
+
+    glGenBuffers(3, vbo.ptr);
+    glGenVertexArrays(1, &vao);
+
+    static const float[] VELFACTOR = [
+      -2, -2,
+      -1,  1,
+       1, -1
+    ];
+    static const float[] VELFLIP = [
+      0,
+      1,
+      1
+    ];
+    static const float[] COLORFACTOR = [
+      1,    1,    1,    1,
+      0.5f, 0.5f, 0.5f, 0,
+      0.5f, 0.5f, 0.5f, 0
+    ];
+
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+    glBufferData(GL_ARRAY_BUFFER, VELFACTOR.length * float.sizeof, VELFACTOR.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(velFactorLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(velFactorLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+    glBufferData(GL_ARRAY_BUFFER, VELFLIP.length * float.sizeof, VELFLIP.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(velFlipLoc, 1, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(velFlipLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+    glBufferData(GL_ARRAY_BUFFER, COLORFACTOR.length * float.sizeof, COLORFACTOR.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(colorFactorLoc, 4, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(colorFactorLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
   }
 
   public void set(vec2 p, float vx, float vy, float r, float g, float b, int c) {
@@ -84,31 +177,27 @@ public class Spark: LuminousActor {
   }
 
   public override void draw(mat4 view) {
-    float ox = vel.x;
-    float oy = vel.y;
-    Screen.setColor(r, g, b, 1);
-    ox *= 2;
-    oy *= 2;
-    glVertex3f(pos.x - ox, pos.y - oy, 0);
-    ox *= 0.5f;
-    oy *= 0.5f;
-    Screen.setColor(r * 0.5f, g * 0.5f, b * 0.5f, 0);
-    glVertex3f(pos.x - oy, pos.y + ox, 0);
-    glVertex3f(pos.x + oy, pos.y - ox, 0);
+    drawCommon(view);
   }
 
   public override void drawLuminous(mat4 view) {
-    float ox = vel.x;
-    float oy = vel.y;
-    Screen.setColor(r, g, b, 1);
-    ox *= 2;
-    oy *= 2;
-    glVertex3f(pos.x - ox, pos.y - oy, 0);
-    ox *= 0.5f;
-    oy *= 0.5f;
-    Screen.setColor(r * 0.5f, g * 0.5f, b * 0.5f, 0);
-    glVertex3f(pos.x - oy, pos.y + ox, 0);
-    glVertex3f(pos.x + oy, pos.y - ox, 0);
+    drawCommon(view);
+  }
+
+  private void drawCommon(mat4 view) {
+    program.use();
+
+    program.setUniform("projmat", view);
+    program.setUniform("brightness", Screen.brightness);
+    program.setUniform("color", r, g, b);
+    program.setUniform("pos", pos);
+    program.setUniform("vel", vel);
+
+    glBindVertexArray(vao);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    glBindVertexArray(0);
+    glUseProgram(0);
   }
 }
 

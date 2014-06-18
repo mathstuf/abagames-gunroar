@@ -634,8 +634,8 @@ public class InGameState: GameState {
     field.draw(view);
     glBegin(GL_TRIANGLES);
     wakes.draw(view);
-    sparks.draw(view);
     glEnd();
+    sparks.draw(view);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBegin(GL_QUADS);
     smokes.draw(view);
@@ -688,9 +688,7 @@ public class InGameState: GameState {
   }
 
   public override void drawLuminous(mat4 view) {
-    glBegin(GL_TRIANGLES);
     sparks.drawLuminous(view);
-    glEnd();
     sparkFragments.drawLuminous(view);
     glBegin(GL_QUADS);
     smokes.drawLuminous(view);
