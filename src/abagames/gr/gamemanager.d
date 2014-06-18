@@ -176,6 +176,7 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
 
   public override void close() {
     ship.close();
+    field.close();
     BulletShape.close();
     EnemyShape.close();
     TurretShape.close();
