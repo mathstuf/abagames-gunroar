@@ -632,9 +632,7 @@ public class InGameState: GameState {
 
   public override void draw(mat4 view) {
     field.draw(view);
-    glBegin(GL_TRIANGLES);
     wakes.draw(view);
-    glEnd();
     sparks.draw(view);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBegin(GL_QUADS);

@@ -763,6 +763,9 @@ public class SparkFragmentPool: LuminousActorPool!(SparkFragment) {
  */
 public class Wake: Actor {
  private:
+  static ShaderProgram program;
+  static GLuint vao;
+  static GLuint[3] vbo;
   Field field;
   vec2 pos;
   vec2 vel;
@@ -783,6 +786,16 @@ public class Wake: Actor {
     assert(cnt >= 0);
   }
 
+  public static this() {
+    program = null;
+  }
+
+  public static ~this() {
+    glDeleteVertexArrays(1, &vao);
+    glDeleteBuffers(3, vbo.ptr);
+    program.close();
+  }
+
   public this() {
     pos = vec2(0);
     vel = vec2(0);
@@ -794,6 +807,97 @@ public class Wake: Actor {
 
   public override void init(Object[] args) {
     field = cast(Field) args[0];
+
+    if (program !is null) {
+      return;
+    }
+
+    program = new ShaderProgram;
+    program.setVertexShader(
+      "uniform mat4 projmat;\n"
+      "uniform vec2 pos;\n"
+      "uniform vec2 vel;\n"
+      "uniform float size;\n"
+      "uniform int revShape;\n"
+      "\n"
+      "attribute vec2 velFactor;\n"
+      "attribute float velFlip;\n"
+      "attribute vec3 color;\n"
+      "\n"
+      "varying vec3 f_color;\n"
+      "\n"
+      "void main() {\n"
+      "  vec2 rvel;\n"
+      "  if (velFlip > 0.) {\n"
+      "    rvel = vel.yx;\n"
+      "  } else if (revShape != 0) {\n"
+      "    rvel = -vel;\n"
+      "  } else {\n"
+      "    rvel = vel;\n"
+      "  }\n"
+      "  gl_Position = projmat * vec4(pos + (size * velFactor * rvel), 0, 1);\n"
+      "  f_color = color;\n"
+      "}\n"
+    );
+    program.setFragmentShader(
+      "uniform float brightness;\n"
+      "\n"
+      "varying vec3 f_color;\n"
+      "\n"
+      "void main() {\n"
+      "  gl_FragColor = vec4(f_color * brightness, 1);\n"
+      "}\n"
+    );
+    GLint velFactorLoc = 0;
+    GLint velFlipLoc = 1;
+    GLint colorLoc = 2;
+    program.bindAttribLocation(velFactorLoc, "velFactor");
+    program.bindAttribLocation(velFlipLoc, "velFlip");
+    program.bindAttribLocation(colorLoc, "color");
+    program.link();
+    program.use();
+
+    glGenBuffers(3, vbo.ptr);
+    glGenVertexArrays(1, &vao);
+
+    static const float[] VELFACTOR = [
+      -1,    -1,
+      -0.2f,  0.2f,
+       0.2f, -0.2f
+    ];
+    static const float[] VELFLIP = [
+      0,
+      1,
+      1
+    ];
+    static const float[] COLOR = [
+      0.33f, 0.33f, 1,    1,
+      0.2f,  0.2f,  0.6f, 0.5f,
+      0.2f,  0.2f,  0.6f, 0.5f
+    ];
+
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+    glBufferData(GL_ARRAY_BUFFER, VELFACTOR.length * float.sizeof, VELFACTOR.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(velFactorLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(velFactorLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+    glBufferData(GL_ARRAY_BUFFER, VELFLIP.length * float.sizeof, VELFLIP.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(velFlipLoc, 1, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(velFlipLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+    glBufferData(GL_ARRAY_BUFFER, COLOR.length * float.sizeof, COLOR.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(colorLoc, 4, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(colorLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
   }
 
   public void set(vec2 p, float deg, float speed, int c = 60, float sz = 1, bool rs = false) {
@@ -824,20 +928,20 @@ public class Wake: Actor {
   }
 
   public override void draw(mat4 view) {
-    float ox = vel.x;
-    float oy = vel.y;
-    Screen.setColor(0.33f, 0.33f, 1);
-    ox *= size;
-    oy *= size;
-    if (revShape)
-      glVertex3f(pos.x + ox, pos.y + oy, 0);
-    else
-      glVertex3f(pos.x - ox, pos.y - oy, 0);
-    ox *= 0.2f;
-    oy *= 0.2f;
-    Screen.setColor(0.2f, 0.2f, 0.6f, 0.5f);
-    glVertex3f(pos.x - oy, pos.y + ox, 0);
-    glVertex3f(pos.x + oy, pos.y - ox, 0);
+    program.use();
+
+    program.setUniform("projmat", view);
+    program.setUniform("brightness", Screen.brightness);
+    program.setUniform("pos", pos);
+    program.setUniform("vel", vel);
+    program.setUniform("size", size);
+    program.setUniform("revShape", revShape);
+
+    glBindVertexArray(vao);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    glBindVertexArray(0);
+    glUseProgram(0);
   }
 }
 
