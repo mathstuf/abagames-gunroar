@@ -578,7 +578,9 @@ public class FragmentPool: ActorPool!(Fragment) {
  */
 public class SparkFragment: LuminousActor {
  private:
-  static DisplayList displayList;
+  static ShaderProgram program;
+  static GLuint vao;
+  static GLuint vbo;
   static Rand rand;
   Field field;
   SmokePool smokes;
@@ -604,15 +606,48 @@ public class SparkFragment: LuminousActor {
 
   public static void init() {
     rand = new Rand;
-    displayList = new DisplayList(1);
-    displayList.beginNewList();
-    glBegin(GL_TRIANGLE_FAN);
-    glVertex2f(-0.25f, -0.25f);
-    glVertex2f(0.25f, -0.25f);
-    glVertex2f(0.25f, 0.25f);
-    glVertex2f(-0.25f, 0.25f);
-    glEnd();
-    displayList.endNewList();
+
+    program = new ShaderProgram;
+    program.setVertexShader(
+      "uniform mat4 projmat;\n"
+      "uniform mat4 modelmat;\n"
+      "\n"
+      "attribute vec2 pos;\n"
+      "\n"
+      "void main() {\n"
+      "  gl_Position = projmat * modelmat * vec4(pos, 0, 1);\n"
+      "}\n"
+    );
+    program.setFragmentShader(
+      "uniform vec4 color;\n"
+      "uniform float brightness;\n"
+      "\n"
+      "void main() {\n"
+      "  gl_FragColor = color * vec4(vec3(brightness), 1);\n"
+      "}\n"
+    );
+    GLint posLoc = 0;
+    program.bindAttribLocation(posLoc, "pos");
+    program.link();
+    program.use();
+
+    glGenBuffers(1, &vbo);
+    glGenVertexArrays(1, &vao);
+
+    static const float[] VTX = [
+      -0.25f, -0.25f,
+       0.25f, -0.25f,
+       0.25f,  0.25f,
+      -0.25f,  0.25f
+    ];
+
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(posLoc);
   }
 
   public static void setRandSeed(long seed) {
@@ -620,7 +655,9 @@ public class SparkFragment: LuminousActor {
   }
 
   public static void close() {
-    displayList.close();
+    glDeleteVertexArrays(1, &vao);
+    glDeleteBuffers(1, &vbo);
+    program.close();
   }
 
   public this() {
@@ -687,35 +724,31 @@ public class SparkFragment: LuminousActor {
   }
 
   public override void draw(mat4 view) {
-    mat4 model = mat4.identity;
-    model.rotate(-d2 / 180 * PI, vec3(1, 0, 0));
-    model.scale(size, size, 1);
-    model.translate(pos.x, pos.y, pos.z);
-    // TODO: set model.
-
-    glPushMatrix();
-    Screen.setColor(1, rand.nextFloat(1), 0, 0.8f);
-    Screen.glTranslate(pos);
-    glRotatef(d2, 1, 0, 0);
-    glScalef(size, size, 1);
-    displayList.call(0);
-    glPopMatrix();
+    drawCommon(view);
   }
 
   public override void drawLuminous(mat4 view) {
+    drawCommon(view);
+  }
+
+  private void drawCommon(mat4 view) {
+    program.use();
+
     mat4 model = mat4.identity;
     model.rotate(-d2 / 180 * PI, vec3(1, 0, 0));
     model.scale(size, size, 1);
     model.translate(pos.x, pos.y, pos.z);
-    // TODO: set model.
 
-    glPushMatrix();
-    Screen.setColor(1, rand.nextFloat(1), 0, 0.8f);
-    Screen.glTranslate(pos);
-    glRotatef(d2, 1, 0, 0);
-    glScalef(size, size, 1);
-    displayList.call(0);
-    glPopMatrix();
+    program.setUniform("projmat", view);
+    program.setUniform("modelmat", model);
+    program.setUniform("color", 1, rand.nextFloat(1), 0, 0.8f);
+    program.setUniform("brightness", Screen.brightness);
+
+    glBindVertexArray(vao);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    glBindVertexArray(0);
+    glUseProgram(0);
   }
 }
 
