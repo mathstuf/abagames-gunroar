@@ -150,14 +150,6 @@ public class Screen3D: Screen, SizableScreen {
     return _height;
   }
 
-  public static void glVertex(vec2 v) {
-    glVertex3f(v.x, v.y, 0);
-  }
-
-  public static void glVertex(vec3 v) {
-    glVertex3f(v.x, v.y, v.z);
-  }
-
   public static void glTranslate(vec2 v) {
     glTranslatef(v.x, v.y, 0);
   }
