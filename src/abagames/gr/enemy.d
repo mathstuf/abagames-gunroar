@@ -517,6 +517,24 @@ public class EnemyState {
   }
 
   public void draw(mat4 view) {
+    mat4 model = mat4.identity;
+    model.rotate(deg, vec3(0, 0, 1));
+    if (destroyedCnt < 0 && damagedCnt > 0) {
+      damagedPos.x = pos.x + rand.nextSignedFloat(damagedCnt * 0.01f);
+      damagedPos.y = pos.y + rand.nextSignedFloat(damagedCnt * 0.01f);
+      model.translate(damagedPos.x, damagedPos.y, 0);
+    } else {
+      model.translate(pos.x, pos.y, 0);
+    }
+    if (destroyedCnt >= 0)
+      spec.destroyedShape.setModelMatrix(model);
+    else if (!damaged)
+      spec.shape.setModelMatrix(model);
+    else
+      spec.damagedShape.setModelMatrix(model);
+    if (destroyedCnt < 0)
+      spec.bridgeShape.setModelMatrix(model);
+
     glPushMatrix();
     if (destroyedCnt < 0 && damagedCnt > 0) {
       damagedPos.x = pos.x + rand.nextSignedFloat(damagedCnt * 0.01f);

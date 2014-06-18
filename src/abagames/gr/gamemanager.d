@@ -290,7 +290,7 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
     screen.setEyepos();
     state.draw(view);
     glPopMatrix();
-    screen.drawLuminous(mat4.identity);
+    screen.drawLuminous(windowmat);
     glPushMatrix();
     screen.setEyepos();
     field.drawSideWalls(view);
@@ -656,6 +656,11 @@ public class InGameState: GameState {
                    scoreReelSize);
     float x = -12;
     for (int i = 0; i < left; i++) {
+      mat4 model = mat4.identity;
+      model.scale(0.7f, 0.7f, 0.7f);
+      model.translate(x, -9, 0);
+      ship.setModelMatrix(model);
+
       glPushMatrix();
       glTranslatef(x, -9, 0);
       glScalef(0.7f, 0.7f, 0.7f);

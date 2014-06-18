@@ -468,6 +468,12 @@ public class Fragment: Actor {
   }
 
   public override void draw(mat4 view) {
+    mat4 model = mat4.identity;
+    model.scale(size, size, 1);
+    model.rotate(-d2 / 180 * PI, vec3(1, 0, 0));
+    model.translate(pos.x, pos.y, pos.z);
+    // TODO: set model.
+
     glPushMatrix();
     Screen.glTranslate(pos);
     glRotatef(d2, 1, 0, 0);
@@ -597,6 +603,12 @@ public class SparkFragment: LuminousActor {
   }
 
   public override void draw(mat4 view) {
+    mat4 model = mat4.identity;
+    model.rotate(-d2 / 180 * PI, vec3(1, 0, 0));
+    model.scale(size, size, 1);
+    model.translate(pos.x, pos.y, pos.z);
+    // TODO: set model.
+
     glPushMatrix();
     Screen.setColor(1, rand.nextFloat(1), 0, 0.8f);
     Screen.glTranslate(pos);
@@ -607,6 +619,12 @@ public class SparkFragment: LuminousActor {
   }
 
   public override void drawLuminous(mat4 view) {
+    mat4 model = mat4.identity;
+    model.rotate(-d2 / 180 * PI, vec3(1, 0, 0));
+    model.scale(size, size, 1);
+    model.translate(pos.x, pos.y, pos.z);
+    // TODO: set model.
+
     glPushMatrix();
     Screen.setColor(1, rand.nextFloat(1), 0, 0.8f);
     Screen.glTranslate(pos);

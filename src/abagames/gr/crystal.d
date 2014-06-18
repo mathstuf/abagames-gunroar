@@ -83,6 +83,10 @@ public class Crystal: Actor {
     if (cnt > PULLIN_COUNT)
       r *= (cast(float) (COUNT - cnt)) / (COUNT - PULLIN_COUNT);
     for (int i = 0; i < 4; i++) {
+      mat4 model = mat4.identity;
+      model.translate(pos.x + sin(d) * r, pos.y + cos(d) * r, 0);
+      _shape.setModelMatrix(model);
+
       glPushMatrix();
       glTranslatef(pos.x + sin(d) * r, pos.y + cos(d) * r, 0);
       _shape.draw(view);

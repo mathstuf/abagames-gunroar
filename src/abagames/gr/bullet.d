@@ -160,6 +160,17 @@ public class Bullet: Actor {
   public override void draw(mat4 view) {
     if (!field.checkInOuterField(pos))
       return;
+
+    mat4 model = mat4.identity;
+    if (_destructive) {
+      model.rotate(-cnt * 13. / 180 * PI, vec3(0, 0, 1));
+    } else {
+      model.rotate(-cnt * 13. / 180 * PI, vec3(0, 1, 0));
+      model.rotate(deg, vec3(0, 0, 1));
+    }
+    model.translate(pos.x, pos.y, 0);
+    shape.setModelMatrix(model);
+
     glPushMatrix();
     Screen.glTranslate(pos);
     if (_destructive) {

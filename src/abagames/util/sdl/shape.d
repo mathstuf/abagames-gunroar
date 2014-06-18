@@ -14,6 +14,7 @@ private import abagames.util.sdl.displaylist;
  */
 public interface Drawable {
   public void draw(mat4);
+  public void setModelMatrix(mat4);
 }
 
 /**
@@ -64,6 +65,10 @@ public abstract class DrawableShape: Drawable {
   public void draw(mat4 view) {
     displayList.call(0);
   }
+
+  public void setModelMatrix(mat4 model) {
+    // TODO: Implement.
+  }
 }
 
 /**
@@ -99,6 +104,12 @@ public class ResizableDrawable: Drawable, Collidable {
   public void draw(mat4 view) {
     glScalef(_size, _size, _size);
     _shape.draw(view);
+  }
+
+  public void setModelMatrix(mat4 model) {
+    mat4 scalemat = mat4.identity;
+    scalemat.scale(_size, _size, _size);
+    _shape.setModelMatrix(model * scalemat);
   }
 
   public Drawable shape(Drawable v) {

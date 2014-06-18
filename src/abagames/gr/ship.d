@@ -177,6 +177,12 @@ public class Ship {
       Screen.setColor(0.5f, 0.5f, 0.9f, 0.8f);
       glVertex2f(boat[1].pos.x, boat[1].pos.y);
       glEnd();
+
+      mat4 model = mat4.identity;
+      model.rotate(degAmongBoats, vec3(0, 0, 1));
+      model.translate(midstPos.x, midstPos.y, 0);
+      bridgeShape.setModelMatrix(model);
+
       glPushMatrix();
       Screen.glTranslate(midstPos);
       glRotatef(-degAmongBoats * 180 / PI, 0, 0, 1);
@@ -188,6 +194,10 @@ public class Ship {
   public void drawFront(mat4 view) {
     for (int i = 0; i < boatNum; i++)
       boat[i].drawFront(view);
+  }
+
+  public void setModelMatrix(mat4 model) {
+    boat[0].setModelMatrix(model);
   }
 
   public void drawShape(mat4 view) {
@@ -1139,6 +1149,13 @@ public class Boat {
     }
     if (cnt < 0 && (-cnt % 32) < 16)
       return;
+
+    mat4 model = mat4.identity;
+    model.rotate(deg, vec3(0, 0, 1));
+    model.translate(pos.x, pos.y, 0);
+    _shape.setModelMatrix(model);
+    bridgeShape.setModelMatrix(model);
+
     glPushMatrix();
     Screen.glTranslate(pos);
     glRotatef(-deg * 180 / PI, 0, 0, 1);
@@ -1148,6 +1165,11 @@ public class Boat {
       float ss = 0.66f;
       if (shieldCnt < 120)
         ss *= cast(float) shieldCnt / 120;
+
+      model.scale(ss, ss, ss);
+      model.rotate(shieldCnt * 5 / 180 * PI, vec3(0, 0, 1));
+      shieldShape.setModelMatrix(model);
+
       glScalef(ss, ss, ss);
       glRotatef(shieldCnt * 5, 0, 0, 1);
       shieldShape.draw(view);
@@ -1190,6 +1212,11 @@ public class Boat {
     glVertex2f(x - size, y + size);
     glVertex2f(x - size * 0.5f, y + size);
     glEnd();
+  }
+
+  public void setModelMatrix(mat4 model) {
+    _shape.setModelMatrix(model);
+    bridgeShape.setModelMatrix(model);
   }
 
   public void drawShape(mat4 view) {

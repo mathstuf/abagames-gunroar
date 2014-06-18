@@ -56,6 +56,12 @@ public class Letter {
   }
 
   private static void drawLetter(mat4 view, int n, float x, float y, float s, float d, int c) {
+    mat4 model = mat4.identity;
+    model.rotate(d, vec3(0, 0, 1));
+    model.scale(s, s, s);
+    model.translate(x, y, 0);
+    // TODO: set model.
+
     glPushMatrix();
     glTranslatef(x, y, 0);
     glScalef(s, s, s);
@@ -65,6 +71,12 @@ public class Letter {
   }
 
   private static void drawLetterRev(mat4 view, int n, float x, float y, float s, float d, int c) {
+    mat4 model = mat4.identity;
+    model.rotate(-d / 180 * PI, vec3(0, 0, 1));
+    model.scale(s, -s, s);
+    model.translate(x, y, 0);
+    // TODO: set model.
+
     glPushMatrix();
     glTranslatef(x, y, 0);
     glScalef(s, -s, s);
@@ -280,6 +292,11 @@ public class Letter {
 
   private static void setBox(float x, float y, float width, float height, float deg,
                              float r, float g, float b) {
+    mat4 model = mat4.identity;
+    model.rotate(-deg / 180 * PI, vec3(0, 0, 1));
+    model.translate(x - width / 2, y - height / 2, 0);
+    // TODO: set model.
+
     glPushMatrix();
     glTranslatef(x - width / 2, y - height / 2, 0);
     glRotatef(deg, 0, 0, 1);
@@ -295,6 +312,11 @@ public class Letter {
   }
 
   private static void setBoxLine(float x, float y, float width, float height, float deg) {
+    mat4 model = mat4.identity;
+    model.rotate(-deg / 180 * PI, vec3(0, 0, 1));
+    model.translate(x - width / 2, y - height / 2, 0);
+    // TODO: set model.
+
     glPushMatrix();
     glTranslatef(x - width / 2, y - height / 2, 0);
     glRotatef(deg, 0, 0, 1);
@@ -305,6 +327,11 @@ public class Letter {
   }
 
   private static void setBoxPoly(float x, float y, float width, float height, float deg) {
+    mat4 model = mat4.identity;
+    model.rotate(-deg / 180 * PI, vec3(0, 0, 1));
+    model.translate(x - width / 2, y - height / 2, 0);
+    // TODO: set model.
+
     glPushMatrix();
     glTranslatef(x - width / 2, y - height / 2, 0);
     glRotatef(deg, 0, 0, 1);

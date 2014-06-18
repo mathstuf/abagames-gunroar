@@ -137,6 +137,16 @@ public class NumReel {
     Math.normalizeDeg360(od);
     od *= 1.5f;
     for (int i = 0; i < 3; i++) {
+      mat4 model = mat4.identity;
+      model.scale(s, -s, s);
+      model.translate(0, 0, s * 2.4f);
+      model.rotate(-od / 180 * PI, vec3(1, 0, 0));
+      if (ofs > 0.005f)
+        model.translate(x + rand.nextSignedFloat(1) * ofs, y + rand.nextSignedFloat(1) * ofs, 0);
+      else
+        model.translate(x, y, 0);
+      // TODO: set model.
+
       glPushMatrix();
       if (ofs > 0.005f)
         glTranslatef(x + rand.nextSignedFloat(1) * ofs, y + rand.nextSignedFloat(1) * ofs, 0);

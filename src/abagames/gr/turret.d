@@ -189,6 +189,23 @@ public class Turret {
   public void draw(mat4 view) {
     if (spec.invisible)
       return;
+
+    mat4 model = mat4.identity;
+    model.rotate(baseDeg + deg, vec3(0, 0, 1));
+    if (destroyedCnt < 0 && damagedCnt > 0) {
+      damagedPos.x = pos.x + rand.nextSignedFloat(damagedCnt * 0.015f);
+      damagedPos.y = pos.y + rand.nextSignedFloat(damagedCnt * 0.015f);
+      model.translate(damagedPos.x, damagedPos.y, 0);
+    } else {
+      model.translate(pos.x, pos.y, 0);
+    }
+    if (destroyedCnt >= 0)
+      spec.destroyedShape.setModelMatrix(model);
+    else if (!damaged)
+      spec.shape.setModelMatrix(model);
+    else
+      spec.damagedShape.setModelMatrix(model);
+
     glPushMatrix();
     if (destroyedCnt < 0 && damagedCnt > 0) {
       damagedPos.x = pos.x + rand.nextSignedFloat(damagedCnt * 0.015f);

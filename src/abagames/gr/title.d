@@ -222,6 +222,12 @@ public class TitleManager {
       if (ts < 0.5f)
         ts = 0.5f;
     }
+
+    mat4 model = mat4.identity;
+    model.scale(ts, ts, 0);
+    model.translate(80 * ts, 240, 0);
+    // TODO: set model.
+
     glPushMatrix();
     glTranslatef(80 * ts, 240, 0);
     glScalef(ts, ts, 0);

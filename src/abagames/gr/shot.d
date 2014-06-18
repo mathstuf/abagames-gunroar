@@ -188,6 +188,12 @@ public class Shot: Actor {
         }
         float d = i * 13 + cnt * 3;
         for (int j = 0; j < 6; j++) {
+          mat4 model = mat4.identity;
+          model.rotate(-d / 180 * PI, vec3(0, 1, 0));
+          model.rotate(_deg, vec3(0, 0, 1));
+          model.translate(x, y, 0);
+          // TODO: set model.
+
           glPushMatrix();
           glTranslatef(x, y, 0);
           glRotatef(-_deg * 180 / PI, 0, 0, 1);
@@ -213,6 +219,12 @@ public class Shot: Actor {
         y -= cos(deg) * LANCE_SPEED * 2;
       }
     } else {
+      mat4 model = mat4.identity;
+      model.rotate(-cnt * 31 / 180 * PI, vec3(0, 1, 0));
+      model.rotate(_deg, vec3(0, 0, 1));
+      model.translate(pos.x, pos.y, 0);
+      shape.setModelMatrix(model);
+
       glPushMatrix();
       Screen.glTranslate(pos);
       glRotatef(-_deg * 180 / PI, 0, 0, 1);
