@@ -52,9 +52,9 @@ public class ReplayData {
     fd.write(score);
     fd.write(shipTurnSpeed);
     if (shipReverseFire)
-      fd.write(1);
+      fd.write(cast(int) 1);
     else
-      fd.write(0);
+      fd.write(cast(int) 0);
     fd.write(gameMode);
     switch (gameMode) {
     case InGameState.GameMode.NORMAL:

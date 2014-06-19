@@ -107,10 +107,11 @@ public class InputRecord(T) {
 
   public void load(File fd) {
     clear();
-    int l, s;
+    size_t l;
+    int s;
     T d;
     fd.read(l);
-    for (int i = 0; i < l; i++) {
+    for (size_t i = 0; i < l; i++) {
       fd.read(s);
       d = T.newInstance();
       d.read(fd);
