@@ -13,6 +13,7 @@ set(gr_srcs
     reel.d
     replay.d
     screen.d
+    shaders.d
     shape.d
     ship.d
     shot.d
