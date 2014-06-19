@@ -11,9 +11,11 @@ private import derelict.opengl3.gl;
 private import gl3n.linalg;
 private import abagames.util.actor;
 private import abagames.util.rand;
+private import abagames.util.sdl.shaderprogram;
 private import abagames.util.sdl.shape;
 private import abagames.gr.field;
 private import abagames.gr.screen;
+private import abagames.gr.shaders;
 private import abagames.gr.enemy;
 private import abagames.gr.particle;
 private import abagames.gr.bullet;
@@ -225,12 +227,7 @@ public class Shot: Actor {
       model.translate(pos.x, pos.y, 0);
       shape.setModelMatrix(model);
 
-      glPushMatrix();
-      Screen.glTranslate(pos);
-      glRotatef(-_deg * 180 / PI, 0, 0, 1);
-      glRotatef(cnt * 31, 0, 1, 0);
       shape.draw(view);
-      glPopMatrix();
     }
   }
 
@@ -264,23 +261,50 @@ public class ShotPool: ActorPool!(Shot) {
   }
 }
 
-public class ShotShape: CollidableDrawableOld {
-  protected override void createDisplayList() {
-    Screen.setColor(0.1f, 0.33f, 0.1f);
-    glBegin(GL_QUADS);
-    glVertex3f(0, 0.3f, 0.1f);
-    glVertex3f(0.066f, 0.3f, -0.033f);
-    glVertex3f(0.1f, -0.3f, -0.05f);
-    glVertex3f(0, -0.3f, 0.15f);
-    glVertex3f(0.066f, 0.3f, -0.033f);
-    glVertex3f(-0.066f, 0.3f, -0.033f);
-    glVertex3f(-0.1f, -0.3f, -0.05f);
-    glVertex3f(0.1f, -0.3f, -0.05f);
-    glVertex3f(-0.066f, 0.3f, -0.033f);
-    glVertex3f(0, 0.3f, 0.1f);
-    glVertex3f(0, -0.3f, 0.15f);
-    glVertex3f(-0.1f, -0.3f, -0.05f);
-    glEnd();
+public class ShotShape: CollidableDrawableNew {
+  mixin UniformColorShader!(3, 3);
+
+  protected void fillStaticShaderData() {
+    program.setUniform("color", 0.1f, 0.33f, 0.1f);
+
+    static const float[] VTX = [
+       0,       0.3f,  0.1f,
+       0.066f,  0.3f, -0.033f,
+       0.1f,   -0.3f, -0.05f,
+       0,      -0.3f,  0.15f,
+
+       0.066f,  0.3f, -0.033f,
+      -0.066f,  0.3f, -0.033f,
+      -0.1f,   -0.3f, -0.05f,
+       0.1f,   -0.3f, -0.05f,
+
+      -0.066f,  0.3f, -0.033f,
+       0,       0.3f,  0.1f,
+       0,      -0.3f,  0.15f,
+      -0.1f,   -0.3f, -0.05f
+    ];
+
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(posLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+  }
+
+  protected override void drawShape() {
+    program.setUniform("brightness", Screen.brightness);
+
+    glBindVertexArray(vao);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    glDrawArrays(GL_TRIANGLE_FAN, 4, 4);
+    glDrawArrays(GL_TRIANGLE_FAN, 8, 4);
+
+    glBindVertexArray(0);
   }
 
   protected override void setCollision() {
