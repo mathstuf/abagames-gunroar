@@ -279,7 +279,7 @@ public class StageManager {
   }
 
   public void draw(mat4 view) {
-    Letter.drawNum(view, cast(int) (rank * 1000), 620, 10, 10, 0, 0, 33 /* x */, 3);
+    Letter.drawNum(view, cast(int) (rank * 1000), 620, 10, 10, 0, Letter.COLOR0, 33 /* x */, 3);
     Letter.drawTime(view, bossAppTime, 120, 20, 7);
   }
 

@@ -19,6 +19,8 @@ public class Letter {
   static DisplayList displayList;
   static const float LETTER_WIDTH = 2.1f;
   static const float LETTER_HEIGHT = 3.0f;
+  static const int COLOR0 = 0;
+  static const int COLOR1 = 1;
   static const int LINE_COLOR = 2;
   static const int POLY_COLOR = 3;
   static const int COLOR_NUM = 4;

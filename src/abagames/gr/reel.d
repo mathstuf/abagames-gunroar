@@ -159,9 +159,9 @@ public class NumReel {
       if (a < 0)
         a = 0;
       Screen.setColor(a, a, a);
-      Letter.drawLetter(view, n, 2);
+      Letter.drawLetter(view, n, Letter.LINE_COLOR);
       Screen.setColor(a / 2, a / 2, a / 2);
-      Letter.drawLetter(view, n, 3);
+      Letter.drawLetter(view, n, Letter.POLY_COLOR);
       glPopMatrix();
       n--;
       if (n < 0)
@@ -394,7 +394,7 @@ public class NumIndicator: Actor {
       break;
     case IndicatorType.MULTIPLIER:
       Screen.setColor(alpha, alpha, alpha);
-      Letter.drawNumSign(view, n, pos.x, pos.y, size, Letter.LINE_COLOR, 33 /* x */, 3);
+      Letter.drawNumSign(view, n, pos.x, pos.y, size, Letter.LINE_COLOR, 33 /* x */, Letter.POLY_COLOR);
       break;
     default:
       assert(0);

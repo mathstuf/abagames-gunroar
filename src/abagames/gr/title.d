@@ -234,15 +234,15 @@ public class TitleManager {
     displayList.call();
     glPopMatrix();
     if (cnt > 150) {
-      Letter.drawString(view, "HIGH", 3, 305, 4, Letter.Direction.TO_RIGHT, 1);
-      Letter.drawNum(view, prefManager.prefData.highScore(gameMode), 80, 320, 4, 0, 9);
+      Letter.drawString(view, "HIGH", 3, 305, 4, Letter.Direction.TO_RIGHT, Letter.COLOR1);
+      Letter.drawNum(view, prefManager.prefData.highScore(gameMode), 80, 320, 4, Letter.COLOR0, 9);
     }
     if (cnt > 200) {
-      Letter.drawString(view, "LAST", 3, 345, 4, Letter.Direction.TO_RIGHT, 1);
+      Letter.drawString(view, "LAST", 3, 345, 4, Letter.Direction.TO_RIGHT, Letter.COLOR1);
       int ls = 0;
       if (_replayData)
         ls = _replayData.score;
-      Letter.drawNum(view, ls, 80, 360, 4, 0, 9);
+      Letter.drawNum(view, ls, 80, 360, 4, Letter.COLOR0, 9);
     }
     Letter.drawString(view, InGameState.gameModeText[gameMode], 3, 400, 5);
   }

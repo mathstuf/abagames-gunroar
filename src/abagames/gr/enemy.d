@@ -569,7 +569,7 @@ public class EnemyState {
         oy -= 1.25f;
       }
       Letter.drawNumSign(view, cast(int) (multiplier * 1000),
-                         pos.x + ox, pos.y + oy, 0.33f, 1, 33 /* x */, 3);
+                         pos.x + ox, pos.y + oy, 0.33f, Letter.COLOR1, 33 /* x */, 3);
     }
   }
 }
