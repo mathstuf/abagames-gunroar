@@ -394,7 +394,7 @@ public class NumIndicator: Actor {
       break;
     case IndicatorType.MULTIPLIER:
       Screen.setColor(alpha, alpha, alpha);
-      Letter.drawNumSign(view, n, pos.x, pos.y, size, Letter.LINE_COLOR, 33, 3);
+      Letter.drawNumSign(view, n, pos.x, pos.y, size, Letter.LINE_COLOR, 33 /* x */, 3);
       break;
     default:
       assert(0);
