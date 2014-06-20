@@ -145,24 +145,14 @@ public class NumReel {
         model.translate(x + rand.nextSignedFloat(1) * ofs, y + rand.nextSignedFloat(1) * ofs, 0);
       else
         model.translate(x, y, 0);
-      // TODO: set model.
 
-      glPushMatrix();
-      if (ofs > 0.005f)
-        glTranslatef(x + rand.nextSignedFloat(1) * ofs, y + rand.nextSignedFloat(1) * ofs, 0);
-      else
-        glTranslatef(x, y, 0);
-      glRotatef(od, 1, 0, 0);
-      glTranslatef(0, 0, s * 2.4f);
-      glScalef(s, -s, s);
       float a = 1 - fabs((od + 15) / (360 / 10 * 1.5f)) / 2;
       if (a < 0)
         a = 0;
-      Screen.setColor(a, a, a);
-      Letter.drawLetter(view, n, Letter.LINE_COLOR);
-      Screen.setColor(a / 2, a / 2, a / 2);
-      Letter.drawLetter(view, n, Letter.POLY_COLOR);
-      glPopMatrix();
+      Letter.setColor(vec4(a, a, a, 1));
+      Letter.drawLetter(view * model, n, Letter.LINE_COLOR);
+      Letter.setColor(vec4(a / 2, a / 2, a / 2, 1));
+      Letter.drawLetter(view * model, n, Letter.POLY_COLOR);
       n--;
       if (n < 0)
         n = 9;
@@ -387,13 +377,12 @@ public class NumIndicator: Actor {
   }
 
   public override void draw(mat4 view) {
-    Screen.setColor(alpha, alpha, alpha);
+    Letter.setColor(vec4(alpha, alpha, alpha, 1));
     switch (type) {
     case IndicatorType.SCORE:
       Letter.drawNumSign(view, n, pos.x, pos.y, size, Letter.LINE_COLOR);
       break;
     case IndicatorType.MULTIPLIER:
-      Screen.setColor(alpha, alpha, alpha);
       Letter.drawNumSign(view, n, pos.x, pos.y, size, Letter.LINE_COLOR, 33 /* x */, Letter.POLY_COLOR);
       break;
     default:
