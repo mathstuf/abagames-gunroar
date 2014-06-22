@@ -281,27 +281,21 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
     }
     mat4 view = windowmat * screen.projectiveView();
     if (screen.startRenderToLuminousScreen()) {
-      glPushMatrix();
-      screen.setEyepos();
       state.drawLuminous(view);
-      glPopMatrix();
       screen.endRenderToLuminousScreen();
     }
     screen.clear();
-    glPushMatrix();
+
     screen.setEyepos();
     state.draw(view);
-    glPopMatrix();
+
     screen.drawLuminous(windowmat);
-    glPushMatrix();
-    screen.setEyepos();
+
     field.drawSideWalls(view);
     state.drawFront(view);
-    glPopMatrix();
-    screen.viewOrthoFixed();
+
     mat4 orthoView = screen.fixedOrthoView();
     state.drawOrtho(orthoView);
-    screen.viewPerspective();
   }
 
   private bool handleAppEvents(ref SDL_Event e) {

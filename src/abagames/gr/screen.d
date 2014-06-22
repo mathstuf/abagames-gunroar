@@ -160,23 +160,6 @@ public class Screen: Screen3D {
     return mat4.look_at(e, l, vec3(0, 1, 0));
   }
 
-  public static void viewOrthoFixed() {
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    glOrtho(0, 640, 480, 0, -1, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-  }
-
-  public static void viewPerspective() {
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-  }
-
   public void setEyepos() {
     float ex, ey, ez;
     float lx, ly, lz;
