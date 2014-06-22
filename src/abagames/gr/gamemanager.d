@@ -658,13 +658,10 @@ public class InGameState: GameState {
       model.translate(x, -9, 0);
       ship.setModelMatrix(model);
 
-      glPushMatrix();
-      glTranslatef(x, -9, 0);
-      glScalef(0.7f, 0.7f, 0.7f);
       ship.drawShape(view);
-      glPopMatrix();
       x += 0.7f;
     }
+    ship.setModelMatrix(mat4.identity);
     numIndicators.draw(view);
   }
 
