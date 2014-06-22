@@ -1161,20 +1161,19 @@ public class Boat {
     glRotatef(-deg * 180 / PI, 0, 0, 1);
     _shape.draw(view);
     bridgeShape.draw(view);
+    glPopMatrix();
     if (shieldCnt > 0) {
       float ss = 0.66f;
       if (shieldCnt < 120)
         ss *= cast(float) shieldCnt / 120;
 
-      model.scale(ss, ss, ss);
-      model.rotate(shieldCnt * 5 / 180 * PI, vec3(0, 0, 1));
-      shieldShape.setModelMatrix(model);
+      mat4 shield = mat4.identity;
+      shield.scale(ss, ss, ss);
+      shield.rotate(-shieldCnt * 5. / 180 * PI, vec3(0, 0, 1));
+      shieldShape.setModelMatrix(model * shield);
 
-      glScalef(ss, ss, ss);
-      glRotatef(shieldCnt * 5, 0, 0, 1);
       shieldShape.draw(view);
     }
-    glPopMatrix();
   }
 
   public void drawFront(mat4 view) {

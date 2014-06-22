@@ -640,25 +640,86 @@ public class CrystalShape: DrawableShapeNew {
   }
 }
 
-public class ShieldShape: DrawableShapeOld {
-  public override void createDisplayList() {
-    Screen.setColor(0.5f, 0.5f, 0.7f);
-    glBegin(GL_LINE_LOOP);
+public class ShieldShape: DrawableShapeNew {
+  mixin AttributeColorShader!(2, 3, 3, 2);
+
+  public void fillStaticShaderData() {
+    static float[2 * 10] VTX;
+    size_t vn = 0;
+
+    VTX[vn++] = 0;
+    VTX[vn++] = 0;
+
     float d = 0;
-    for (int i = 0; i < 8; i++) {
-      glVertex3f(sin(d), cos(d), 0);
-      d += PI / 4;
-    }
-    glEnd();
-    glBegin(GL_TRIANGLE_FAN);
-    Screen.setColor(0, 0, 0);
-    glVertex3f(0, 0, 0);
-    d = 0;
-    Screen.setColor(0.3f, 0.3f, 0.5f);
     for (int i = 0; i < 9; i++) {
-      glVertex3f(sin(d), cos(d), 0);
+      VTX[vn++] = sin(d);
+      VTX[vn++] = cos(d);
+
       d += PI / 4;
     }
-    glEnd();
+
+    static const float[] LINECOLOR = [
+      0.5f, 0.5f, 0.7f,
+      0.5f, 0.5f, 0.7f,
+      0.5f, 0.5f, 0.7f,
+      0.5f, 0.5f, 0.7f,
+      0.5f, 0.5f, 0.7f,
+      0.5f, 0.5f, 0.7f,
+      0.5f, 0.5f, 0.7f,
+      0.5f, 0.5f, 0.7f,
+      0.5f, 0.5f, 0.7f
+    ];
+
+    static const float[] FILLCOLOR = [
+      0,    0,    0,
+      0.3f, 0.3f, 0.5f,
+      0.3f, 0.3f, 0.5f,
+      0.3f, 0.3f, 0.5f,
+      0.3f, 0.3f, 0.5f,
+      0.3f, 0.3f, 0.5f,
+      0.3f, 0.3f, 0.5f,
+      0.3f, 0.3f, 0.5f,
+      0.3f, 0.3f, 0.5f,
+      0.3f, 0.3f, 0.5f
+    ];
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+    glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
+
+    glBindVertexArray(vao[0]);
+
+    glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(posLoc);
+
+    glBindVertexArray(vao[1]);
+
+    glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(posLoc);
+
+    glBindVertexArray(vao[0]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+    glBufferData(GL_ARRAY_BUFFER, LINECOLOR.length * float.sizeof, LINECOLOR.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(colorLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(colorLoc);
+
+    glBindVertexArray(vao[1]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+    glBufferData(GL_ARRAY_BUFFER, FILLCOLOR.length * float.sizeof, FILLCOLOR.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(colorLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(colorLoc);
+  }
+
+  public override void drawShape() {
+    program.setUniform("brightness", Screen.brightness);
+
+    glBindVertexArray(vao[0]);
+    glDrawArrays(GL_LINE_LOOP, 1, 8);
+
+    glBindVertexArray(vao[1]);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 10);
   }
 }
