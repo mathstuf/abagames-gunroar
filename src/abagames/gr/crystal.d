@@ -87,10 +87,7 @@ public class Crystal: Actor {
       model.translate(pos.x + sin(d) * r, pos.y + cos(d) * r, 0);
       _shape.setModelMatrix(model);
 
-      glPushMatrix();
-      glTranslatef(pos.x + sin(d) * r, pos.y + cos(d) * r, 0);
       _shape.draw(view);
-      glPopMatrix();
       d += PI / 2;
     }
   }

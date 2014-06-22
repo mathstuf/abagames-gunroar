@@ -607,15 +607,36 @@ public class DestructiveBulletShape: DrawableShapeNew, Collidable {
   }
 }
 
-public class CrystalShape: DrawableShapeOld {
-  public override void createDisplayList() {
-    Screen.setColor(0.6f, 1, 0.7f);
-    glBegin(GL_LINE_LOOP);
-    glVertex3f(-0.2f, 0.2f, 0);
-    glVertex3f(0.2f, 0.2f, 0);
-    glVertex3f(0.2f, -0.2f, 0);
-    glVertex3f(-0.2f, -0.2f, 0);
-    glEnd();
+public class CrystalShape: DrawableShapeNew {
+  mixin UniformColorShader!(2, 3);
+
+  public void fillStaticShaderData() {
+    program.setUniform("color", 0.6f, 1, 0.7f);
+
+    static const float[] VTX = [
+      -0.2f,  0.2f,
+       0.2f,  0.2f,
+       0.2f, -0.2f,
+      -0.2f, -0.2f
+    ];
+
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(posLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+  }
+
+  public override void drawShape() {
+    program.setUniform("brightness", Screen.brightness);
+
+    glBindVertexArray(vao);
+    glDrawArrays(GL_LINE_LOOP, 0, 4);
   }
 }
 
