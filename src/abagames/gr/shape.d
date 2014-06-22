@@ -46,6 +46,7 @@ public class BaseShape: Drawable {
   vec2[] pillarPos;
   vec2[] _pointPos;
   float[] _pointDeg;
+  vec3 storedColor;
   vec3 nextColor;
   mat4 model;
 
@@ -327,6 +328,10 @@ public class BaseShape: Drawable {
     }
   }
 
+  public void setDefaultColor(vec3 color) {
+    storedColor = color;
+  }
+
   public override void setModelMatrix(mat4 model) {
     loopProgram.use();
     loopProgram.setUniform("modelmat", model);
@@ -349,9 +354,8 @@ public class BaseShape: Drawable {
       z += height;
     if (type != ShapeType.SHIP_DESTROYED)
       nextColor = baseColor;
-    else {
-      // TODO: What color to set here?
-    }
+    else
+      nextColor = storedColor;
 
     loopProgram.use();
 
@@ -571,6 +575,7 @@ public class TurretShape: ResizableDrawable {
   };
  private:
   static BaseShape[] shapes;
+  BaseShape baseShape;
 
   public static void init() {
     shapes ~= new CollidableBaseShape(1, 0, 0, BaseShape.ShapeType.TURRET, 1, 0.8f, 0.8f);
@@ -584,7 +589,12 @@ public class TurretShape: ResizableDrawable {
   }
 
   public this(int t) {
-    shape = shapes[t];
+    baseShape = shapes[t];
+    shape = baseShape;
+  }
+
+  public void setDefaultColor(vec3 color) {
+    baseShape.setDefaultColor(color);
   }
 }
 
@@ -598,6 +608,7 @@ public class EnemyShape: ResizableDrawable {
   static const float MIDDLE_COLOR_R = 1, MIDDLE_COLOR_G = 0.6f, MIDDLE_COLOR_B = 0.5f;
  private:
   static BaseShape[] shapes;
+  BaseShape baseShape;
 
   public static void init() {
     shapes ~= new BaseShape
@@ -630,7 +641,12 @@ public class EnemyShape: ResizableDrawable {
   }
 
   public this(int t) {
-    shape = shapes[t];
+    baseShape = shapes[t];
+    shape = baseShape;
+  }
+
+  public void setDefaultColor(vec3 color) {
+    baseShape.setDefaultColor(color);
   }
 
   public void addWake(WakePool wakes, vec2 pos, float deg, float sp) {

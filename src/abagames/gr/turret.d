@@ -52,6 +52,7 @@ public class Turret {
   float bulletSpeed;
   int burstCnt;
   Enemy parent;
+  vec3 storedColor;
 
   invariant() {
     assert(pos.x < 15 && pos.x > -15);
@@ -274,6 +275,10 @@ public class Turret {
     return true;
   }
 
+  public void setDefaultColor(vec3 color) {
+    storedColor = color;
+  }
+
   public void draw(mat4 view) {
     if (spec.invisible)
       return;
@@ -288,12 +293,15 @@ public class Turret {
       model.translate(pos.x, pos.y, 0);
     }
     if (destroyedCnt >= 0) {
+      spec.destroyedShape.setDefaultColor(storedColor);
       spec.destroyedShape.setModelMatrix(model);
       spec.destroyedShape.draw(view);
     } else if (!damaged) {
+      spec.shape.setDefaultColor(storedColor);
       spec.shape.setModelMatrix(model);
       spec.shape.draw(view);
     } else {
+      spec.damagedShape.setDefaultColor(storedColor);
       spec.damagedShape.setModelMatrix(model);
       spec.damagedShape.draw(view);
     }
@@ -781,6 +789,11 @@ public class TurretGroup {
     }
     cnt++;
     return alive;
+  }
+
+  public void setDefaultColor(vec3 color) {
+    for (int i = 0; i < spec.num; i++)
+      turret[i].setDefaultColor(color);
   }
 
   public void draw(mat4 view) {

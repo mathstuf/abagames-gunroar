@@ -166,6 +166,7 @@ public class EnemyState {
   EnemyPool enemies;
   StageManager stageManager;
   ScoreReel scoreReel;
+  vec3 storedColor;
 
   invariant() {
     assert(pos.x < 15 && pos.x > -15);
@@ -516,6 +517,10 @@ public class EnemyState {
       movingTurretGroup[i].remove();
   }
 
+  public void setDefaultColor(vec3 color) {
+    storedColor = color;
+  }
+
   public void draw(mat4 view) {
     mat4 model = mat4.identity;
     model.rotate(deg, vec3(0, 0, 1));
@@ -527,24 +532,30 @@ public class EnemyState {
       model.translate(pos.x, pos.y, 0);
     }
     if (destroyedCnt >= 0) {
+      spec.destroyedShape.setDefaultColor(storedColor);
       spec.destroyedShape.setModelMatrix(model);
       spec.destroyedShape.draw(view);
     } else if (!damaged) {
+      spec.shape.setDefaultColor(storedColor);
       spec.shape.setModelMatrix(model);
       spec.shape.draw(view);
     } else {
+      spec.damagedShape.setDefaultColor(storedColor);
       spec.damagedShape.setModelMatrix(model);
       spec.damagedShape.draw(view);
     }
     if (destroyedCnt < 0) {
+      spec.bridgeShape.setDefaultColor(storedColor);
       spec.bridgeShape.setModelMatrix(model);
       spec.bridgeShape.draw(view);
     }
 
     if (destroyedCnt >= 0)
       return;
-    for (int i = 0; i < spec.turretGroupNum; i++)
+    for (int i = 0; i < spec.turretGroupNum; i++) {
+      turretGroup[i].setDefaultColor(storedColor);
       turretGroup[i].draw(view);
+    }
     if (multiplier > 1) {
       float ox, oy;
       if (multiplier < 10)
@@ -1271,10 +1282,10 @@ public class ShipEnemySpec: EnemySpec, HasAppearType {
 
   public override void draw(mat4 view, EnemyState es) {
     if (es.destroyedCnt >= 0)
-      Screen.setColor(
+      es.setDefaultColor(vec3(
         EnemyShape.MIDDLE_COLOR_R * (1 - cast(float) es.destroyedCnt / SINK_INTERVAL) * 0.5f,
         EnemyShape.MIDDLE_COLOR_G * (1 - cast(float) es.destroyedCnt / SINK_INTERVAL) * 0.5f,
-        EnemyShape.MIDDLE_COLOR_B * (1 - cast(float) es.destroyedCnt / SINK_INTERVAL) * 0.5f);
+        EnemyShape.MIDDLE_COLOR_B * (1 - cast(float) es.destroyedCnt / SINK_INTERVAL) * 0.5f));
     super.draw(view, es);
   }
 
