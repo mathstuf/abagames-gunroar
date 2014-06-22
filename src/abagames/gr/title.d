@@ -9,7 +9,7 @@ private import std.math;
 private import derelict.sdl2.sdl;
 private import derelict.opengl3.gl;
 private import gl3n.linalg;
-private import abagames.util.sdl.displaylist;
+private import abagames.util.sdl.shaderprogram;
 private import abagames.util.sdl.texture;
 private import abagames.util.sdl.pad;
 private import abagames.util.sdl.mouse;
@@ -34,7 +34,11 @@ public class TitleManager {
   RecordableTouch touch;
   Field field;
   GameManager gameManager;
-  DisplayList displayList;
+  ShaderProgram logoLineProgram;
+  ShaderProgram logoFillProgram;
+  ShaderProgram titleProgram;
+  GLuint[3] vao;
+  GLuint[5] vbo;
   Texture logo;
   int cnt;
   ReplayData _replayData;
@@ -54,55 +58,196 @@ public class TitleManager {
 
   private void init() {
     logo = new Texture("title.bmp");
-    displayList = new DisplayList(1);
-    displayList.beginNewList();
-    glEnable(GL_TEXTURE_2D);
-    logo.bind();
-    Screen.setColor(1, 1, 1);
-    glBegin(GL_TRIANGLE_FAN);
-    glTexCoord2f(0, 0);
-    glVertex2f(0, -63);
-    glTexCoord2f(1, 0);
-    glVertex2f(255, -63);
-    glTexCoord2f(1, 1);
-    glVertex2f(255, 0);
-    glTexCoord2f(0, 1);
-    glVertex2f(0, 0);
-    glEnd();
-    Screen.lineWidth(3);
-    glDisable(GL_TEXTURE_2D);
-    glBegin(GL_LINE_STRIP);
-    glVertex2f(-80, -7);
-    glVertex2f(-20, -7);
-    glVertex2f(10, -70);
-    glEnd();
-    glBegin(GL_LINE_STRIP);
-    glVertex2f(45, -2);
-    glVertex2f(-15, -2);
-    glVertex2f(-45, 61);
-    glEnd();
-    glBegin(GL_TRIANGLE_FAN);
-    Screen.setColor(1, 1, 1);
-    glVertex2f(-19, -6);
-    Screen.setColor(0, 0, 0);
-    glVertex2f(-79, -6);
-    glVertex2f(11, -69);
-    glEnd();
-    glBegin(GL_TRIANGLE_FAN);
-    Screen.setColor(1, 1, 1);
-    glVertex2f(-16, -3);
-    Screen.setColor(0, 0, 0);
-    glVertex2f(44, -3);
-    glVertex2f(-46, 60);
-    glEnd();
-    Screen.lineWidth(1);
-    displayList.endNewList();
+
+    titleProgram = new ShaderProgram;
+    titleProgram.setVertexShader(
+      "uniform mat4 projmat;\n"
+      "uniform mat4 modelmat;\n"
+      "\n"
+      "attribute vec2 pos;\n"
+      "attribute vec2 tex;\n"
+      "\n"
+      "varying vec2 f_tc;\n"
+      "\n"
+      "void main() {\n"
+      "  gl_Position = projmat * modelmat * vec4(pos, 0, 1);\n"
+      "  f_tc = tex;\n"
+      "}\n"
+    );
+    titleProgram.setFragmentShader(
+      "uniform sampler2D sampler;\n"
+      "uniform vec3 color;\n"
+      "uniform float brightness;\n"
+      "\n"
+      "varying vec2 f_tc;\n"
+      "\n"
+      "void main() {\n"
+      "  gl_FragColor = texture2D(sampler, f_tc) * vec4(color * vec3(brightness), 1);\n"
+      "}\n"
+    );
+    GLint posLoc = 0;
+    GLint texLoc = 1;
+    titleProgram.bindAttribLocation(posLoc, "pos");
+    titleProgram.bindAttribLocation(texLoc, "tex");
+    titleProgram.link();
+    titleProgram.use();
+
+    titleProgram.setUniform("color", 1, 1, 1);
+    titleProgram.setUniform("sampler", 0);
+
+    glGenVertexArrays(3, vao.ptr);
+    glGenBuffers(5, vbo.ptr);
+
+    static const float[] TEX = [
+      0, 0,
+      1, 0,
+      1, 1,
+      0, 1
+    ];
+    static const float[] TITLEVTX = [
+      0,   -63,
+      255, -63,
+      255,  0,
+      0,    0
+    ];
+
+    glBindVertexArray(vao[0]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+    glBufferData(GL_ARRAY_BUFFER, TITLEVTX.length * float.sizeof, TITLEVTX.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(posLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+    glBufferData(GL_ARRAY_BUFFER, TEX.length * float.sizeof, TEX.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(texLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(texLoc);
+
+    logoLineProgram = new ShaderProgram;
+    logoLineProgram.setVertexShader(
+      "uniform mat4 projmat;\n"
+      "uniform mat4 modelmat;\n"
+      "\n"
+      "attribute vec2 pos;\n"
+      "\n"
+      "void main() {\n"
+      "  gl_Position = projmat * modelmat * vec4(pos, 0, 1);\n"
+      "}\n"
+    );
+    logoLineProgram.setFragmentShader(
+      "uniform vec3 color;\n"
+      "uniform float brightness;\n"
+      "\n"
+      "void main() {\n"
+      "  gl_FragColor = vec4(color * vec3(brightness), 1);\n"
+      "}\n"
+    );
+    logoLineProgram.bindAttribLocation(posLoc, "pos");
+    logoLineProgram.link();
+    logoLineProgram.use();
+
+    logoLineProgram.setUniform("color", 1, 1, 1);
+
+    static const float[] LINEVTX = [
+      -80,  -7,
+      -20,  -7,
+       10, -70,
+
+       45,  -2,
+      -15,  -2,
+      -45,  61
+    ];
+
+    glBindVertexArray(vao[1]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+    glBufferData(GL_ARRAY_BUFFER, LINEVTX.length * float.sizeof, LINEVTX.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(posLoc);
+
+    logoFillProgram = new ShaderProgram;
+    logoFillProgram.setVertexShader(
+      "uniform mat4 projmat;\n"
+      "uniform mat4 modelmat;\n"
+      "\n"
+      "attribute vec2 pos;\n"
+      "attribute vec3 color;\n"
+      "\n"
+      "varying vec3 f_color;\n"
+      "\n"
+      "void main() {\n"
+      "  gl_Position = projmat * modelmat * vec4(pos, 0, 1);\n"
+      "  f_color = color;\n"
+      "}\n"
+    );
+    logoFillProgram.setFragmentShader(
+      "uniform float brightness;\n"
+      "\n"
+      "varying vec3 f_color;\n"
+      "\n"
+      "void main() {\n"
+      "  vec4 brightness4 = vec4(vec3(brightness), 1);\n"
+      "  gl_FragColor = vec4(f_color, 1) * brightness4;\n"
+      "}\n"
+    );
+    GLint colorLoc = 1;
+    logoFillProgram.bindAttribLocation(posLoc, "pos");
+    logoFillProgram.bindAttribLocation(colorLoc, "color");
+    logoFillProgram.link();
+    logoFillProgram.use();
+
+    static const float[] FILLVTX = [
+      -19,  -6,
+      -79,  -6,
+       11, -69,
+
+      -16,  -3,
+       44,  -3,
+      -46,  60
+    ];
+
+    static const float[] COLOR = [
+      1, 1, 1,
+      0, 0, 0,
+      0, 0, 0,
+
+      1, 1, 1,
+      0, 0, 0,
+      0, 0, 0
+    ];
+
+    glBindVertexArray(vao[2]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
+    glBufferData(GL_ARRAY_BUFFER, FILLVTX.length * float.sizeof, FILLVTX.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(posLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
+    glBufferData(GL_ARRAY_BUFFER, COLOR.length * float.sizeof, COLOR.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(colorLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(colorLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+    glUseProgram(0);
+
     gameMode = prefManager.prefData.gameMode;
   }
 
   public void close() {
-    displayList.close();
     logo.close();
+
+    glDeleteVertexArrays(3, vao.ptr);
+    glDeleteBuffers(5, vbo.ptr);
+    titleProgram.close();
+    logoLineProgram.close();
+    logoFillProgram.close();
   }
 
   public void start() {
@@ -226,13 +371,24 @@ public class TitleManager {
     mat4 model = mat4.identity;
     model.scale(ts, ts, 0);
     model.translate(80 * ts, 240, 0);
-    // TODO: set model.
 
-    glPushMatrix();
-    glTranslatef(80 * ts, 240, 0);
-    glScalef(ts, ts, 0);
-    displayList.call();
-    glPopMatrix();
+    titleProgram.use();
+    titleProgram.setUniform("brightness", Screen.brightness);
+    titleProgram.setUniform("projmat", view);
+    titleProgram.setUniform("modelmat", model);
+
+    logoLineProgram.use();
+    logoLineProgram.setUniform("brightness", Screen.brightness);
+    logoLineProgram.setUniform("projmat", view);
+    logoLineProgram.setUniform("modelmat", model);
+
+    logoFillProgram.use();
+    logoFillProgram.setUniform("brightness", Screen.brightness);
+    logoFillProgram.setUniform("projmat", view);
+    logoFillProgram.setUniform("modelmat", model);
+
+    drawLogo();
+
     if (cnt > 150) {
       Letter.drawString(view, "HIGH", 3, 305, 4, Letter.Direction.TO_RIGHT, Letter.COLOR1);
       Letter.drawNum(view, prefManager.prefData.highScore(gameMode), 80, 320, 4, Letter.COLOR0, 9);
@@ -249,5 +405,38 @@ public class TitleManager {
 
   public ReplayData replayData(ReplayData v) {
     return _replayData = v;
+  }
+
+  private void drawLogo() {
+    glEnable(GL_TEXTURE_2D);
+
+    titleProgram.use();
+
+    glActiveTexture(GL_TEXTURE0);
+    logo.bind();
+
+    glBindVertexArray(vao[0]);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    glDisable(GL_TEXTURE_2D);
+
+    Screen.lineWidth(3);
+
+    logoLineProgram.use();
+
+    glBindVertexArray(vao[1]);
+    glDrawArrays(GL_LINE_STRIP, 0, 3);
+    glDrawArrays(GL_LINE_STRIP, 3, 3);
+
+    logoFillProgram.use();
+
+    glBindVertexArray(vao[2]);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 3);
+    glDrawArrays(GL_TRIANGLE_FAN, 3, 3);
+
+    Screen.lineWidth(1);
+
+    glBindVertexArray(0);
+    glUseProgram(0);
   }
 }
