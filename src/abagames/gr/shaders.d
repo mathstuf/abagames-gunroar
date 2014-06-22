@@ -23,11 +23,11 @@ public template makevec4(int size, string name) {
   }
 }
 
-public template UniformColorShader(int pos, int color) {
+public template UniformColorShader(int pos, int color, size_t nbuf = 1, size_t narr = 1) {
   protected static ShaderProgram program;
   protected static GLint posLoc;
-  protected static GLuint vao;
-  protected static GLuint vbo;
+  protected static GLuint[nbuf] vao;
+  protected static GLuint[narr] vbo;
  private:
 
   protected override ShaderProgram initShader() {
@@ -62,8 +62,8 @@ public template UniformColorShader(int pos, int color) {
     program.link();
     program.use();
 
-    glGenBuffers(1, &vbo);
-    glGenVertexArrays(1, &vao);
+    glGenBuffers(nbuf, vbo.ptr);
+    glGenVertexArrays(narr, vao.ptr);
 
     fillStaticShaderData();
 
@@ -72,20 +72,20 @@ public template UniformColorShader(int pos, int color) {
 
   public override void close() {
     if (program !is null) {
-      glDeleteVertexArrays(1, &vao);
-      glDeleteBuffers(1, &vbo);
+      glDeleteVertexArrays(narr, vao.ptr);
+      glDeleteBuffers(nbuf, vbo.ptr);
       super.close();
       program = null;
     }
   }
 }
 
-public template AttributeColorShader(int pos, int color) {
+public template AttributeColorShader(int pos, int color, size_t nbuf = 2, size_t narr = 1) {
   protected static ShaderProgram program;
   protected static GLint posLoc;
   protected static GLint colorLoc;
-  protected static GLuint vao;
-  protected static GLuint[2] vbo;
+  protected static GLuint[narr] vao;
+  protected static GLuint[nbuf] vbo;
  private:
 
   protected override ShaderProgram initShader() {
@@ -127,8 +127,8 @@ public template AttributeColorShader(int pos, int color) {
     program.link();
     program.use();
 
-    glGenBuffers(2, vbo.ptr);
-    glGenVertexArrays(1, &vao);
+    glGenBuffers(nbuf, vbo.ptr);
+    glGenVertexArrays(narr, vao.ptr);
 
     fillStaticShaderData();
 
@@ -137,8 +137,8 @@ public template AttributeColorShader(int pos, int color) {
 
   public override void close() {
     if (program !is null) {
-      glDeleteVertexArrays(1, &vao);
-      glDeleteBuffers(2, vbo.ptr);
+      glDeleteVertexArrays(narr, vao.ptr);
+      glDeleteBuffers(nbuf, vbo.ptr);
       super.close();
       program = null;
     }

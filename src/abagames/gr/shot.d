@@ -284,9 +284,9 @@ public class ShotShape: CollidableDrawableNew {
       -0.1f,   -0.3f, -0.05f
     ];
 
-    glBindVertexArray(vao);
+    glBindVertexArray(vao[0]);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
     glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
 
     glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
@@ -299,7 +299,7 @@ public class ShotShape: CollidableDrawableNew {
   protected override void drawShape() {
     program.setUniform("brightness", Screen.brightness);
 
-    glBindVertexArray(vao);
+    glBindVertexArray(vao[0]);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     glDrawArrays(GL_TRIANGLE_FAN, 4, 4);
     glDrawArrays(GL_TRIANGLE_FAN, 8, 4);

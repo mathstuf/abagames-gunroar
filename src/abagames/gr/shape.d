@@ -424,9 +424,9 @@ public class NormalBulletShape: DrawableShapeNew {
        0.2f, -0.25f,  0.2f
     ];
 
-    glBindVertexArray(vao);
+    glBindVertexArray(vao[0]);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
     glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
 
     glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
@@ -439,7 +439,7 @@ public class NormalBulletShape: DrawableShapeNew {
   public override void drawShape() {
     program.setUniform("brightness", Screen.brightness);
 
-    glBindVertexArray(vao);
+    glBindVertexArray(vao[0]);
 
     glDisable(GL_BLEND);
 
@@ -475,9 +475,9 @@ public class SmallBulletShape: DrawableShapeNew {
        0.25f, -0.25f,  0.25f
     ];
 
-    glBindVertexArray(vao);
+    glBindVertexArray(vao[0]);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
     glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
 
     glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
@@ -490,7 +490,7 @@ public class SmallBulletShape: DrawableShapeNew {
   public override void drawShape() {
     program.setUniform("brightness", Screen.brightness);
 
-    glBindVertexArray(vao);
+    glBindVertexArray(vao[0]);
 
     glDisable(GL_BLEND);
 
@@ -526,9 +526,9 @@ public class MovingTurretBulletShape: DrawableShapeNew {
        0.25f, -0.25f,  0.25f
     ];
 
-    glBindVertexArray(vao);
+    glBindVertexArray(vao[0]);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
     glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
 
     glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
@@ -541,7 +541,7 @@ public class MovingTurretBulletShape: DrawableShapeNew {
   public override void drawShape() {
     program.setUniform("brightness", Screen.brightness);
 
-    glBindVertexArray(vao);
+    glBindVertexArray(vao[0]);
 
     glDisable(GL_BLEND);
 
@@ -570,9 +570,9 @@ public class DestructiveBulletShape: DrawableShapeNew, Collidable {
        0,    -0.4f
     ];
 
-    glBindVertexArray(vao);
+    glBindVertexArray(vao[0]);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
     glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
 
     glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
@@ -587,7 +587,7 @@ public class DestructiveBulletShape: DrawableShapeNew, Collidable {
   public override void drawShape() {
     program.setUniform("brightness", Screen.brightness);
 
-    glBindVertexArray(vao);
+    glBindVertexArray(vao[0]);
 
     glDisable(GL_BLEND);
 
@@ -620,9 +620,9 @@ public class CrystalShape: DrawableShapeNew {
       -0.2f, -0.2f
     ];
 
-    glBindVertexArray(vao);
+    glBindVertexArray(vao[0]);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
     glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
 
     glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
@@ -635,7 +635,7 @@ public class CrystalShape: DrawableShapeNew {
   public override void drawShape() {
     program.setUniform("brightness", Screen.brightness);
 
-    glBindVertexArray(vao);
+    glBindVertexArray(vao[0]);
     glDrawArrays(GL_LINE_LOOP, 0, 4);
   }
 }
