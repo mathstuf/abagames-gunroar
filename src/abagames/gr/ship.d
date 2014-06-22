@@ -375,8 +375,9 @@ public class Ship {
 public class Boat {
  private:
   static ShaderProgram sightProgram;
-  static GLuint vao;
-  static GLuint vbo;
+  static ShaderProgram lineProgram;
+  static GLuint[2] vao;
+  static GLuint[3] vbo;
   static const int RESTART_CNT = 300;
   static const int INVINCIBLE_CNT = 228;
   static const float HIT_WIDTH = 0.02f;
@@ -488,8 +489,8 @@ public class Boat {
     sightProgram.link();
     sightProgram.use();
 
-    glGenBuffers(1, &vbo);
-    glGenVertexArrays(1, &vao);
+    glGenBuffers(3, vbo.ptr);
+    glGenVertexArrays(2, vao.ptr);
 
     static const float[] SIZEFACTOR = [
       -1,    -0.5f,
@@ -509,13 +510,71 @@ public class Boat {
       -0.5f,  1
     ];
 
-    glBindVertexArray(vao);
+    glBindVertexArray(vao[0]);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
     glBufferData(GL_ARRAY_BUFFER, SIZEFACTOR.length * float.sizeof, SIZEFACTOR.ptr, GL_STATIC_DRAW);
 
     glVertexAttribPointer(sizeFactorLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
     glEnableVertexAttribArray(sizeFactorLoc);
+
+    lineProgram = new ShaderProgram;
+    lineProgram.setVertexShader(
+      "uniform mat4 projmat;\n"
+      "uniform vec2 pos;\n"
+      "uniform float deg;\n"
+      "\n"
+      "attribute float rotFactor;\n"
+      "attribute vec4 color;\n"
+      "\n"
+      "varying vec4 f_color;\n"
+      "\n"
+      "void main() {\n"
+      "  vec2 rot = 20. * rotFactor * vec2(sin(deg), cos(deg));\n"
+      "  vec4 pos4 = vec4(pos + rot, 0, 1);\n"
+      "  gl_Position = projmat * pos4;\n"
+      "  f_color = color;\n"
+      "}\n"
+    );
+    lineProgram.setFragmentShader(
+      "uniform float brightness;\n"
+      "\n"
+      "varying vec4 f_color;\n"
+      "\n"
+      "void main() {\n"
+      "  gl_FragColor = f_color * vec4(vec3(brightness), 1);\n"
+      "}\n"
+    );
+    GLint rotFactorLoc = 0;
+    GLint colorLoc = 1;
+    lineProgram.bindAttribLocation(rotFactorLoc, "rotFactor");
+    lineProgram.bindAttribLocation(colorLoc, "color");
+    lineProgram.link();
+    lineProgram.use();
+
+    glBindVertexArray(vao[1]);
+
+    static const float[] ROTFACTOR = [
+      0,
+      1
+    ];
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+    glBufferData(GL_ARRAY_BUFFER, ROTFACTOR.length * float.sizeof, ROTFACTOR.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(rotFactorLoc, 1, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(rotFactorLoc);
+
+    static const float[] COLOR = [
+      0.5f, 0.9f, 0.7f, 0.4f,
+      0.5f, 0.9f, 0.7f, 0.8f
+    ];
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+    glBufferData(GL_ARRAY_BUFFER, COLOR.length * float.sizeof, COLOR.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(colorLoc, 4, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(colorLoc);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -578,10 +637,12 @@ public class Boat {
     shieldShape.close();
 
     if (sightProgram !is null) {
-      glDeleteVertexArrays(1, &vao);
-      glDeleteBuffers(1, &vbo);
+      glDeleteVertexArrays(2, vao.ptr);
+      glDeleteBuffers(3, vbo.ptr);
       sightProgram.close();
       sightProgram = null;
+      lineProgram.close();
+      lineProgram = null;
     }
   }
 
@@ -1289,12 +1350,17 @@ public class Boat {
     if (cnt < -INVINCIBLE_CNT)
       return;
     if (fireDeg < 99999) {
-      Screen.setColor(0.5f, 0.9f, 0.7f, 0.4f);
-      glBegin(GL_LINE_STRIP);
-      glVertex2f(_pos.x, _pos.y);
-      Screen.setColor(0.5f, 0.9f, 0.7f, 0.8f);
-      glVertex2f(_pos.x + sin(fireDeg) * 20, _pos.y + cos(fireDeg) * 20);
-      glEnd();
+      lineProgram.use();
+
+      lineProgram.setUniform("brightness", Screen.brightness);
+      lineProgram.setUniform("pos", _pos);
+      lineProgram.setUniform("deg", fireDeg);
+
+      glBindVertexArray(vao[1]);
+      glDrawArrays(GL_LINE_STRIP, 0, 2);
+
+      glBindVertexArray(0);
+      glUseProgram(0);
     }
     if (cnt < 0 && (-cnt % 32) < 16)
       return;
@@ -1354,7 +1420,7 @@ public class Boat {
     sightProgram.setUniform("pos", x, y);
     sightProgram.setUniform("size", size);
 
-    glBindVertexArray(vao);
+    glBindVertexArray(vao[0]);
     glDrawArrays(GL_LINE_STRIP, 0, 3);
     glDrawArrays(GL_LINE_STRIP, 3, 3);
     glDrawArrays(GL_LINE_STRIP, 6, 3);
