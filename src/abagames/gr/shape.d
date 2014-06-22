@@ -556,28 +556,49 @@ public class MovingTurretBulletShape: DrawableShapeNew {
   }
 }
 
-public class DestructiveBulletShape: DrawableShapeOld, Collidable {
+public class DestructiveBulletShape: DrawableShapeNew, Collidable {
+  mixin UniformColorShader!(2, 3);
   mixin CollidableImpl;
  private:
   vec2 _collision;
 
-  public override void createDisplayList() {
+  public void fillStaticShaderData() {
+    static const float[] VTX = [
+       0.2f,  0,
+       0,     0.4f,
+      -0.2f,  0,
+       0,    -0.4f
+    ];
+
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(posLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    _collision = vec2(0.4f, 0.4f);
+  }
+
+  public override void drawShape() {
+    program.setUniform("brightness", Screen.brightness);
+
+    glBindVertexArray(vao);
+
     glDisable(GL_BLEND);
-    Screen.setColor(0.9f, 0.9f, 0.6f);
-    glBegin(GL_LINE_LOOP);
-    glVertex3f(0.2f, 0, 0);
-    glVertex3f(0, 0.4f, 0);
-    glVertex3f(-0.2f, 0, 0);
-    glVertex3f(0, -0.4f, 0);
-    glEnd();
+
+    program.setUniform("color", 0.9f, 0.9f, 0.6f);
+    glDrawArrays(GL_LINE_STRIP, 0, 4);
+
     glEnable(GL_BLEND);
-    Screen.setColor(0.7f, 0.5f, 0.4f);
-    glBegin(GL_TRIANGLE_FAN);
-    glVertex3f(0.2f, 0, 0);
-    glVertex3f(0, 0.4f, 0);
-    glVertex3f(-0.2f, 0, 0);
-    glVertex3f(0, -0.4f, 0);
-    glEnd();
+
+    program.setUniform("color", 0.7f, 0.5f, 0.4f);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
     _collision = vec2(0.4f, 0.4f);
   }
 
