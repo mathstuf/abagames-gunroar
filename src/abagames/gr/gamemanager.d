@@ -179,6 +179,7 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
     field.close();
     BulletShape.close();
     EnemyShape.close();
+    Turret.close();
     TurretShape.close();
     Fragment.close();
     SparkFragment.close();
