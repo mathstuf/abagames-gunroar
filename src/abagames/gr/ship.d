@@ -374,6 +374,9 @@ public class Ship {
 
 public class Boat {
  private:
+  static ShaderProgram sightProgram;
+  static GLuint vao;
+  static GLuint vbo;
   static const int RESTART_CNT = 300;
   static const int INVINCIBLE_CNT = 228;
   static const float HIT_WIDTH = 0.02f;
@@ -457,6 +460,65 @@ public class Boat {
 
   public static void init() {
     rand = new Rand;
+
+    sightProgram = new ShaderProgram;
+    sightProgram.setVertexShader(
+      "uniform mat4 projmat;\n"
+      "uniform vec2 pos;\n"
+      "uniform float size;\n"
+      "\n"
+      "attribute vec2 sizeFactor;\n"
+      "\n"
+      "void main() {\n"
+      "  vec4 pos4 = vec4(pos + size * sizeFactor, 0, 1);\n"
+      "  gl_Position = projmat * pos4;\n"
+      "}\n"
+    );
+    sightProgram.setFragmentShader(
+      "uniform float brightness;\n"
+      "uniform vec4 color;\n"
+      "\n"
+      "void main() {\n"
+      "  vec4 brightness4 = vec4(vec3(brightness), 1);\n"
+      "  gl_FragColor = color * brightness4;\n"
+      "}\n"
+    );
+    GLint sizeFactorLoc = 0;
+    sightProgram.bindAttribLocation(sizeFactorLoc, "sizeFactor");
+    sightProgram.link();
+    sightProgram.use();
+
+    glGenBuffers(1, &vbo);
+    glGenVertexArrays(1, &vao);
+
+    static const float[] SIZEFACTOR = [
+      -1,    -0.5f,
+      -1,    -1,
+      -0.5f, -1,
+
+       1,    -0.5f,
+       1,    -1,
+       0.5f, -1,
+
+       1,     0.5f,
+       1,     1,
+       0.5f,  1,
+
+      -1,     0.5f,
+      -1,     1,
+      -0.5f,  1
+    ];
+
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, SIZEFACTOR.length * float.sizeof, SIZEFACTOR.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(sizeFactorLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(sizeFactorLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
   }
 
   public static void setRandSeed(long seed) {
@@ -514,6 +576,13 @@ public class Boat {
     _shape.close();
     bridgeShape.close();
     shieldShape.close();
+
+    if (sightProgram !is null) {
+      glDeleteVertexArrays(1, &vao);
+      glDeleteBuffers(1, &vbo);
+      sightProgram.close();
+      sightProgram = null;
+    }
   }
 
   public void setShots(ShotPool shots) {
@@ -1260,37 +1329,38 @@ public class Boat {
     if (cnt < -INVINCIBLE_CNT)
       return;
     if (gameMode == InGameState.GameMode.MOUSE) {
-      Screen.setColor(0.7f, 0.9f, 0.8f, 1.0f);
+      sightProgram.use();
+
+      sightProgram.setUniform("brightness", Screen.brightness);
+      sightProgram.setUniform("projmat", view);
+
       Screen.lineWidth(2);
+
+      sightProgram.setUniform("color", 0.7f, 0.9f, 0.8f, 1);
       drawSight(mouseInput.x, mouseInput.y, 0.3f);
+
       float ss = 0.9f - 0.8f * ((cnt + 1024) % 32) / 32;
-      Screen.setColor(0.5f, 0.9f, 0.7f, 0.8f);
+
+      sightProgram.setUniform("color", 0.5f, 0.9f, 0.7f, 0.8f);
       drawSight(mouseInput.x, mouseInput.y, ss);
+
       Screen.lineWidth(1);
+
+      glUseProgram(0);
     }
   }
 
   private void drawSight(float x, float y, float size) {
-    glBegin(GL_LINE_STRIP);
-    glVertex2f(x - size, y - size * 0.5f);
-    glVertex2f(x - size, y - size);
-    glVertex2f(x - size * 0.5f, y - size);
-    glEnd();
-    glBegin(GL_LINE_STRIP);
-    glVertex2f(x + size, y - size * 0.5f);
-    glVertex2f(x + size, y - size);
-    glVertex2f(x + size * 0.5f, y - size);
-    glEnd();
-    glBegin(GL_LINE_STRIP);
-    glVertex2f(x + size, y + size * 0.5f);
-    glVertex2f(x + size, y + size);
-    glVertex2f(x + size * 0.5f, y + size);
-    glEnd();
-    glBegin(GL_LINE_STRIP);
-    glVertex2f(x - size, y + size * 0.5f);
-    glVertex2f(x - size, y + size);
-    glVertex2f(x - size * 0.5f, y + size);
-    glEnd();
+    sightProgram.setUniform("pos", x, y);
+    sightProgram.setUniform("size", size);
+
+    glBindVertexArray(vao);
+    glDrawArrays(GL_LINE_STRIP, 0, 3);
+    glDrawArrays(GL_LINE_STRIP, 3, 3);
+    glDrawArrays(GL_LINE_STRIP, 6, 3);
+    glDrawArrays(GL_LINE_STRIP, 9, 3);
+
+    glBindVertexArray(0);
   }
 
   public void setModelMatrix(mat4 model) {
