@@ -7,7 +7,6 @@ module abagames.util.sdl.shape;
 
 private import derelict.opengl3.gl;
 private import gl3n.linalg;
-private import abagames.util.sdl.displaylist;
 private import abagames.util.sdl.shaderprogram;
 
 /**
@@ -43,24 +42,15 @@ public template CollidableImpl() {
   }
 }
 
-public abstract class DrawableShape: Drawable {
-  public this() {
-    initShape();
-  }
-
-  public abstract void close();
-  protected abstract void initShape();
-}
-
 /**
  * Drawable that has a single displaylist.
  */
-public abstract class DrawableShapeNew: DrawableShape {
+public abstract class DrawableShape: Drawable {
   private ShaderProgram program;
   private bool hasModelmat;
  private:
 
-  protected override void initShape() {
+  public this() {
     program = initShader();
 
     hasModelmat = program.uniformLocation("modelmat") >= 0;
@@ -69,7 +59,7 @@ public abstract class DrawableShapeNew: DrawableShape {
   protected abstract ShaderProgram initShader();
   protected abstract void drawShape();
 
-  public override void close() {
+  public void close() {
     program.close();
   }
 
@@ -90,38 +80,9 @@ public abstract class DrawableShapeNew: DrawableShape {
 }
 
 /**
- * Drawable that has a single shader.
- */
-public abstract class DrawableShapeOld: DrawableShape {
-  protected DisplayList displayList;
- private:
-
-  protected override void initShape() {
-    displayList = new DisplayList(1);
-    displayList.beginNewList();
-    createDisplayList();
-    displayList.endNewList();
-  }
-
-  protected abstract void createDisplayList();
-
-  public override void close() {
-    displayList.close();
-  }
-
-  public void draw(mat4 view) {
-    displayList.call(0);
-  }
-
-  public void setModelMatrix(mat4 model) {
-    // TODO: Implement.
-  }
-}
-
-/**
  * DrawableShape that has a collision.
  */
-public abstract class CollidableDrawable(T: DrawableShape): T, Collidable {
+public abstract class CollidableDrawable: DrawableShape, Collidable {
   mixin CollidableImpl;
   protected vec2 _collision;
  private:
@@ -138,9 +99,6 @@ public abstract class CollidableDrawable(T: DrawableShape): T, Collidable {
   }
 }
 
-alias CollidableDrawableOld = CollidableDrawable!DrawableShapeOld;
-alias CollidableDrawableNew = CollidableDrawable!DrawableShapeNew;
-
 /**
  * Drawable that can change a size.
  */
@@ -152,7 +110,6 @@ public class ResizableDrawable: Drawable, Collidable {
   vec2 _collision;
 
   public void draw(mat4 view) {
-    glScalef(_size, _size, _size);
     _shape.draw(view);
   }
 

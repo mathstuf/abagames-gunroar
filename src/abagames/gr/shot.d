@@ -312,7 +312,7 @@ public class ShotPool: ActorPool!(Shot) {
   }
 }
 
-public class ShotShape: CollidableDrawableNew {
+public class ShotShape: CollidableDrawable {
   mixin UniformColorShader!(3, 3);
 
   protected void fillStaticShaderData() {

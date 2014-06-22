@@ -667,7 +667,7 @@ public class BulletShape: ResizableDrawable {
   }
 }
 
-public class NormalBulletShape: DrawableShapeNew {
+public class NormalBulletShape: DrawableShape {
   mixin UniformColorShader!(3, 3);
 
   public void fillStaticShaderData() {
@@ -718,7 +718,7 @@ public class NormalBulletShape: DrawableShapeNew {
   }
 }
 
-public class SmallBulletShape: DrawableShapeNew {
+public class SmallBulletShape: DrawableShape {
   mixin UniformColorShader!(3, 3);
 
   public void fillStaticShaderData() {
@@ -769,7 +769,7 @@ public class SmallBulletShape: DrawableShapeNew {
   }
 }
 
-public class MovingTurretBulletShape: DrawableShapeNew {
+public class MovingTurretBulletShape: DrawableShape {
   mixin UniformColorShader!(3, 3);
 
   public void fillStaticShaderData() {
@@ -820,7 +820,7 @@ public class MovingTurretBulletShape: DrawableShapeNew {
   }
 }
 
-public class DestructiveBulletShape: DrawableShapeNew, Collidable {
+public class DestructiveBulletShape: DrawableShape, Collidable {
   mixin UniformColorShader!(2, 3);
   mixin CollidableImpl;
  private:
@@ -871,7 +871,7 @@ public class DestructiveBulletShape: DrawableShapeNew, Collidable {
   }
 }
 
-public class CrystalShape: DrawableShapeNew {
+public class CrystalShape: DrawableShape {
   mixin UniformColorShader!(2, 3);
 
   public void fillStaticShaderData() {
@@ -904,7 +904,7 @@ public class CrystalShape: DrawableShapeNew {
   }
 }
 
-public class ShieldShape: DrawableShapeNew {
+public class ShieldShape: DrawableShape {
   mixin AttributeColorShader!(2, 3, 3, 2);
 
   public void fillStaticShaderData() {
