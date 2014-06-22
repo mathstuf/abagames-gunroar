@@ -171,16 +171,7 @@ public class Bullet: Actor {
     model.translate(pos.x, pos.y, 0);
     shape.setModelMatrix(model);
 
-    glPushMatrix();
-    Screen.glTranslate(pos);
-    if (_destructive) {
-      glRotatef(cnt * 13, 0, 0, 1);
-    } else {
-      glRotatef(-deg * 180 / PI, 0, 0, 1);
-      glRotatef(cnt * 13, 0, 1, 0);
-    }
     shape.draw(view);
-    glPopMatrix();
   }
 
   public void checkShotHit(vec2 p, Collidable s, Shot shot) {
