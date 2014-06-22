@@ -9,8 +9,10 @@ private import std.math;
 private import derelict.opengl3.gl;
 private import gl3n.linalg;
 private import abagames.util.rand;
+private import abagames.util.sdl.shaderprogram;
 private import abagames.util.sdl.shape;
 private import abagames.gr.screen;
+private import abagames.gr.shaders;
 private import abagames.gr.particle;
 
 /**
@@ -401,30 +403,54 @@ public class BulletShape: ResizableDrawable {
   }
 }
 
-public class NormalBulletShape: DrawableShapeOld {
-  public override void createDisplayList() {
+public class NormalBulletShape: DrawableShapeNew {
+  mixin UniformColorShader!(3, 3);
+
+  public void fillStaticShaderData() {
+    static const float[] VTX = [
+       0.2f, -0.25f, 0.2f,
+       0,     0.33f, 0,
+      -0.2f, -0.25f, -0.2f,
+
+      -0.2f, -0.25f, 0.2f,
+       0,     0.33f, 0,
+       0.2f, -0.25f, -0.2f,
+
+       0,     0.33f,  0,
+       0.2f, -0.25f,  0.2f,
+      -0.2f, -0.25f,  0.2f,
+      -0.2f, -0.25f, -0.2f,
+       0.2f, -0.25f, -0.2f,
+       0.2f, -0.25f,  0.2f
+    ];
+
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(posLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+  }
+
+  public override void drawShape() {
+    program.setUniform("brightness", Screen.brightness);
+
+    glBindVertexArray(vao);
+
     glDisable(GL_BLEND);
-    Screen.setColor(1, 1, 0.3f);
-    glBegin(GL_LINE_STRIP);
-    glVertex3f(0.2f, -0.25f, 0.2f);
-    glVertex3f(0, 0.33f, 0);
-    glVertex3f(-0.2f, -0.25f, -0.2f);
-    glEnd();
-    glBegin(GL_LINE_STRIP);
-    glVertex3f(-0.2f, -0.25f, 0.2f);
-    glVertex3f(0, 0.33f, 0);
-    glVertex3f(0.2f, -0.25f, -0.2f);
-    glEnd();
+
+    program.setUniform("color", 1, 1, 0.3f);
+    glDrawArrays(GL_LINE_STRIP, 0, 3);
+    glDrawArrays(GL_LINE_STRIP, 3, 3);
+
     glEnable(GL_BLEND);
-    Screen.setColor(0.5f, 0.2f, 0.1f);
-    glBegin(GL_TRIANGLE_FAN);
-    glVertex3f(0, 0.33f, 0);
-    glVertex3f(0.2f, -0.25f, 0.2f);
-    glVertex3f(-0.2f, -0.25f, 0.2f);
-    glVertex3f(-0.2f, -0.25f, -0.2f);
-    glVertex3f(0.2f, -0.25f, -0.2f);
-    glVertex3f(0.2f, -0.25f, 0.2f);
-    glEnd();
+
+    program.setUniform("color", 0.5f, 0.2f, 0.1f);
+    glDrawArrays(GL_TRIANGLE_FAN, 6, 6);
   }
 }
 
