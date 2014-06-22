@@ -160,47 +160,6 @@ public class Screen: Screen3D {
     return mat4.look_at(e, l, vec3(0, 1, 0));
   }
 
-  public void setEyepos() {
-    float ex, ey, ez;
-    float lx, ly, lz;
-    ex = ey = 0;
-    ez = 13.0f;
-    lx = ly = lz = 0;
-    if (screenShakeCnt > 0) {
-      float mx = rand.nextSignedFloat(screenShakeIntense * (screenShakeCnt + 4));
-      float my = rand.nextSignedFloat(screenShakeIntense * (screenShakeCnt + 4));
-      ex += mx;
-      ey += my;
-      lx += mx;
-      ly += my;
-    }
-
-    float fx, fy, fz;
-    fx = lx - ex;
-    fy = ly - ey;
-    fz = lz - ez;
-    normalize(fx, fy, fz);
-    float sx, sy, sz;
-    _cross(sx, sy, sz,
-           fx, fy, fz,
-           0., 1., 0.);
-    normalize(sx, sy, sz);
-    float ux, uy, uz;
-    _cross(ux, uy, uz,
-           sx, sy, sz,
-           fx, fy, fz);
-    normalize(ux, uy, uz);
-    float[] matrix = [
-      sx, ux, -fx, 0.,
-      sy, uy, -fy, 0.,
-      sz, uz, -fz, 0.,
-      0., 0., 0., 1.];
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadMatrixf(matrix.ptr);
-    glTranslatef(-ex, -ey, -ez);
-  }
-
   public void setScreenShake(int cnt, float its) {
     screenShakeCnt = cnt;
     screenShakeIntense = its;

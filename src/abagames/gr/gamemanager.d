@@ -286,7 +286,6 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
     }
     screen.clear();
 
-    screen.setEyepos();
     state.draw(view);
 
     screen.drawLuminous(windowmat);
