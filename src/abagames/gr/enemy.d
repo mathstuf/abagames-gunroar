@@ -526,33 +526,21 @@ public class EnemyState {
     } else {
       model.translate(pos.x, pos.y, 0);
     }
-    if (destroyedCnt >= 0)
+    if (destroyedCnt >= 0) {
       spec.destroyedShape.setModelMatrix(model);
-    else if (!damaged)
-      spec.shape.setModelMatrix(model);
-    else
-      spec.damagedShape.setModelMatrix(model);
-    if (destroyedCnt < 0)
-      spec.bridgeShape.setModelMatrix(model);
-
-    glPushMatrix();
-    if (destroyedCnt < 0 && damagedCnt > 0) {
-      damagedPos.x = pos.x + rand.nextSignedFloat(damagedCnt * 0.01f);
-      damagedPos.y = pos.y + rand.nextSignedFloat(damagedCnt * 0.01f);
-      Screen.glTranslate(damagedPos);
-    } else {
-      Screen.glTranslate(pos);
-    }
-    glRotatef(-deg * 180 / PI, 0, 0, 1);
-    if (destroyedCnt >= 0)
       spec.destroyedShape.draw(view);
-    else if (!damaged)
+    } else if (!damaged) {
+      spec.shape.setModelMatrix(model);
       spec.shape.draw(view);
-    else
+    } else {
+      spec.damagedShape.setModelMatrix(model);
       spec.damagedShape.draw(view);
-    if (destroyedCnt < 0)
+    }
+    if (destroyedCnt < 0) {
+      spec.bridgeShape.setModelMatrix(model);
       spec.bridgeShape.draw(view);
-    glPopMatrix();
+    }
+
     if (destroyedCnt >= 0)
       return;
     for (int i = 0; i < spec.turretGroupNum; i++)

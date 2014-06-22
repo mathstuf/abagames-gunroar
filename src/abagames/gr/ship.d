@@ -263,11 +263,7 @@ public class Ship {
       model.translate(midstPos.x, midstPos.y, 0);
       bridgeShape.setModelMatrix(model);
 
-      glPushMatrix();
-      Screen.glTranslate(midstPos);
-      glRotatef(-degAmongBoats * 180 / PI, 0, 0, 1);
       bridgeShape.draw(view);
-      glPopMatrix();
     }
   }
 
@@ -1371,12 +1367,8 @@ public class Boat {
     _shape.setModelMatrix(model);
     bridgeShape.setModelMatrix(model);
 
-    glPushMatrix();
-    Screen.glTranslate(pos);
-    glRotatef(-deg * 180 / PI, 0, 0, 1);
     _shape.draw(view);
     bridgeShape.draw(view);
-    glPopMatrix();
     if (shieldCnt > 0) {
       float ss = 0.66f;
       if (shieldCnt < 120)

@@ -18,7 +18,7 @@ private import abagames.gr.particle;
 /**
  * Shape of a ship/platform/turret/bridge.
  */
-public class BaseShape: DrawableShapeOld {
+public class BaseShape: Drawable {
  public:
   static enum ShapeType {
     SHIP, SHIP_ROUNDTAIL, SHIP_SHADOW, PLATFORM, TURRET, BRIDGE,
@@ -27,6 +27,15 @@ public class BaseShape: DrawableShapeOld {
     TURRET_DAMAGED, TURRET_DESTROYED,
   };
  private:
+  static ShaderProgram loopProgram;
+  static ShaderProgram squareLoopProgram;
+  static ShaderProgram pillarProgram;
+  static GLuint vaoLoop;
+  static GLuint[2] vboLoop;
+  static GLuint vaoSquareLoop;
+  static GLuint vboSquareLoop;
+  static GLuint vaoPillar;
+  static GLuint vboPillar;
   static const int POINT_NUM = 16;
   static Rand rand;
   static vec2 wakePos;
@@ -37,6 +46,8 @@ public class BaseShape: DrawableShapeOld {
   vec2[] pillarPos;
   vec2[] _pointPos;
   float[] _pointDeg;
+  vec3 nextColor;
+  mat4 model;
 
   invariant() {
     assert(wakePos.x < 15 && wakePos.x > -15);
@@ -63,6 +74,10 @@ public class BaseShape: DrawableShapeOld {
   public static this() {
     rand = new Rand;
     wakePos = vec2(0);
+
+    loopProgram = null;
+    squareLoopProgram = null;
+    pillarProgram = null;
   }
 
   public static void setRandSeed(long seed) {
@@ -78,101 +93,94 @@ public class BaseShape: DrawableShapeOld {
     this.r = r;
     this.g = g;
     this.b = b;
-    super();
-  }
 
-  public override void createDisplayList() {
-    float height = size * 0.5f;
-    float z = 0;
-    float sz = 1;
-    if (type == ShapeType.BRIDGE)
-      z += height;
-    if (type != ShapeType.SHIP_DESTROYED)
-      Screen.setColor(r, g, b);
-    glBegin(GL_LINE_LOOP);
-    if (type != ShapeType.BRIDGE)
-      createLoop(sz, z, false, true);
-    else
-      createSquareLoop(sz, z, false, true);
-    glEnd();
-    if (type != ShapeType.SHIP_SHADOW && type != ShapeType.SHIP_DESTROYED &&
-        type != ShapeType.PLATFORM_DESTROYED && type != ShapeType.TURRET_DESTROYED) {
-      Screen.setColor(r * 0.4f, g * 0.4f, b * 0.4f);
-      glBegin(GL_TRIANGLE_FAN);
-      createLoop(sz, z, true);
-      glEnd();
-    }
-    switch (type) {
-    case ShapeType.SHIP:
-    case ShapeType.SHIP_ROUNDTAIL:
-    case ShapeType.SHIP_SHADOW:
-    case ShapeType.SHIP_DAMAGED:
-    case ShapeType.SHIP_DESTROYED:
-      if (type != ShapeType.SHIP_DESTROYED)
-        Screen.setColor(r * 0.4f, g * 0.4f, b * 0.4f);
-      for (int i = 0; i < 3; i++) {
-        z -= height / 4;
-        sz -= 0.2f;
-        glBegin(GL_LINE_LOOP);
-        createLoop(sz, z);
-        glEnd();
-      }
-      break;
-    case ShapeType.PLATFORM:
-    case ShapeType.PLATFORM_DAMAGED:
-    case ShapeType.PLATFORM_DESTROYED:
-      Screen.setColor(r * 0.4f, g * 0.4f, b * 0.4f);
-      for (int i = 0; i < 3; i++) {
-        z -= height / 3;
-        foreach (vec2 pp; pillarPos) {
-          glBegin(GL_LINE_LOOP);
-          createPillar(pp, size * 0.2f, z);
-          glEnd();
-        }
-      }
-      break;
-    case ShapeType.BRIDGE:
-    case ShapeType.TURRET:
-    case ShapeType.TURRET_DAMAGED:
-      Screen.setColor(r * 0.6f, g * 0.6f, b * 0.6f);
-      z += height;
-      sz -= 0.33f;
-      glBegin(GL_LINE_LOOP);
-      if (type == ShapeType.BRIDGE)
-        createSquareLoop(sz, z);
-      else
-        createSquareLoop(sz, z / 2, false, 3);
-      glEnd();
-      Screen.setColor(r * 0.25f, g * 0.25f, b * 0.25f);
-      glBegin(GL_TRIANGLE_FAN);
-      if (type == ShapeType.BRIDGE)
-        createSquareLoop(sz, z, true);
-      else
-        createSquareLoop(sz, z / 2, true, 3);
-      glEnd();
-      break;
-    case ShapeType.TURRET_DESTROYED:
-      break;
-    default:
-      assert(0);
-    }
-  }
+    if (type != ShapeType.BRIDGE) {
+      for (int i = 0; i < POINT_NUM; i++) {
+        if (type != ShapeType.SHIP && type != ShapeType.SHIP_DESTROYED && type != ShapeType.SHIP_DAMAGED &&
+            i > POINT_NUM * 2 / 5 && i <= POINT_NUM * 3 / 5)
+          continue;
+        if ((type == ShapeType.TURRET || type == ShapeType.TURRET_DAMAGED || type == ShapeType.TURRET_DESTROYED) &&
+            (i <= POINT_NUM / 5 || i > POINT_NUM * 4 / 5))
+          continue;
 
-  private void createLoop(float s, float z, bool backToFirst = false, bool record = false) {
-    float d = 0;
-    int pn;
-    bool firstPoint = true;
-    float fpx, fpy;
+        float d = PI * 2 * i / POINT_NUM;
+        float cx = sin(d) * (1 - distRatio);
+        float cy = cos(d);
+        float sx, sy;
+        if (i == POINT_NUM / 4 || i == POINT_NUM / 4 * 3)
+          sy = 0;
+        else
+          sy = 1 / (1 + fabs(tan(d)));
+        assert(!sy.isNaN);
+        sx = 1 - sy;
+        if (i >= POINT_NUM / 2)
+          sx *= -1;
+        if (i >= POINT_NUM / 4 && i <= POINT_NUM / 4 * 3)
+          sy *= -1;
+        sx *= 1 - distRatio;
+        float px = cx * (1 - spinyRatio) + sx * spinyRatio;
+        float py = cy * (1 - spinyRatio) + sy * spinyRatio;
+        px *= size;
+        py *= size;
+
+        if (i == POINT_NUM / 8 || i == POINT_NUM / 8 * 3 ||
+            i == POINT_NUM / 8 * 5 || i == POINT_NUM / 8 * 7)
+          pillarPos ~= vec2(px * 0.8f, py * 0.8f);
+        _pointPos ~= vec2(px, py);
+        _pointDeg ~= d;
+      }
+    }
+
+    if (loopProgram !is null) {
+      return;
+    }
+
+    loopProgram = new ShaderProgram;
+    loopProgram.setVertexShader(
+      "uniform mat4 projmat;\n"
+      "uniform mat4 modelmat;\n"
+      "uniform float distRatio;\n"
+      "uniform float spinyRatio;\n"
+      "uniform float size;\n"
+      "uniform float s;\n"
+      "uniform float z;\n"
+      "\n"
+      "attribute float deg;\n"
+      "attribute vec2 spos;\n"
+      "\n"
+      "void main() {\n"
+      "  vec2 rot = vec2(sin(deg), cos(deg));\n"
+      "  vec2 fpos = (1. - spinyRatio) * rot + spos * spinyRatio;\n"
+      "  vec2 ratio = vec2(1. - distRatio, 1);\n"
+      "  vec4 pos4 = vec4(fpos * size * s * ratio, z, 1);\n"
+      "  gl_Position = projmat * modelmat * pos4;\n"
+      "}\n"
+    );
+    loopProgram.setFragmentShader(
+      "uniform float brightness;\n"
+      "uniform vec3 color;\n"
+      "\n"
+      "void main() {\n"
+      "  gl_FragColor = vec4(color * vec3(brightness), 1);\n"
+      "}\n"
+    );
+    GLint degLoc = 0;
+    GLint sposLoc = 1;
+    loopProgram.bindAttribLocation(degLoc, "deg");
+    loopProgram.bindAttribLocation(sposLoc, "spos");
+    loopProgram.link();
+    loopProgram.use();
+
+    glGenBuffers(2, vboLoop.ptr);
+    glGenVertexArrays(1, &vaoLoop);
+
+    float[POINT_NUM] DEG;
+    size_t dn = 0;
+    float[2 * POINT_NUM] SPOS;
+    size_t vn = 0;
+
     for (int i = 0; i < POINT_NUM; i++) {
-      if (type != ShapeType.SHIP && type != ShapeType.SHIP_DESTROYED && type != ShapeType.SHIP_DAMAGED &&
-          i > POINT_NUM * 2 / 5 && i <= POINT_NUM * 3 / 5)
-        continue;
-      if ((type == ShapeType.TURRET || type == ShapeType.TURRET_DAMAGED || type == ShapeType.TURRET_DESTROYED) &&
-          (i <= POINT_NUM / 5 || i > POINT_NUM * 4 / 5))
-        continue;
-      d = PI * 2 * i / POINT_NUM;
-      float cx = sin(d) * size * s * (1 - distRatio);
-      float cy = cos(d) * size * s;
+      float d = PI * 2 * i / POINT_NUM;
       float sx, sy;
       if (i == POINT_NUM / 4 || i == POINT_NUM / 4 * 3)
         sy = 0;
@@ -184,51 +192,307 @@ public class BaseShape: DrawableShapeOld {
         sx *= -1;
       if (i >= POINT_NUM / 4 && i <= POINT_NUM / 4 * 3)
         sy *= -1;
-      sx *= size * s * (1 - distRatio);
-      sy *= size * s;
-      float px = cx * (1 - spinyRatio) + sx * spinyRatio;
-      float py = cy * (1 - spinyRatio) + sy * spinyRatio;
-      glVertex3f(px, py, z);
-      if (backToFirst && firstPoint) {
-        fpx = px;
-        fpy = py;
-        firstPoint = false;
-      }
-      if (record) {
-        if (i == POINT_NUM / 8 || i == POINT_NUM / 8 * 3 ||
-            i == POINT_NUM / 8 * 5 || i == POINT_NUM / 8 * 7)
-          pillarPos ~= vec2(px * 0.8f, py * 0.8f);
-        _pointPos ~= vec2(px, py);
-        _pointDeg ~= d;
-      }
+
+      DEG[dn++] = d;
+      SPOS[vn++] = sx;
+      SPOS[vn++] = sy;
     }
-    if (backToFirst)
-      glVertex3f(fpx, fpy, z);
+
+    glBindVertexArray(vaoLoop);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vboLoop[0]);
+    glBufferData(GL_ARRAY_BUFFER, DEG.length * float.sizeof, DEG.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(degLoc, 1, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(degLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vboLoop[1]);
+    glBufferData(GL_ARRAY_BUFFER, SPOS.length * float.sizeof, SPOS.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(sposLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(sposLoc);
+
+    squareLoopProgram = new ShaderProgram;
+    squareLoopProgram.setVertexShader(
+      "uniform mat4 projmat;\n"
+      "uniform mat4 modelmat;\n"
+      "uniform float size;\n"
+      "uniform float s;\n"
+      "uniform float yRatio;\n"
+      "uniform float z;\n"
+      "\n"
+      "attribute float deg;\n"
+      "\n"
+      "void main() {\n"
+      "  vec2 pos = size * s * vec2(sin(deg), cos(deg));\n"
+      "  if (pos.y > 0.) {\n"
+      "    pos.y *= yRatio;\n"
+      "  }\n"
+      "  gl_Position = projmat * modelmat * vec4(pos, z, 1);\n"
+      "}\n"
+    );
+    squareLoopProgram.setFragmentShader(
+      "uniform float brightness;\n"
+      "uniform vec3 color;\n"
+      "\n"
+      "void main() {\n"
+      "  gl_FragColor = vec4(color * vec3(brightness), 1);\n"
+      "}\n"
+    );
+    squareLoopProgram.bindAttribLocation(degLoc, "deg");
+    squareLoopProgram.link();
+    squareLoopProgram.use();
+
+    glGenBuffers(1, &vboSquareLoop);
+    glGenVertexArrays(1, &vaoSquareLoop);
+
+    float[5] SQUARELOOP;
+
+    for (int i = 0; i <= 4; i++) {
+      SQUARELOOP[i] = PI * 2 * i / 4 + PI / 4;
+    }
+
+    glBindVertexArray(vaoSquareLoop);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vboSquareLoop);
+    glBufferData(GL_ARRAY_BUFFER, SQUARELOOP.length * float.sizeof, SQUARELOOP.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(degLoc, 1, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(degLoc);
+
+    pillarProgram = new ShaderProgram;
+    pillarProgram.setVertexShader(
+      "uniform mat4 projmat;\n"
+      "uniform mat4 modelmat;\n"
+      "uniform vec2 p;\n"
+      "uniform float s;\n"
+      "uniform float z;\n"
+      "\n"
+      "attribute float deg;\n"
+      "\n"
+      "void main() {\n"
+      "  vec2 pos = p + s * vec2(sin(deg), cos(deg));\n"
+      "  gl_Position = projmat * modelmat * vec4(pos, z, 1);\n"
+      "}\n"
+    );
+    pillarProgram.setFragmentShader(
+      "uniform float brightness;\n"
+      "uniform vec3 color;\n"
+      "\n"
+      "void main() {\n"
+      "  gl_FragColor = vec4(color * vec3(brightness), 1);\n"
+      "}\n"
+    );
+    pillarProgram.bindAttribLocation(degLoc, "deg");
+    pillarProgram.link();
+    pillarProgram.use();
+
+    glGenBuffers(1, &vboPillar);
+    glGenVertexArrays(1, &vaoPillar);
+
+    float[PILLAR_POINT_NUM] PILLAR;
+
+    for (int i = 0; i < PILLAR_POINT_NUM; i++) {
+      PILLAR[i] = PI * 2 * i / PILLAR_POINT_NUM;
+    }
+
+    glBindVertexArray(vaoPillar);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vboPillar);
+    glBufferData(GL_ARRAY_BUFFER, PILLAR.length * float.sizeof, PILLAR.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(degLoc, 1, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(degLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
   }
 
-  private void createSquareLoop(float s, float z, bool backToFirst = false, float yRatio = 1) {
-    float d;
+  public void close() {
+    if (loopProgram !is null) {
+      glDeleteVertexArrays(1, &vaoLoop);
+      glDeleteBuffers(2, vboLoop.ptr);
+      loopProgram.close();
+      loopProgram = null;
+
+      glDeleteVertexArrays(1, &vaoSquareLoop);
+      glDeleteBuffers(1, &vboSquareLoop);
+      squareLoopProgram.close();
+      squareLoopProgram = null;
+
+      glDeleteVertexArrays(1, &vaoPillar);
+      glDeleteBuffers(1, &vboPillar);
+      pillarProgram.close();
+      pillarProgram = null;
+    }
+  }
+
+  public override void setModelMatrix(mat4 model) {
+    loopProgram.use();
+    loopProgram.setUniform("modelmat", model);
+
+    squareLoopProgram.use();
+    squareLoopProgram.setUniform("modelmat", model);
+
+    pillarProgram.use();
+    pillarProgram.setUniform("modelmat", model);
+
+    glUseProgram(0);
+  }
+
+  public override void draw(mat4 view) {
+    float height = size * 0.5f;
+    float z = 0;
+    float sz = 1;
+    vec3 baseColor = vec3(r, g, b);
+    if (type == ShapeType.BRIDGE)
+      z += height;
+    if (type != ShapeType.SHIP_DESTROYED)
+      nextColor = baseColor;
+    else {
+      // TODO: What color to set here?
+    }
+
+    loopProgram.use();
+
+    loopProgram.setUniform("projmat", view);
+    loopProgram.setUniform("brightness", Screen.brightness);
+    loopProgram.setUniform("distRatio", distRatio);
+    loopProgram.setUniform("spinyRatio", spinyRatio);
+    loopProgram.setUniform("size", size);
+
+    squareLoopProgram.use();
+
+    squareLoopProgram.setUniform("projmat", view);
+    squareLoopProgram.setUniform("brightness", Screen.brightness);
+    squareLoopProgram.setUniform("size", size);
+
+    pillarProgram.use();
+
+    pillarProgram.setUniform("projmat", view);
+    pillarProgram.setUniform("brightness", Screen.brightness);
+
+    if (type != ShapeType.BRIDGE)
+      createLoop(GL_LINE_LOOP, sz, z, false);
+    else
+      createSquareLoop(GL_LINE_LOOP, sz, z, false);
+    if (type != ShapeType.SHIP_SHADOW && type != ShapeType.SHIP_DESTROYED &&
+        type != ShapeType.PLATFORM_DESTROYED && type != ShapeType.TURRET_DESTROYED) {
+      nextColor = 0.4f * baseColor;
+      createLoop(GL_TRIANGLE_FAN, sz, z, true);
+    }
+    switch (type) {
+    case ShapeType.SHIP:
+    case ShapeType.SHIP_ROUNDTAIL:
+    case ShapeType.SHIP_SHADOW:
+    case ShapeType.SHIP_DAMAGED:
+    case ShapeType.SHIP_DESTROYED:
+      if (type != ShapeType.SHIP_DESTROYED)
+        nextColor = 0.4f * baseColor;
+      for (int i = 0; i < 3; i++) {
+        z -= height / 4;
+        sz -= 0.2f;
+        createLoop(GL_LINE_LOOP, sz, z);
+      }
+      break;
+    case ShapeType.PLATFORM:
+    case ShapeType.PLATFORM_DAMAGED:
+    case ShapeType.PLATFORM_DESTROYED:
+      nextColor = 0.4f * baseColor;
+      for (int i = 0; i < 3; i++) {
+        z -= height / 3;
+        foreach (vec2 pp; pillarPos) {
+          createPillar(GL_LINE_LOOP, pp, size * 0.2f, z);
+        }
+      }
+      break;
+    case ShapeType.BRIDGE:
+    case ShapeType.TURRET:
+    case ShapeType.TURRET_DAMAGED:
+      nextColor = 0.6f * baseColor;
+      z += height;
+      sz -= 0.33f;
+      if (type == ShapeType.BRIDGE)
+        createSquareLoop(GL_LINE_LOOP, sz, z);
+      else
+        createSquareLoop(GL_LINE_LOOP, sz, z / 2, false, 3);
+      nextColor = 0.25f * baseColor;
+      if (type == ShapeType.BRIDGE)
+        createSquareLoop(GL_TRIANGLE_FAN, sz, z, true);
+      else
+        createSquareLoop(GL_TRIANGLE_FAN, sz, z / 2, true, 3);
+      break;
+    case ShapeType.TURRET_DESTROYED:
+      break;
+    default:
+      assert(0);
+    }
+
+    glUseProgram(0);
+  }
+
+  private void createLoop(GLenum drawType, float s, float z, bool backToFirst = false) {
+    static GLuint[POINT_NUM + 1] VTXELEM;
+    GLsizei vn = 0;
+
+    for (int i = 0; i < POINT_NUM; i++) {
+      if (type != ShapeType.SHIP && type != ShapeType.SHIP_DESTROYED && type != ShapeType.SHIP_DAMAGED &&
+          i > POINT_NUM * 2 / 5 && i <= POINT_NUM * 3 / 5)
+        continue;
+      if ((type == ShapeType.TURRET || type == ShapeType.TURRET_DAMAGED || type == ShapeType.TURRET_DESTROYED) &&
+          (i <= POINT_NUM / 5 || i > POINT_NUM * 4 / 5))
+        continue;
+
+      VTXELEM[vn++] = i;
+    }
+    if (backToFirst) {
+      VTXELEM[vn++] = VTXELEM[0];
+    }
+
+    loopProgram.use();
+
+    loopProgram.setUniform("color", nextColor);
+    loopProgram.setUniform("s", s);
+    loopProgram.setUniform("z", z);
+
+    glBindVertexArray(vaoLoop);
+    glDrawElements(drawType, vn, GL_UNSIGNED_INT, VTXELEM.ptr);
+
+    glBindVertexArray(0);
+  }
+
+  private void createSquareLoop(GLenum drawType, float s, float z, bool backToFirst = false, float yRatio = 1) {
     int pn;
     if (backToFirst)
-      pn = 4;
+      pn = 5;
     else
-      pn = 3;
-    for (int i = 0; i <= pn; i++) {
-      d = PI * 2 * i / 4 + PI / 4;
-      float px = sin(d) * size * s;
-      float py = cos(d) * size * s;
-      if (py > 0)
-        py *= yRatio;
-      glVertex3f(px, py, z);
-    }
+      pn = 4;
+
+    squareLoopProgram.use();
+
+    squareLoopProgram.setUniform("color", nextColor);
+    squareLoopProgram.setUniform("yRatio", yRatio);
+    squareLoopProgram.setUniform("s", s);
+    squareLoopProgram.setUniform("z", z);
+
+    glBindVertexArray(vaoSquareLoop);
+    glDrawArrays(drawType, 0, pn);
+
+    glBindVertexArray(0);
   }
 
-  private void createPillar(vec2 p, float s, float z) {
-    float d;
-    for (int i = 0; i < PILLAR_POINT_NUM; i++) {
-      d = PI * 2 * i / PILLAR_POINT_NUM;
-      glVertex3f(sin(d) * s + p.x, cos(d) * s + p.y, z);
-    }
+  private void createPillar(GLenum drawType, vec2 p, float s, float z) {
+    pillarProgram.use();
+
+    pillarProgram.setUniform("color", nextColor);
+    pillarProgram.setUniform("p", p);
+    pillarProgram.setUniform("s", s);
+    pillarProgram.setUniform("z", z);
+
+    glBindVertexArray(vaoPillar);
+    glDrawArrays(drawType, 0, PILLAR_POINT_NUM);
+
+    glBindVertexArray(0);
   }
 
   public void addWake(WakePool wakes, vec2 pos, float deg, float spd, float sr = 1) {
