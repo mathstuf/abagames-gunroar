@@ -150,18 +150,6 @@ public class Screen3D: Screen, SizableScreen {
     return _height;
   }
 
-  public static void glTranslate(vec2 v) {
-    glTranslatef(v.x, v.y, 0);
-  }
-
-  public static void glTranslate(vec3 v) {
-    glTranslatef(v.x, v.y, v.z);
-  }
-
-  public static void setColor(float r, float g, float b, float a = 1) {
-    glColor4f(r * _brightness, g * _brightness, b * _brightness, a);
-  }
-
   public static void setClearColor(float r, float g, float b, float a = 1) {
     glClearColor(r * _brightness, g * _brightness, b * _brightness, a);
   }
