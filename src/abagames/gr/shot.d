@@ -29,6 +29,9 @@ public class Shot: Actor {
   static const float SPEED = 0.6f;
   static const float LANCE_SPEED = 0.5f;//0.4f;
  private:
+  static ShaderProgram program;
+  static GLuint vao;
+  static GLuint vbo;
   static ShotShape shape;
   static LanceShape lanceShape;
   static Rand rand;
@@ -57,6 +60,55 @@ public class Shot: Actor {
     shape = new ShotShape;
     lanceShape = new LanceShape;
     rand = new Rand;
+
+    program = new ShaderProgram;
+    program.setVertexShader(
+      "uniform mat4 projmat;\n"
+      "uniform mat4 modelmat;\n"
+      "uniform float size;\n"
+      "\n"
+      "attribute vec3 pos;\n"
+      "\n"
+      "void main() {\n"
+      "  vec3 sizev = vec3(size, 1, size);\n"
+      "  vec4 pos4 = vec4(pos * sizev, 1);\n"
+      "  gl_Position = projmat * pos4;\n"
+      "}\n"
+    );
+    program.setFragmentShader(
+      "uniform float brightness;\n"
+      "uniform vec4 color;\n"
+      "\n"
+      "void main() {\n"
+      "  vec4 brightness4 = vec4(vec3(brightness), 1);\n"
+      "  gl_FragColor = color * brightness4;\n"
+      "}\n"
+    );
+    GLint posLoc = 0;
+    program.bindAttribLocation(posLoc, "pos");
+    program.link();
+    program.use();
+
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+
+    static const float[] VTX = [
+      -1,  LANCE_SPEED, 0.5f,
+       1,  LANCE_SPEED, 0.5f,
+       1, -LANCE_SPEED, 0.5f,
+      -1, -LANCE_SPEED, 0.5f
+    ];
+
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(posLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
   }
 
   public static void setRandSeed(long seed) {
@@ -65,6 +117,10 @@ public class Shot: Actor {
 
   public static void close() {
     shape.close();
+
+    glDeleteVertexArrays(1, &vao);
+    glDeleteBuffers(1, &vbo);
+    program.close();
   }
 
   public this() {
@@ -181,6 +237,11 @@ public class Shot: Actor {
       float x = pos.x, y = pos.y;
       float size = 0.25f, a = 0.6f;
       int hc = hitCnt;
+
+      program.use();
+
+      program.setUniform("brightness", Screen.brightness);
+
       for (int i = 0; i < cnt / 4 + 1; i++) {
         size *= 0.9f;
         a *= 0.8f;
@@ -189,32 +250,22 @@ public class Shot: Actor {
           continue;
         }
         float d = i * 13 + cnt * 3;
-        for (int j = 0; j < 6; j++) {
-          mat4 model = mat4.identity;
-          model.rotate(-d / 180 * PI, vec3(0, 1, 0));
-          model.rotate(_deg, vec3(0, 0, 1));
-          model.translate(x, y, 0);
-          // TODO: set model.
 
-          glPushMatrix();
-          glTranslatef(x, y, 0);
-          glRotatef(-_deg * 180 / PI, 0, 0, 1);
-          glRotatef(d, 0, 1, 0);
-          Screen.setColor(0.4f, 0.8f, 0.8f, a);
-          glBegin(GL_LINE_LOOP);
-          glVertex3f(-size, LANCE_SPEED, size / 2);
-          glVertex3f(size, LANCE_SPEED, size / 2);
-          glVertex3f(size, -LANCE_SPEED, size / 2);
-          glVertex3f(-size, -LANCE_SPEED, size / 2);
-          glEnd();
-          Screen.setColor(0.2f, 0.5f, 0.5f, a / 2);
-          glBegin(GL_TRIANGLE_FAN);
-          glVertex3f(-size, LANCE_SPEED, size / 2);
-          glVertex3f(size, LANCE_SPEED, size / 2);
-          glVertex3f(size, -LANCE_SPEED, size / 2);
-          glVertex3f(-size, -LANCE_SPEED, size / 2);
-          glEnd();
-          glPopMatrix();
+        mat4 model = mat4.identity;
+        model.rotate(-d / 180 * PI, vec3(0, 1, 0));
+        model.rotate(_deg, vec3(0, 0, 1));
+        model.translate(x, y, 0);
+        program.setUniform("modelmat", model);
+
+        program.setUniform("size", size);
+
+        for (int j = 0; j < 6; j++) {
+          program.setUniform("color", 0.4f, 0.8f, 0.8f, a);
+          glDrawArrays(GL_LINE_LOOP, 0, 4);
+
+          program.setUniform("color", 0.2f, 0.5f, 0.5f, a / 2);
+          glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
           d += 60;
         }
         x -= sin(deg) * LANCE_SPEED * 2;
