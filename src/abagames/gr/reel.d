@@ -165,7 +165,7 @@ public class NumReel {
   public void targetDeg(float td) {
     if ((td - _targetDeg) > 1)
       ofs += 0.1f;
-    return _targetDeg = td;
+    _targetDeg = td;
   }
 
   public void accelerate() {
