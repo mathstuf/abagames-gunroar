@@ -26,7 +26,7 @@ public class Spark: LuminousActor {
   static ShaderProgram program;
   static GLuint vao;
   static GLuint[3] vbo;
-  vec2 pos, ppos;
+  vec2 pos;
   vec2 vel;
   float r, g, b;
   int cnt;
@@ -34,8 +34,6 @@ public class Spark: LuminousActor {
   invariant() {
     assert(pos.x < 40 && pos.x > -40);
     assert(pos.y < 60 && pos.y > -60);
-    assert(ppos.x < 40 && ppos.x > -40);
-    assert(ppos.y < 60 && ppos.y > -60);
     assert(vel.x < 10 && vel.x > -10);
     assert(vel.y < 10 && vel.y > -10);
     assert(r >= 0 && r <= 1);
@@ -61,7 +59,6 @@ public class Spark: LuminousActor {
 
   public this() {
     pos = vec2(0);
-    ppos = vec2(0);
     vel = vec2(0);
     r = g = b = 0;
     cnt = 0;
@@ -153,8 +150,8 @@ public class Spark: LuminousActor {
   }
 
   public void set(vec2 p, float vx, float vy, float r, float g, float b, int c) {
-    ppos.x = pos.x = p.x;
-    ppos.y = pos.y = p.y;
+    pos.x = p.x;
+    pos.y = p.y;
     vel.x = vx;
     vel.y = vy;
     this.r = r;
@@ -170,8 +167,6 @@ public class Spark: LuminousActor {
       exists = false;
       return;
     }
-    ppos.x = pos.x;
-    ppos.y = pos.y;
     pos += vel;
     vel *= 0.96f;
   }
