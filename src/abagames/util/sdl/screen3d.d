@@ -70,24 +70,7 @@ public class Screen3D: Screen, SizableScreen {
 
   // Reset a viewport when the screen is resized.
   public mat4 screenResized() {
-    glViewport(0, 0, _width, _height);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    /* FIXME: Why does removing this work? What was gluPerspective doing before?
-     *float aspect = cast(GLfloat) width / cast(GLfloat) height;
-     *float ymax = _nearPlane * tan(45.0f * PI / 360.0);
-     *float ymin = -ymax;
-     *float xmin = ymin * aspect;
-     *float xmax = ymax * aspect;
-     *glFrustum(xmin, xmax, ymin, ymax, _nearPlane, _farPlane);
-     */
     const float ratio = cast(float) _height / cast(float) _width;
-    glFrustum(-_nearPlane,
-              _nearPlane,
-              -_nearPlane * cast(GLfloat) _height / cast(GLfloat) _width,
-              _nearPlane * cast(GLfloat) _height / cast(GLfloat) _width,
-              0.1f, _farPlane);
-    glMatrixMode(GL_MODELVIEW);
     return mat4.perspective(
       -_nearPlane, _nearPlane,
       -_nearPlane * ratio, _nearPlane * ratio,
