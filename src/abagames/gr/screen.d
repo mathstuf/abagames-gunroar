@@ -83,7 +83,7 @@ public class Screen: Screen3D {
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_LIGHTING);
-    setClearColor(0, 0, 0, 1);
+    glClearColor(0, 0, 0, 1);
     if (_luminosity > 0) {
       luminousScreen = new LuminousScreen;
       luminousScreen.init(_luminosity, width, height);

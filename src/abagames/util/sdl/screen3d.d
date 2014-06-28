@@ -133,10 +133,6 @@ public class Screen3D: Screen, SizableScreen {
     return _height;
   }
 
-  public static void setClearColor(float r, float g, float b, float a = 1) {
-    glClearColor(r * _brightness, g * _brightness, b * _brightness, a);
-  }
-
   public static float brightness(float v) {
     return _brightness = v;
   }
