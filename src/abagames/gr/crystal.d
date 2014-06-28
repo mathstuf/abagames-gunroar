@@ -34,12 +34,15 @@ public class Crystal: Actor {
     assert(vel.y < 10 && vel.y > -10);
   }
 
-  public static void init() {
+  public static void initShape() {
     _shape = new CrystalShape;
   }
 
-  public static void close() {
+  public static void closeShape() {
     _shape.close();
+  }
+
+  public override void close() {
   }
 
   public this() {

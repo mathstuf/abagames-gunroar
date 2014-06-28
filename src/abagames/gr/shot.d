@@ -115,12 +115,15 @@ public class Shot: Actor {
     rand.setSeed(seed);
   }
 
-  public static void close() {
+  public override void close() {
     shape.close();
 
-    glDeleteVertexArrays(1, &vao);
-    glDeleteBuffers(1, &vbo);
-    program.close();
+    if (program !is null) {
+      glDeleteVertexArrays(1, &vao);
+      glDeleteBuffers(1, &vbo);
+      program.close();
+      program = null;
+    }
   }
 
   public this() {

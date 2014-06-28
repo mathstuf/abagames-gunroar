@@ -76,6 +76,9 @@ public class Bullet: Actor {
     crystals = cast(CrystalPool) args[5];
   }
 
+  public override void close() {
+  }
+
   public void set(int enemyIdx,
                   vec2 p, float deg,
                   float speed, float size, int shapeType, float range,

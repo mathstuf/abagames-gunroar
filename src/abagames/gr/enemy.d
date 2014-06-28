@@ -43,6 +43,9 @@ public class Enemy: Actor {
        cast(NumIndicatorPool) args[8], cast(ScoreReel) args[9]);
   }
 
+  public override void close() {
+  }
+
   public void setEnemyPool(EnemyPool enemies) {
     _state.setEnemyAndPool(this, enemies);
   }

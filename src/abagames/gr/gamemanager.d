@@ -87,7 +87,7 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
     TurretShape.init();
     Fragment.init();
     SparkFragment.init();
-    Crystal.init();
+    Crystal.initShape();
     prefManager = cast(PrefManager) abstPrefManager;
     screen = cast(Screen) abstScreen;
     pad = cast(Pad) (cast(MultipleInputDevice) input).inputs[0];
@@ -176,14 +176,22 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
 
   public override void close() {
     ship.close();
+    shots.close();
+    bullets.close();
+    enemies.close();
     field.close();
+    sparks.close();
+    smokes.close();
+    fragments.close();
+    sparkFragments.close();
+    wakes.close();
+    crystals.close();
+    numIndicators.close();
     BulletShape.close();
     EnemyShape.close();
     Turret.close();
     TurretShape.close();
-    Fragment.close();
-    SparkFragment.close();
-    Crystal.close();
+    Crystal.closeShape();
     titleState.close();
     Letter.close();
   }

@@ -267,6 +267,9 @@ public class NumIndicator: Actor {
     scoreReel = cast(ScoreReel) args[0];
   }
 
+  public override void close() {
+  }
+
   public void set(int n, IndicatorType type, float size, vec2 p) {
     set(n, type, size, p.x, p.y);
   }

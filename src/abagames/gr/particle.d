@@ -46,12 +46,6 @@ public class Spark: LuminousActor {
     program = null;
   }
 
-  public static ~this() {
-    glDeleteVertexArrays(1, &vao);
-    glDeleteBuffers(3, vbo.ptr);
-    program.close();
-  }
-
   public static void setRandSeed(long seed) {
     rand.setSeed(seed);
   }
@@ -146,6 +140,15 @@ public class Spark: LuminousActor {
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+  }
+
+  public override void close() {
+    if (program !is null) {
+      glDeleteVertexArrays(1, &vao);
+      glDeleteBuffers(3, vbo.ptr);
+      program.close();
+      program = null;
+    }
   }
 
   public void set(vec2 p, float vx, float vy, float r, float g, float b, int c) {
@@ -253,12 +256,6 @@ public class Smoke: LuminousActor {
     program = null;
   }
 
-  public static ~this() {
-    glDeleteVertexArrays(1, &vao);
-    glDeleteBuffers(1, &vbo);
-    program.close();
-  }
-
   public static void setRandSeed(long seed) {
     rand.setSeed(seed);
   }
@@ -326,6 +323,15 @@ public class Smoke: LuminousActor {
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+  }
+
+  public override void close() {
+    if (program !is null) {
+      glDeleteVertexArrays(1, &vao);
+      glDeleteBuffers(1, &vbo);
+      program.close();
+      program = null;
+    }
   }
 
   public void set(vec2 p, float mx, float my, float mz, int t, int c = 60, float sz = 2) {
@@ -594,10 +600,13 @@ public class Fragment: Actor {
     rand.setSeed(seed);
   }
 
-  public static void close() {
-    glDeleteVertexArrays(1, &vao);
-    glDeleteBuffers(1, &vbo);
-    program.close();
+  public override void close() {
+    if (program !is null) {
+      glDeleteVertexArrays(1, &vao);
+      glDeleteBuffers(1, &vbo);
+      program.close();
+      program = null;
+    }
   }
 
   public this() {
@@ -763,10 +772,13 @@ public class SparkFragment: LuminousActor {
     rand.setSeed(seed);
   }
 
-  public static void close() {
-    glDeleteVertexArrays(1, &vao);
-    glDeleteBuffers(1, &vbo);
-    program.close();
+  public override void close() {
+    if (program !is null) {
+      glDeleteVertexArrays(1, &vao);
+      glDeleteBuffers(1, &vbo);
+      program.close();
+      program = null;
+    }
   }
 
   public this() {
@@ -899,12 +911,6 @@ public class Wake: Actor {
     program = null;
   }
 
-  public static ~this() {
-    glDeleteVertexArrays(1, &vao);
-    glDeleteBuffers(3, vbo.ptr);
-    program.close();
-  }
-
   public this() {
     pos = vec2(0);
     vel = vec2(0);
@@ -1007,6 +1013,15 @@ public class Wake: Actor {
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+  }
+
+  public override void close() {
+    if (program !is null) {
+      glDeleteVertexArrays(1, &vao);
+      glDeleteBuffers(3, vbo.ptr);
+      program.close();
+      program = null;
+    }
   }
 
   public void set(vec2 p, float deg, float speed, int c = 60, float sz = 1, bool rs = false) {
