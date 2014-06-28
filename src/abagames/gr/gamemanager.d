@@ -114,11 +114,11 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
                     field, screen, sparks, smokes, fragments, wakes);
     Object[] cargs;
     cargs ~= ship;
-    CrystalPool crystals = new CrystalPool(80, cargs);
+    crystals = new CrystalPool(80, cargs);
     scoreReel = new ScoreReel;
     Object[] nargs;
     nargs ~= scoreReel;
-    NumIndicatorPool numIndicators = new NumIndicatorPool(50, nargs);
+    numIndicators = new NumIndicatorPool(50, nargs);
     Object[] bargs;
     bargs ~= this;
     bargs ~= field;
