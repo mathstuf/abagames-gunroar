@@ -33,7 +33,7 @@ public class Screen3D: Screen, SizableScreen {
   public mat4 initSDL() {
     // Initialize Derelict.
     DerelictSDL2.load();
-    DerelictGL.load(); // We use deprecated features.
+    DerelictGL3.load();
     // Initialize SDL.
     version (Android) {
       // Already initialized at this point.
@@ -59,7 +59,7 @@ public class Screen3D: Screen, SizableScreen {
     }
     SDL_GL_CreateContext(_window);
     // Reload GL now to get any features.
-    DerelictGL.reload();
+    DerelictGL3.reload();
     glViewport(0, 0, width, height);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     mat4 windowmat = resized(_width, _height);
