@@ -564,10 +564,10 @@ public class Boat {
       refVel.y = 0;
     }
     if (field.getBlock(_pos.x, _pos.y) >= 0) {
-      if (!onBlock)
-        if (cnt <= 0)
+      if (!onBlock) {
+        if (cnt <= 0) {
           onBlock = true;
-        else {
+        } else {
           if (field.checkInField(_pos.x, _pos.y - field.lastScrollY)) {
             _pos.x = px;
             _pos.y = py;
@@ -575,6 +575,7 @@ public class Boat {
             destroyed();
           }
         }
+      }
     } else {
       onBlock = false;
     }
