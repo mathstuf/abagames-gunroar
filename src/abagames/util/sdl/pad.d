@@ -20,7 +20,7 @@ public class Pad: Input {
   bool buttonReversed = false;
  private:
   SDL_Joystick *stick = null;
-  const int JOYSTICK_AXIS = 16384;
+  static const int JOYSTICK_AXIS = 16384;
   PadState state;
 
   public this() {

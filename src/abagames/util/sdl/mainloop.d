@@ -20,7 +20,7 @@ private import abagames.util.sdl.sdlexception;
  */
 public class MainLoop {
  public:
-  const int INTERVAL_BASE = 16;
+  static const int INTERVAL_BASE = 16;
   bool nowait = false;
   bool accframe = false;
   int maxSkipFrame = 5;

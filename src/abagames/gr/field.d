@@ -39,9 +39,9 @@ public class Field {
   Ship ship;
   Rand rand;
   vec2 _size, _outerSize;
-  const int SCREEN_BLOCK_SIZE_X = 20;
-  const int SCREEN_BLOCK_SIZE_Y = 24;
-  const float BLOCK_WIDTH = 1;
+  static const int SCREEN_BLOCK_SIZE_X = 20;
+  static const int SCREEN_BLOCK_SIZE_Y = 24;
+  static const float BLOCK_WIDTH = 1;
   int[BLOCK_SIZE_Y][BLOCK_SIZE_X] block;
   struct Panel {
     float x, y, z;

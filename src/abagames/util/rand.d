@@ -105,11 +105,11 @@ public class Rand {
 */
 
 /* Period parameters */
-const int N = 624;
-const int M = 397;
-const uint MATRIX_A = 0x9908b0dfU;   /* constant vector a */
-const uint UMASK = 0x80000000U; /* most significant w-r bits */
-const uint LMASK = 0x7fffffffU; /* least significant r bits */
+static const int N = 624;
+static const int M = 397;
+static const uint MATRIX_A = 0x9908b0dfU;   /* constant vector a */
+static const uint UMASK = 0x80000000U; /* most significant w-r bits */
+static const uint LMASK = 0x7fffffffU; /* least significant r bits */
 uint MIXBITS(uint u, uint v) { return (u & UMASK) | (v & LMASK); }
 uint TWIST(uint u,uint v) { return (MIXBITS(u,v) >> 1) ^ (v&1 ? MATRIX_A : 0); }
 

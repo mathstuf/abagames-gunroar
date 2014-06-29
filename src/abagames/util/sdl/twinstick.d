@@ -24,7 +24,7 @@ public class TwinStick: Input {
   bool enableAxis5 = false;
  private:
   SDL_Joystick *stick = null;
-  const int JOYSTICK_AXIS_MAX = 32768;
+  static const int JOYSTICK_AXIS_MAX = 32768;
   TwinStickState state;
 
   public this() {

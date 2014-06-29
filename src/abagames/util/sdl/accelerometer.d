@@ -18,7 +18,7 @@ private import abagames.util.sdl.recordableinput;
 public class Accelerometer: Input {
  private:
   SDL_Joystick *stick = null;
-  const int JOYSTICK_AXIS_MAX = 32768;
+  static const int JOYSTICK_AXIS_MAX = 32768;
   AccelerometerState state;
 
   public this() {

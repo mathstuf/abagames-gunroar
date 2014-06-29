@@ -15,11 +15,11 @@ private import abagames.util.actor;
  */
 public class LuminousScreen {
  private:
-  const float TEXTURE_SIZE_MIN = 0.02f;
-  const float TEXTURE_SIZE_MAX = 0.98f;
+  static const float TEXTURE_SIZE_MIN = 0.02f;
+  static const float TEXTURE_SIZE_MAX = 0.98f;
   GLuint luminousTexture;
-  const int LUMINOUS_TEXTURE_WIDTH_MAX = 64;
-  const int LUMINOUS_TEXTURE_HEIGHT_MAX = 64;
+  static const int LUMINOUS_TEXTURE_WIDTH_MAX = 64;
+  static const int LUMINOUS_TEXTURE_HEIGHT_MAX = 64;
   GLuint td[LUMINOUS_TEXTURE_WIDTH_MAX * LUMINOUS_TEXTURE_HEIGHT_MAX * 4 * uint.sizeof];
   int luminousTextureWidth = 64, luminousTextureHeight = 64;
   int screenWidth, screenHeight;
@@ -82,8 +82,8 @@ public class LuminousScreen {
 
   //private int lmOfs[5][2] = [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]];
   //private const float lmOfsBs = 5;
-  private float lmOfs[2][2] = [[-2, -1], [2, 1]];
-  private const float lmOfsBs = 3;
+  private static const float lmOfs[2][2] = [[-2, -1], [2, 1]];
+  private static const float lmOfsBs = 3;
 
   public void draw() {
     glEnable(GL_TEXTURE_2D);
