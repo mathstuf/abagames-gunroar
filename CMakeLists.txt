@@ -4,6 +4,9 @@ list(APPEND CMAKE_MODULE_PATH
 
 project(gunroar D)
 
+set(CMAKE_D_FLAGS
+    "-Wall")
+
 option(GUNROAR_ANDROID "Build for Android" OFF)
 if (GUNROAR_ANDROID)
     if (NOT CMAKE_D_COMPILER_ID STREQUAL "GNU")
