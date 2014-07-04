@@ -44,39 +44,7 @@ GameManager gameManager;
 PrefManager prefManager;
 MainLoop mainLoop;
 
-version (Win32_release) {
-  // Boot as the Windows executable.
-  private import std.c.windows.windows;
-  private import std.string;
-
-  extern (C) void gc_init();
-  extern (C) void gc_term();
-  extern (C) void _minit();
-  extern (C) void _moduleCtor();
-
-  extern (Windows)
-  public int WinMain(HINSTANCE hInstance,
-                     HINSTANCE hPrevInstance,
-                     LPSTR lpCmdLine,
-                     int nCmdShow) {
-    int result;
-    gc_init();
-    _minit();
-    try {
-      _moduleCtor();
-      char exe[4096];
-      GetModuleFileNameA(null, exe, 4096);
-      char[][1] prog;
-      prog[0] = to!string(exe);
-      result = boot(prog ~ std.string.split(to!string(lpCmdLine)));
-    } catch (Throwable o) {
-      Logger.error("Exception: " ~ o.toString());
-      result = EXIT_FAILURE;
-    }
-    gc_term();
-    return result;
-  }
-} else version (Android) {
+version (Android) {
   extern (C) {
     public int SDL_main(int argc, char** argv) {
       string[] args;
