@@ -351,12 +351,12 @@ public class Boat {
     assert(_pos.y < 20 && _pos.y > -20);
     assert(firePos.x < 15 && firePos.x > -15);
     assert(firePos.y < 20 && firePos.y > -20);
-    assert(deg <>= 0);
+    assert(!deg.isNaN);
     assert(speed >= 0 && speed <= SPEED_BASE);
     assert(turnRatio >= 0 && turnRatio <= TURN_RATIO_BASE);
     assert(turnSpeed >= 0);
     assert(fireInterval >= FIRE_INTERVAL);
-    assert(fireSprDeg <>= 0);
+    assert(!fireSprDeg.isNaN);
     assert(cnt >= -RESTART_CNT);
     assert(_vel.x < 2 && _vel.x > -2);
     assert(_vel.y < 2 && _vel.y > -2);
@@ -619,7 +619,7 @@ public class Boat {
         rd = 0;
       else
         rd = atan2(_pos.x - he.pos.x, _pos.y - he.pos.y);
-      assert(rd <>= 0);
+      assert(!rd.isNaN);
       float sz = he.size;
       refVel.x = sin(rd) * sz * 0.1f;
       refVel.y = cos(rd) * sz * 0.1f;
@@ -828,7 +828,7 @@ public class Boat {
   private void moveRelative() {
     if (vx != 0 || vy != 0) {
       float ad = atan2(vx, vy);
-      assert(ad <>= 0);
+      assert(!ad.isNaN);
       Math.normalizeDeg(ad);
       ad -= deg;
       Math.normalizeDeg(ad);
@@ -910,7 +910,7 @@ public class Boat {
   private void fireFromLocation(vec2 angle) {
    if (fabs(angle.x) + fabs(angle.y) > 0.01f) {
      fireDeg = atan2(angle.x, angle.y);
-     assert(fireDeg <>= 0);
+     assert(!fireDeg.isNaN);
      if (fireCnt <= 0) {
        SoundManager.playSe("shot.wav");
        int foc = (fireSprCnt % 2) * 2 - 1;
@@ -1005,7 +1005,7 @@ public class Boat {
     if (fabs(foy) < 0.01f)
       foy = 0.01f;
     fireDeg = atan2(fox, foy);
-    assert(fireDeg <>= 0);
+    assert(!fireDeg.isNaN);
     if (mouseInput.button & (MouseState.Button.LEFT | MouseState.Button.RIGHT)) {
       if (fireCnt <= 0) {
         SoundManager.playSe("shot.wav");

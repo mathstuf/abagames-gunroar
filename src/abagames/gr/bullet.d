@@ -49,8 +49,8 @@ public class Bullet: Actor {
     assert(pos.y < 40 && pos.y > -20);
     assert(ppos.x < 15 && ppos.x > -15);
     assert(ppos.y < 40 && ppos.y > -20);
-    assert(deg <>= 0);
-    assert(trgDeg <>= 0);
+    assert(!deg.isNaN);
+    assert(!trgDeg.isNaN);
     assert(speed > -5 && speed < 10);
     assert(trgSpeed >= 0 && trgSpeed < 10);
     assert(size > 0 && size < 10);

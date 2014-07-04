@@ -55,7 +55,7 @@ public class BaseShape: DrawableShape {
       assert(p.y < 20 && p.x > -20);
     }
     foreach (float d; _pointDeg)
-      assert(d <>= 0);
+      assert(!d.isNaN);
   }
 
   public static this() {
@@ -176,7 +176,7 @@ public class BaseShape: DrawableShape {
         sy = 0;
       else
         sy = 1 / (1 + fabs(tan(d)));
-      assert(sy <>= 0);
+      assert(!sy.isNaN);
       sx = 1 - sy;
       if (i >= POINT_NUM / 2)
         sx *= -1;

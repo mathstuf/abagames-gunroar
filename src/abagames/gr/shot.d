@@ -47,7 +47,7 @@ public class Shot: Actor {
     assert(pos.y < 20 && pos.y > -20);
     assert(cnt >= 0);
     assert(hitCnt >= 0);
-    assert(_deg <>= 0);
+    assert(!_deg.isNaN);
     assert(_damage >= 1);
   }
 

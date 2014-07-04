@@ -49,8 +49,8 @@ public class StageManager {
     assert(rank >= 1);
     assert(baseRank >= 1);
     assert(addRank >= 0);
-    assert(rankVel <>= 0);
-    assert(rankInc <>= 0);
+    assert(!rankVel.isNaN);
+    assert(!rankInc.isNaN);
     assert(_blockDensity >= BLOCK_DENSITY_MIN && _blockDensity <= BLOCK_DENSITY_MAX);
     assert(batteryNum >= 0 && batteryNum < 50);
   }
@@ -299,7 +299,7 @@ public class EnemyAppearance {
   int appType;
 
   invariant() {
-    assert(nextAppDist <>= 0);
+    assert(!nextAppDist.isNaN);
     assert(nextAppDistInterval > 0);
     assert(appType >= 0);
   }

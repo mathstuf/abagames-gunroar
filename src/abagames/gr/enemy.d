@@ -172,9 +172,9 @@ public class EnemyState {
     assert(pos.y < 60 && pos.y > -30);
     assert(ppos.x < 15 && ppos.x > -15);
     assert(ppos.y < 60 && ppos.y > -30);
-    assert(shield <>= 0);
-    assert(deg <>= 0);
-    assert(velDeg <>= 0);
+    assert(!shield.isNaN);
+    assert(!deg.isNaN);
+    assert(!velDeg.isNaN);
     assert(speed < 10 && speed > -10);
     assert(turnWay == 1 || turnWay == -1);
     assert(trgDeg <= 1 && trgDeg >= -1);
@@ -393,7 +393,7 @@ public class EnemyState {
       sn = spec.size;
     else
       sn = sqrt(spec.size);
-    assert(sn <>= 0);
+    assert(!sn.isNaN);
     if (sn > 3)
       sn = 3;
     for (int i = 0; i < sn * 8; i++) {
@@ -493,7 +493,7 @@ public class EnemyState {
       Smoke s = smokes.getInstanceForced();
       float sr = rand.nextFloat(0.5f);
       float sd = spd[si] + rand.nextSignedFloat(0.2f);
-      assert(sd <>= 0);
+      assert(!sd.isNaN);
       s.set(edgePos, sin(sd) * sr, cos(sd) * sr, -0.004f,
             Smoke.SmokeType.EXPLOSION, 75 + rand.nextInt(25), ss);
       for (int j = 0; j < 2; j++) {
@@ -951,7 +951,7 @@ public class SmallShipEnemySpec: EnemySpec, HasAppearType {
         ad = 0;
       else
         ad = atan2(shipPos.x - es.pos.x, shipPos.y - es.pos.y);
-      assert(ad <>= 0);
+      assert(!ad.isNaN);
       float od = ad - es.velDeg;
       Math.normalizeDeg(od);
       if (od <= turnDeg && od >= -turnDeg)
