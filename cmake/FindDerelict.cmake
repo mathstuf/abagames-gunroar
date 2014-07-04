@@ -106,7 +106,7 @@ function (find_derelict_library component)
             PATHS "${CMAKE_SYSTEM_ROOT}/lib"
                   "/usr/lib64"
             DOC   "The Derelict ${component} library")
-        if (Derelict_${component}_LIBRARY MATCHES "\\.${CMAKE_STATIC_LIBRARY_SUFFIX}$")
+        if (Derelict_${component}_LIBRARY MATCHES "\\${CMAKE_STATIC_LIBRARY_SUFFIX}$")
             set(libtype "STATIC")
         else ()
             set(libtype "SHARED")

@@ -11,7 +11,7 @@ find_library("GL3N_LIBRARY"
     PATHS "${CMAKE_SYSTEM_ROOT}/lib"
           "/usr/lib64"
     DOC   "The GL3N library")
-if (GL3N_LIBRARY MATCHES "\\.${CMAKE_STATIC_LIBRARY_SUFFIX}$")
+if (GL3N_LIBRARY MATCHES "\\${CMAKE_STATIC_LIBRARY_SUFFIX}$")
     set(libtype "STATIC")
 else ()
     set(libtype "SHARED")
