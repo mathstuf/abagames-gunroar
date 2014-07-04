@@ -70,8 +70,8 @@ public interface Sound {
 
 public class Music: Sound {
  public:
-  static int fadeOutSpeed = 1280;
-  static string dir = "sounds/musics";
+  static const int fadeOutSpeed = 1280;
+  static const string dir = "sounds/musics";
  private:
   Mix_Music* music;
 
@@ -151,7 +151,7 @@ public class Music: Sound {
 
 public class Chunk: Sound {
  public:
-  static string dir = "sounds/chunks";
+  static const string dir = "sounds/chunks";
  private:
   Mix_Chunk* chunk;
   int chunkChannel;

@@ -20,11 +20,11 @@ private import abagames.util.sdl.sound;
  */
 public class SoundManager: abagames.util.sdl.sound.SoundManager {
  private static:
-  string[] seFileName =
+  const string[] seFileName =
     ["shot.wav", "lance.wav", "hit.wav",
      "turret_destroyed.wav", "destroyed.wav", "small_destroyed.wav", "explode.wav",
      "ship_destroyed.wav", "ship_shield_lost.wav", "score_up.wav"];
-  int[] seChannel =
+  const int[] seChannel =
     [0, 1, 2, 3, 4, 5, 6, 7, 7, 6];
   Music[string] bgm;
   Chunk[string] se;
