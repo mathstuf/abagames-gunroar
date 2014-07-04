@@ -31,7 +31,7 @@ public class Rand {
     if (n == 0)
       return 0;
     else
-      return genrand_int32() % n;
+      return cast(int) (genrand_int32() % n);
   }
 
   public int nextSignedInt(int n) {
