@@ -12,7 +12,7 @@ private import std.string;
 /**
  * Logger(error/info).
  */
-version(Win32_release) {
+version(Windows) {
 
 private import std.string;
 private import std.c.windows.windows;
