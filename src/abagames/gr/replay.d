@@ -5,12 +5,9 @@
  */
 module abagames.gr.replay;
 
-version (Android) {
-  private import std.conv;
-  private import derelict.sdl2.sdl;
-}
 private import std.conv;
 private import std.stream;
+private import abagames.util.support.paths;
 private import abagames.util.sdl.recordableinput;
 private import abagames.util.sdl.pad;
 private import abagames.util.sdl.touch;
@@ -41,10 +38,7 @@ public class ReplayData {
 
   public void save(string fileName) {
     scope File fd = new File;
-    string path = ".";
-    version (Android) {
-      path = to!string(SDL_AndroidGetExternalStoragePath());
-    }
+    string path = dataStoragePath();
     path ~= "/" ~ dir ~ "/" ~ fileName;
     fd.create(path);
     fd.write(VERSION_NUM);
@@ -82,10 +76,7 @@ public class ReplayData {
 
   public void load(string fileName) {
     scope File fd = new File;
-    string path = ".";
-    version (Android) {
-      path = to!string(SDL_AndroidGetExternalStoragePath());
-    }
+    string path = dataStoragePath();
     path ~= "/" ~ dir ~ "/" ~ fileName;
     fd.open(path);
     int ver;

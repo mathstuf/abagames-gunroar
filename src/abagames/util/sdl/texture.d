@@ -5,12 +5,10 @@
  */
 module abagames.util.sdl.texture;
 
-version (Android) {
-  private import std.conv;
-}
 private import std.string;
 private import derelict.sdl2.sdl;
 private import abagames.util.support.gl;
+private import abagames.util.support.paths;
 private import abagames.util.sdl.sdlexception;
 
 /**
@@ -30,10 +28,7 @@ public class Texture {
     if (name in surface) {
       return surface[name];
     } else {
-      string path = ".";
-      version (Android) {
-        path = to!string(SDL_AndroidGetInternalStoragePath());
-      }
+      string path = assetStoragePath();
       path ~= "/" ~ imagesDir ~ name;
       SDL_Surface *s = SDL_LoadBMP(std.string.toStringz(path));
       if (!s)

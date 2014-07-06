@@ -9,6 +9,7 @@ private import std.conv;
 private import std.string;
 private import derelict.sdl2.sdl;
 private import derelict.sdl2.mixer;
+private import abagames.util.support.paths;
 private import abagames.util.sdl.sdlexception;
 
 /**
@@ -167,10 +168,7 @@ public class Chunk: Sound {
   public void load(string name, int ch) {
     if (SoundManager.noSound)
       return;
-    string path = ".";
-    version (Android) {
-      path = to!string(SDL_AndroidGetInternalStoragePath());
-    }
+    string path = dataStoragePath();
     path ~= "/" ~ dir ~ "/" ~ name;
     chunk = Mix_LoadWAV(std.string.toStringz(path));
     if (!chunk) {
