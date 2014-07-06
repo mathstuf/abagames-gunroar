@@ -6,10 +6,10 @@
 module abagames.gr.crystal;
 
 private import std.math;
-private import derelict.opengl3.gl;
 private import gl3n.linalg;
 private import abagames.util.actor;
 private import abagames.util.math;
+private import abagames.util.gl.gl;
 private import abagames.gr.ship;
 private import abagames.gr.screen;
 private import abagames.gr.shape;

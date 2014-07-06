@@ -7,10 +7,9 @@ module abagames.util.sdl.luminous;
 
 private import std.math;
 private import std.c.string;
-private import derelict.opengl3.arb;
-private import derelict.opengl3.gl;
 private import gl3n.linalg;
 private import abagames.util.actor;
+private import abagames.util.gl.gl;
 private import abagames.util.sdl.shaderprogram;
 
 /**

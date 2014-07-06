@@ -7,10 +7,10 @@ module abagames.gr.bullet;
 
 private import std.math;
 private import std.c.stdarg;
-private import derelict.opengl3.gl;
 private import gl3n.linalg;
 private import abagames.util.actor;
 private import abagames.util.math;
+private import abagames.util.gl.gl;
 private import abagames.util.sdl.shape;
 private import abagames.gr.gamemanager;
 private import abagames.gr.field;

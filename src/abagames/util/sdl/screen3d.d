@@ -9,8 +9,8 @@ private import std.math;
 private import std.conv;
 private import std.string;
 private import derelict.sdl2.sdl;
-private import derelict.opengl3.gl;
 private import gl3n.linalg;
+private import abagames.util.gl.gl;
 private import abagames.util.sdl.screen;
 private import abagames.util.sdl.sdlexception;
 
@@ -33,7 +33,7 @@ public class Screen3D: Screen, SizableScreen {
   public mat4 initSDL() {
     // Initialize Derelict.
     DerelictSDL2.load();
-    DerelictGL3.load();
+    loadGL();
     // Initialize SDL.
     version (Android) {
       // Already initialized at this point.
@@ -59,7 +59,7 @@ public class Screen3D: Screen, SizableScreen {
     }
     SDL_GL_CreateContext(_window);
     // Reload GL now to get any features.
-    DerelictGL3.reload();
+    reloadGL();
     glViewport(0, 0, width, height);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     mat4 windowmat = resized(_width, _height);

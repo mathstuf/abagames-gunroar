@@ -6,10 +6,10 @@
 module abagames.gr.gamemanager;
 
 private import std.math;
-private import derelict.opengl3.gl;
 private import derelict.sdl2.sdl;
 private import gl3n.linalg;
 private import abagames.util.rand;
+private import abagames.util.gl.gl;
 private import abagames.util.sdl.gamemanager;
 private import abagames.util.sdl.texture;
 private import abagames.util.sdl.input;

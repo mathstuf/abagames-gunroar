@@ -6,10 +6,10 @@
 module abagames.gr.ship;
 
 private import std.math;
-private import derelict.opengl3.gl;
 private import gl3n.linalg;
 private import abagames.util.rand;
 private import abagames.util.math;
+private import abagames.util.gl.gl;
 private import abagames.util.sdl.pad;
 private import abagames.util.sdl.twinstick;
 private import abagames.util.sdl.touch;

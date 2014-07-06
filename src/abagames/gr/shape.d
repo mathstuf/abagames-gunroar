@@ -6,9 +6,9 @@
 module abagames.gr.shape;
 
 private import std.math;
-private import derelict.opengl3.gl;
 private import gl3n.linalg;
 private import abagames.util.rand;
+private import abagames.util.gl.gl;
 private import abagames.util.sdl.shaderprogram;
 private import abagames.util.sdl.shape;
 private import abagames.gr.screen;

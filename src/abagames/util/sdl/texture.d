@@ -9,8 +9,8 @@ version (Android) {
   private import std.conv;
 }
 private import std.string;
-private import derelict.opengl3.gl;
 private import derelict.sdl2.sdl;
+private import abagames.util.gl.gl;
 private import abagames.util.sdl.sdlexception;
 
 /**

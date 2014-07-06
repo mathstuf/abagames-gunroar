@@ -5,8 +5,7 @@
  */
 module abagames.gr.shaders;
 
-//private import derelict.gles.gles2;
-private import derelict.opengl3.gl;
+private import abagames.util.gl.gl;
 private import abagames.util.sdl.shaderprogram;
 
 public template makevec4(int size, string name) {

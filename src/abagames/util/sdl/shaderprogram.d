@@ -6,9 +6,8 @@
 module abagames.util.sdl.shaderprogram;
 
 private import std.string;
-//private import derelict.gles.gles2;
-private import derelict.opengl3.gl;
 private import gl3n.linalg;
+private import abagames.util.gl.gl;
 private import abagames.util.sdl.sdlexception;
 private import std.conv;
 

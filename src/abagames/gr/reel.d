@@ -6,11 +6,11 @@
 module abagames.gr.reel;
 
 private import std.math;
-private import derelict.opengl3.gl;
 private import gl3n.linalg;
 private import abagames.util.math;
 private import abagames.util.actor;
 private import abagames.util.rand;
+private import abagames.util.gl.gl;
 private import abagames.gr.letter;
 private import abagames.gr.screen;
 private import abagames.gr.soundmanager;
