@@ -8,6 +8,10 @@ externalproject_add(SDL
     GIT_REPOSITORY    hg::http://hg.libsdl.org/SDL
     GIT_TAG           master
     SOURCE_DIR        "${CMAKE_CURRENT_SOURCE_DIR}/jni/SDL"
+                      # Implements SDL_SYS_IsXInputGamepad_DeviceIndex for
+                      # non-Windows platforms.
+                      # https://bugzilla.libsdl.org/show_bug.cgi?id=2627
+    PATCH_COMMAND     "${PATCH_COMMAND}" -p1 -n < "${CMAKE_CURRENT_SOURCE_DIR}/jni/SDL-missing-joystick-function.patch"
     CONFIGURE_COMMAND ""
     BUILD_COMMAND     ""
     INSTALL_COMMAND   "")
