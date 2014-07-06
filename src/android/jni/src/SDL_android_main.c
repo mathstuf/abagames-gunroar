@@ -17,6 +17,10 @@
 extern void SDL_Android_Init(JNIEnv* env, jclass cls);
 /* Initialize the D runtime. */
 extern int rt_init();
+/* Initialize the D garbage collector. */
+extern void gc_init();
+/* Finalize the D garbage collector. */
+extern void gc_term();
 
 /* Start up the SDL app */
 int Java_org_libsdl_app_SDLActivity_nativeInit(JNIEnv* env, jclass cls,
@@ -26,6 +30,7 @@ int Java_org_libsdl_app_SDLActivity_nativeInit(JNIEnv* env, jclass cls,
     SDL_Android_Init(env, cls);
 
     rt_init();
+    gc_init();
 
     SDL_SetMainReady();
 
@@ -43,6 +48,8 @@ int Java_org_libsdl_app_SDLActivity_nativeInit(JNIEnv* env, jclass cls,
     argv[4] = NULL;
 
     status = SDL_main(4, argv);
+
+    gc_term();
 
     /* Do not issue an exit or the whole application will terminate instead of just the SDL thread */
     /* exit(status); */
