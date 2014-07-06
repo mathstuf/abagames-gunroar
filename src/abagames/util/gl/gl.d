@@ -9,8 +9,12 @@ version (Android) {
     public import derelict.gles.egl;
     public import derelict.gles.gles2;
     public import derelict.gles.ext2;
+
+    public enum usingGLES = true;
 } else {
     public import derelict.opengl3.gl;
+
+    public enum usingGLES = false;
 }
 
 public void loadGL() {
