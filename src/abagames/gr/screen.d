@@ -180,8 +180,4 @@ public class Screen: Screen3D {
   public float luminosity(float v) {
     return _luminosity = v;
   }
-
-  public static void setColorForced(float r, float g, float b, float a = 1) {
-    glColor4f(r, g, b, a);
-  }
 }
