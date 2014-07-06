@@ -44,15 +44,15 @@ Android
 Building for Android requires building a patched NDK toolchain with GDC
 support. LDC support has not been attempted.
 
-To build a custom toolchain, get a [patched GDC][gdc-android] (only 4.8
+To build a custom toolchain, get a [patched GDC][gdc-android] (only 4.9
 supported at the moment), the [Android NDK][ndk] (only r9d has been tested so
 far), and an [NDK toolchain build environment][ndk-build].
 
 Once the toolchain sources have been downloaded, patch the GCC using GDC's
-`setup-gcc.sh` script. Then edit the NDK's `build-gcc.sh` script to add
-`--enable-languages=d` to the configure flags. Currently, `android-13` is the
-target for the Android build, so that should be the targeted platform when
-building the toolchain.
+`setup-gcc.sh` script to patch Android's GCC 4.9 sources. Then edit the NDK's
+`build-gcc.sh` script to add `--enable-languages=d` to the configure flags.
+Currently, `android-13` is the target for the Android build, so that should be
+the targeted platform when building the toolchain.
 
 One change that I've needed to make for D support is to change the `ld` linker
 to point to `ld.bfd` instead of `ld.gold` due to `__data_start` being undefined
@@ -75,6 +75,6 @@ SDL\_mixer will be downloaded and built using the NDK.
 [derelictgl3-cmake]: https://github.com/mathstuf/DerelictGL3
 [gl3n-cmake]: https://github.com/mathstuf/gl3n
 [gdc]: http://gdcproject.org/downloads/
-[gdc-android]: https://github.com/mathstuf/GDC/tree/android/gdc-4.8
+[gdc-android]: https://github.com/mathstuf/GDC/tree/android/gdc-4.9
 [ndk]: https://developer.android.com/tools/sdk/ndk/index.html
 [ndk-build]: http://recursify.com/blog/2013/08/08/building-an-android-ndk-toolchain

@@ -9,7 +9,7 @@ set(host "linux-x86_64")
 
 set(android_target 13)
 set(target "arm-linux-androideabi")
-set(toolchain "${target}-4.8")
+set(toolchain "${target}-4.9")
 
 set(basedir "${ndkdir}/toolchains/${toolchain}/prebuilt/${host}")
 
