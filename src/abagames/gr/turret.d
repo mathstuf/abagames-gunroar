@@ -11,6 +11,7 @@ private import gl3n.linalg;
 private import abagames.util.actor;
 private import abagames.util.rand;
 private import abagames.util.math;
+private import abagames.util.sdl.shaderprogram;
 private import abagames.util.sdl.shape;
 private import abagames.gr.field;
 private import abagames.gr.bullet;
@@ -27,6 +28,9 @@ private import abagames.gr.soundmanager;
  */
 public class Turret {
  private:
+  static ShaderProgram program;
+  static GLuint vao;
+  static GLuint[2] vbo;
   static Rand rand;
   static vec2 damagedPos;
   Field field;
@@ -48,6 +52,7 @@ public class Turret {
   float bulletSpeed;
   int burstCnt;
   Enemy parent;
+  vec3 storedColor;
 
   invariant() {
     assert(pos.x < 15 && pos.x > -15);
@@ -60,6 +65,90 @@ public class Turret {
   public static void init() {
     rand = new Rand;
     damagedPos = vec2(0);
+
+    program = new ShaderProgram;
+    program.setVertexShader(
+      "uniform mat4 projmat;\n"
+      "uniform float minAlphaFactor;\n"
+      "uniform float maxAlphaFactor;\n"
+      "uniform float minRange;\n"
+      "uniform float maxRange;\n"
+      "uniform float deg;\n"
+      "uniform float ndeg;\n"
+      "uniform vec2 pos;\n"
+      "\n"
+      "attribute float minmax;\n"
+      "attribute float angleChoice;\n"
+      "\n"
+      "varying float f_alphaFactor;\n"
+      "\n"
+      "void main() {\n"
+      "  float factor = (minmax > 0.) ? maxRange : minRange;\n"
+      "  float rdeg = (angleChoice > 0.) ? ndeg : deg;\n"
+      "  vec2 rot = factor * vec2(sin(rdeg), cos(rdeg));\n"
+      "  gl_Position = projmat * vec4(pos + rot, 0, 1);\n"
+      "  float alphaFactor = (minmax > 0.) ? maxAlphaFactor : minAlphaFactor;\n"
+      "  f_alphaFactor = alphaFactor;\n"
+      "}\n"
+    );
+    program.setFragmentShader(
+      "uniform float brightness;\n"
+      "uniform float alpha;\n"
+      "uniform vec3 color;\n"
+      "\n"
+      "varying float f_alphaFactor;\n"
+      "\n"
+      "void main() {\n"
+      "  gl_FragColor = vec4(color * vec3(brightness), alpha * f_alphaFactor);\n"
+      "}\n"
+    );
+    GLint minmaxLoc = 0;
+    GLint angleChoiceLoc = 1;
+    program.bindAttribLocation(minmaxLoc, "minmax");
+    program.bindAttribLocation(angleChoiceLoc, "angleChoice");
+    program.link();
+    program.use();
+
+    program.setUniform("color", 0.9f, 0.1f, 0.1f);
+
+    static const float[] MINMAX = [
+      0,
+      1,
+      1,
+      0
+    ];
+    static const float[] ANGLECHOICE = [
+      0,
+      0,
+      1,
+      1
+    ];
+
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(2, vbo.ptr);
+
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+    glBufferData(GL_ARRAY_BUFFER, MINMAX.length * float.sizeof, MINMAX.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(minmaxLoc, 1, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(minmaxLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+    glBufferData(GL_ARRAY_BUFFER, ANGLECHOICE.length * float.sizeof, ANGLECHOICE.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(angleChoiceLoc, 1, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(angleChoiceLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+  }
+
+  public static close() {
+    glDeleteVertexArrays(1, &vao);
+    glDeleteBuffers(2, vbo.ptr);
+    program.close();
   }
 
   public static void setRandSeed(long seed) {
@@ -186,25 +275,37 @@ public class Turret {
     return true;
   }
 
-  public void draw() {
+  public void setDefaultColor(vec3 color) {
+    storedColor = color;
+  }
+
+  public void draw(mat4 view) {
     if (spec.invisible)
       return;
-    glPushMatrix();
+
+    mat4 model = mat4.identity;
+    model.rotate(baseDeg + deg, vec3(0, 0, 1));
     if (destroyedCnt < 0 && damagedCnt > 0) {
       damagedPos.x = pos.x + rand.nextSignedFloat(damagedCnt * 0.015f);
       damagedPos.y = pos.y + rand.nextSignedFloat(damagedCnt * 0.015f);
-      Screen.glTranslate(damagedPos);
+      model.translate(damagedPos.x, damagedPos.y, 0);
     } else {
-      Screen.glTranslate(pos);
+      model.translate(pos.x, pos.y, 0);
     }
-    glRotatef(-(baseDeg + deg) * 180 / PI, 0, 0, 1);
-    if (destroyedCnt >= 0)
-      spec.destroyedShape.draw();
-    else if (!damaged)
-      spec.shape.draw();
-    else
-      spec.damagedShape.draw();
-    glPopMatrix();
+    if (destroyedCnt >= 0) {
+      spec.destroyedShape.setDefaultColor(storedColor);
+      spec.destroyedShape.setModelMatrix(model);
+      spec.destroyedShape.draw(view);
+    } else if (!damaged) {
+      spec.shape.setDefaultColor(storedColor);
+      spec.shape.setModelMatrix(model);
+      spec.shape.draw(view);
+    } else {
+      spec.damagedShape.setDefaultColor(storedColor);
+      spec.damagedShape.setModelMatrix(model);
+      spec.damagedShape.draw(view);
+    }
+
     if (destroyedCnt >= 0)
       return;
     if (appCnt > 120)
@@ -213,40 +314,56 @@ public class Turret {
     if (startCnt < 12)
       a = cast(float) startCnt / 12;
     float td = baseDeg + deg;
+
+    program.use();
+
+    program.setUniform("projmat", view);
+    program.setUniform("brightness", Screen.brightness);
+    program.setUniform("minRange", spec.minRange);
+    program.setUniform("maxRange", spec.maxRange);
+    program.setUniform("pos", pos);
+    program.setUniform("alpha", a);
+
     if (spec.nway <= 1) {
-      glBegin(GL_LINE_STRIP);
-      Screen.setColor(0.9f, 0.1f, 0.1f, a);
-      glVertex2f(pos.x + sin(td) * spec.minRange, pos.y + cos(td) * spec.minRange);
-      Screen.setColor(0.9f, 0.1f, 0.1f, a * 0.5f);
-      glVertex2f(pos.x + sin(td) * spec.maxRange, pos.y + cos(td) * spec.maxRange);
-      glEnd();
+      program.setUniform("deg", td);
+      program.setUniform("minAlphaFactor", 1f);
+      program.setUniform("maxAlphaFactor", 0.5f);
+
+      glBindVertexArray(vao);
+      glDrawArrays(GL_LINE_STRIP, 0, 2);
     } else {
       td -= spec.nwayAngle * (spec.nway - 1) / 2;
-      glBegin(GL_LINE_STRIP);
-      Screen.setColor(0.9f, 0.1f, 0.1f, a * 0.75f);
-      glVertex2f(pos.x + sin(td) * spec.minRange, pos.y + cos(td) * spec.minRange);
-      Screen.setColor(0.9f, 0.1f, 0.1f, a * 0.25f);
-      glVertex2f(pos.x + sin(td) * spec.maxRange, pos.y + cos(td) * spec.maxRange);
-      glEnd();
-      glBegin(GL_QUADS);
+
+      program.setUniform("deg", td);
+      program.setUniform("minAlphaFactor", 0.75f);
+      program.setUniform("maxAlphaFactor", 0.25f);
+
+      glBindVertexArray(vao);
+      glDrawArrays(GL_LINE_STRIP, 0, 2);
+
+      program.setUniform("minAlphaFactor", 0.3f);
+      program.setUniform("maxAlphaFactor", 0.05f);
+
       for (int i = 0; i < spec.nway - 1; i++) {
-        Screen.setColor(0.9f, 0.1f, 0.1f, a * 0.3f);
-        glVertex2f(pos.x + sin(td) * spec.minRange, pos.y + cos(td) * spec.minRange);
-        Screen.setColor(0.9f, 0.1f, 0.1f, a * 0.05f);
-        glVertex2f(pos.x + sin(td) * spec.maxRange, pos.y + cos(td) * spec.maxRange);
-        td += spec.nwayAngle;
-        glVertex2f(pos.x + sin(td) * spec.maxRange, pos.y + cos(td) * spec.maxRange);
-        Screen.setColor(0.9f, 0.1f, 0.1f, a * 0.3f);
-        glVertex2f(pos.x + sin(td) * spec.minRange, pos.y + cos(td) * spec.minRange);
+        float ntd = td + spec.nwayAngle;
+
+        program.setUniform("deg", td);
+        program.setUniform("ndeg", ntd);
+
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+        td = ntd;
       }
-      glEnd();
-      glBegin(GL_LINE_STRIP);
-      Screen.setColor(0.9f, 0.1f, 0.1f, a * 0.75f);
-      glVertex2f(pos.x + sin(td) * spec.minRange, pos.y + cos(td) * spec.minRange);
-      Screen.setColor(0.9f, 0.1f, 0.1f, a * 0.25f);
-      glVertex2f(pos.x + sin(td) * spec.maxRange, pos.y + cos(td) * spec.maxRange);
-      glEnd();
+
+      program.setUniform("deg", td);
+      program.setUniform("minAlphaFactor", 0.75f);
+      program.setUniform("maxAlphaFactor", 0.25f);
+
+      glDrawArrays(GL_LINE_STRIP, 0, 2);
     }
+
+    glBindVertexArray(0);
+    glUseProgram(0);
   }
 
   public bool checkCollision(float x, float y, Collidable c, Shot shot) {
@@ -674,9 +791,14 @@ public class TurretGroup {
     return alive;
   }
 
-  public void draw() {
+  public void setDefaultColor(vec3 color) {
     for (int i = 0; i < spec.num; i++)
-      turret[i].draw();
+      turret[i].setDefaultColor(color);
+  }
+
+  public void draw(mat4 view) {
+    for (int i = 0; i < spec.num; i++)
+      turret[i].draw(view);
   }
 
   public void remove() {
@@ -873,9 +995,9 @@ public class MovingTurretGroup {
     d = deg - md - ad / 2;
   }
 
-  public void draw() {
+  public void draw(mat4 view) {
     for (int i = 0; i < spec.num; i++)
-      turret[i].draw();
+      turret[i].draw(view);
   }
 
   public void remove() {

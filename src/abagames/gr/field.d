@@ -10,6 +10,7 @@ private import std.math;
 private import gl3n.linalg;
 private import abagames.util.rand;
 private import abagames.util.math;
+private import abagames.util.sdl.shaderprogram;
 private import abagames.gr.screen;
 private import abagames.gr.stagemanager;
 private import abagames.gr.ship;
@@ -71,6 +72,12 @@ public class Field {
     ];
   float[3][6] baseColor;
   float time;
+  ShaderProgram sideProgram;
+  GLuint vaoSide;
+  GLuint vboSide;
+  ShaderProgram panelProgram;
+  GLuint vaoPanel;
+  GLuint vboPanel;
 
   invariant() {
     assert(_lastScrollY >= 0 && _lastScrollY < 10);
@@ -90,6 +97,18 @@ public class Field {
     _lastScrollY = 0;
     platformPosNum = 0;
     time = 0;
+
+    setupSideWalls();
+  }
+
+  public void close() {
+    glDeleteVertexArrays(1, &vaoSide);
+    glDeleteBuffers(1, &vboSide);
+    sideProgram.close();
+
+    glDeleteVertexArrays(1, &vaoPanel);
+    glDeleteBuffers(1, &vboPanel);
+    panelProgram.close();
   }
 
   public void setRandSeed(long s) {
@@ -342,29 +361,125 @@ public class Field {
       time -= TIME_COLOR_INDEX;
   }
 
-  public void draw() {
-    drawPanel();
+  private void setupSideWalls() {
+    sideProgram = new ShaderProgram;
+    sideProgram.setVertexShader(
+      "uniform mat4 projmat;\n"
+      "uniform vec4 flip;\n"
+      "\n"
+      "attribute vec2 pos;\n"
+      "\n"
+      "void main() {\n"
+      "  gl_Position = projmat * (vec4(pos, 0, 1) * flip);\n"
+      "}\n"
+    );
+    sideProgram.setFragmentShader(
+      "uniform vec4 color;\n"
+      "\n"
+      "void main() {\n"
+      "  gl_FragColor = color;\n"
+      "}\n"
+    );
+    GLint posLoc = 0;
+    sideProgram.bindAttribLocation(posLoc, "pos");
+    sideProgram.link();
+    sideProgram.use();
+
+    sideProgram.setUniform("color", 0, 0, 0, 1);
+
+    glGenBuffers(1, &vboSide);
+    glGenVertexArrays(1, &vaoSide);
+
+    static const float[] SIDEWALL = [
+      SIDEWALL_X1,  SIDEWALL_Y,
+      SIDEWALL_X2,  SIDEWALL_Y,
+      SIDEWALL_X2, -SIDEWALL_Y,
+      SIDEWALL_X1, -SIDEWALL_Y
+    ];
+
+    glBindVertexArray(vaoSide);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vboSide);
+    glBufferData(GL_ARRAY_BUFFER, SIDEWALL.length * float.sizeof, SIDEWALL.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(posLoc);
+
+    panelProgram = new ShaderProgram;
+
+    panelProgram.setVertexShader(
+      "uniform mat4 projmat;\n"
+      "uniform vec2 s;\n"
+      "uniform vec3 pos;\n"
+      "uniform float diffFactor;\n"
+      "\n"
+      "attribute vec2 diff;\n"
+      "\n"
+      "void main() {\n"
+      "  gl_Position = projmat * vec4(pos + vec3(diffFactor * diff + s, 0), 1);\n"
+      "}\n"
+    );
+    panelProgram.setFragmentShader(
+      "uniform vec3 color;\n"
+      "uniform float brightness;\n"
+      "\n"
+      "void main() {\n"
+      "  gl_FragColor = vec4(color * brightness, 1);\n"
+      "}\n"
+    );
+    GLint diffLoc = 0;
+    panelProgram.bindAttribLocation(diffLoc, "diff");
+    panelProgram.link();
+    panelProgram.use();
+
+    glGenVertexArrays(1, &vaoPanel);
+    glGenBuffers(1, &vboPanel);
+
+    glBindVertexArray(vaoPanel);
+
+    static const float[] DIFF = [
+      0,  0,
+      1,  0,
+      1, -1,
+      0, -1
+    ];
+
+    glBindBuffer(GL_ARRAY_BUFFER, vboPanel);
+    glBufferData(GL_ARRAY_BUFFER, DIFF.length * float.sizeof, DIFF.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(diffLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(diffLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
   }
 
-  public void drawSideWalls() {
+  public void draw(mat4 view) {
+    drawPanel(view);
+  }
+
+  public void drawSideWalls(mat4 view) {
     glDisable(GL_BLEND);
-    Screen.setColor(0, 0, 0, 1);
-    glBegin(GL_TRIANGLE_FAN);
-    glVertex3f(SIDEWALL_X1, SIDEWALL_Y, 0);
-    glVertex3f(SIDEWALL_X2, SIDEWALL_Y, 0);
-    glVertex3f(SIDEWALL_X2, -SIDEWALL_Y, 0);
-    glVertex3f(SIDEWALL_X1, -SIDEWALL_Y, 0);
-    glEnd();
-    glBegin(GL_TRIANGLE_FAN);
-    glVertex3f(-SIDEWALL_X1, SIDEWALL_Y, 0);
-    glVertex3f(-SIDEWALL_X2, SIDEWALL_Y, 0);
-    glVertex3f(-SIDEWALL_X2, -SIDEWALL_Y, 0);
-    glVertex3f(-SIDEWALL_X1, -SIDEWALL_Y, 0);
-    glEnd();
+
+    sideProgram.use();
+
+    sideProgram.setUniform("projmat", view);
+
+    glBindVertexArray(vaoSide);
+
+    sideProgram.setUniform("flip", vec4(1, 1, 1, 1));
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    sideProgram.setUniform("flip", vec4(-1, 1, 1, 1));
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+    glBindVertexArray(0);
+    glUseProgram(0);
+
     glEnable(GL_BLEND);
   }
 
-  private void drawPanel() {
+  private void drawPanel(mat4 view) {
     int ci = cast(int) time;
     int nci = ci + 1;
     if (nci >= TIME_COLOR_INDEX)
@@ -381,33 +496,48 @@ public class Field {
     if (by < 0)
       by += BLOCK_SIZE_Y;
     sy += BLOCK_WIDTH;
-    glBegin(GL_QUADS);
+
+    panelProgram.use();
+
+    panelProgram.setUniform("projmat", view);
+    panelProgram.setUniform("brightness", Screen.brightness);
+
+    glBindVertexArray(vaoPanel);
+
     for (int y = -1; y < SCREEN_BLOCK_SIZE_Y + NEXT_BLOCK_AREA_SIZE; y++) {
       if (by >= BLOCK_SIZE_Y)
         by -= BLOCK_SIZE_Y;
       sx = -BLOCK_WIDTH * SCREEN_BLOCK_SIZE_X / 2;
+
       for (int bx = 0; bx < SCREEN_BLOCK_SIZE_X; bx++) {
         Panel* p = &(panel[bx][by]);
-        Screen.setColor(baseColor[p.ci][0] * p.or * 0.66f,
-                        baseColor[p.ci][1] * p.og * 0.66f,
-                        baseColor[p.ci][2] * p.ob * 0.66f);
-        glVertex3f(sx + p.x, sy - p.y, p.z);
-        glVertex3f(sx + p.x + PANEL_WIDTH, sy - p.y, p.z);
-        glVertex3f(sx + p.x + PANEL_WIDTH, sy - p.y - PANEL_WIDTH, p.z);
-        glVertex3f(sx + p.x, sy - p.y - PANEL_WIDTH, p.z);
-        Screen.setColor(baseColor[p.ci][0] * 0.33f,
-                        baseColor[p.ci][1] * 0.33f,
-                        baseColor[p.ci][2] * 0.33f);
-        glVertex2f(sx, sy);
-        glVertex2f(sx + BLOCK_WIDTH, sy);
-        glVertex2f(sx + BLOCK_WIDTH, sy - BLOCK_WIDTH);
-        glVertex2f(sx, sy - BLOCK_WIDTH);
+
+        panelProgram.setUniform("s", sx, sy);
+
+        panelProgram.setUniform("color", baseColor[p.ci][0] * p.or * 0.66f,
+                                         baseColor[p.ci][1] * p.og * 0.66f,
+                                         baseColor[p.ci][2] * p.ob * 0.66f);
+        panelProgram.setUniform("pos", p.x, -p.y, p.z);
+        panelProgram.setUniform("diffFactor", PANEL_WIDTH);
+
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
+        panelProgram.setUniform("color", baseColor[p.ci][0] * 0.33f,
+                                         baseColor[p.ci][1] * 0.33f,
+                                         baseColor[p.ci][2] * 0.33f);
+        panelProgram.setUniform("pos", p.x, -p.y, 0f);
+        panelProgram.setUniform("diffFactor", BLOCK_WIDTH);
+
+        glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
         sx += BLOCK_WIDTH;
       }
       sy -= BLOCK_WIDTH;
       by++;
     }
-    glEnd();
+
+    glBindVertexArray(0);
+    glUseProgram(0);
   }
 
   private static int[2][4] degBlockOfs = [[0, -1], [1, 0], [0, 1], [-1, 0]];

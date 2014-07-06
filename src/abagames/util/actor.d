@@ -5,6 +5,7 @@
  */
 module abagames.util.actor;
 
+private import gl3n.linalg;
 private import std.conv;
 
 /**
@@ -23,8 +24,9 @@ public class Actor {
   }
 
   public abstract void init(Object[] args);
+  public abstract void close();
   public abstract void move();
-  public abstract void draw();
+  public abstract void draw(mat4 view);
 }
 
 /**
@@ -51,6 +53,13 @@ public class ActorPool(T) {
       a.init(args);
     }
     actorIdx = 0;
+  }
+
+  public void close() {
+    foreach (ref T a; actor) {
+      a.close();
+      a = null;
+    }
   }
 
   public T getInstance() {
@@ -96,10 +105,10 @@ public class ActorPool(T) {
         ac.move();
   }
 
-  public void draw() {
+  public void draw(mat4 view) {
     foreach (T ac; actor)
       if (ac.exists)
-        ac.draw();
+        ac.draw(view);
   }
 
   public void clear() {

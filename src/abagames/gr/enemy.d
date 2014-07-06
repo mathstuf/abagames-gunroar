@@ -43,6 +43,9 @@ public class Enemy: Actor {
        cast(NumIndicatorPool) args[8], cast(ScoreReel) args[9]);
   }
 
+  public override void close() {
+  }
+
   public void setEnemyPool(EnemyPool enemies) {
     _state.setEnemyAndPool(this, enemies);
   }
@@ -91,8 +94,8 @@ public class Enemy: Actor {
     exists = false;
   }
 
-  public override void draw() {
-    spec.draw(_state);
+  public override void draw(mat4 view) {
+    spec.draw(view, _state);
   }
 
   public EnemyState state() {
@@ -166,6 +169,7 @@ public class EnemyState {
   EnemyPool enemies;
   StageManager stageManager;
   ScoreReel scoreReel;
+  vec3 storedColor;
 
   invariant() {
     assert(pos.x < 15 && pos.x > -15);
@@ -516,29 +520,45 @@ public class EnemyState {
       movingTurretGroup[i].remove();
   }
 
-  public void draw() {
-    glPushMatrix();
+  public void setDefaultColor(vec3 color) {
+    storedColor = color;
+  }
+
+  public void draw(mat4 view) {
+    mat4 model = mat4.identity;
+    model.rotate(deg, vec3(0, 0, 1));
     if (destroyedCnt < 0 && damagedCnt > 0) {
       damagedPos.x = pos.x + rand.nextSignedFloat(damagedCnt * 0.01f);
       damagedPos.y = pos.y + rand.nextSignedFloat(damagedCnt * 0.01f);
-      Screen.glTranslate(damagedPos);
+      model.translate(damagedPos.x, damagedPos.y, 0);
     } else {
-      Screen.glTranslate(pos);
+      model.translate(pos.x, pos.y, 0);
     }
-    glRotatef(-deg * 180 / PI, 0, 0, 1);
-    if (destroyedCnt >= 0)
-      spec.destroyedShape.draw();
-    else if (!damaged)
-      spec.shape.draw();
-    else
-      spec.damagedShape.draw();
-    if (destroyedCnt < 0)
-      spec.bridgeShape.draw();
-    glPopMatrix();
+    if (destroyedCnt >= 0) {
+      spec.destroyedShape.setDefaultColor(storedColor);
+      spec.destroyedShape.setModelMatrix(model);
+      spec.destroyedShape.draw(view);
+    } else if (!damaged) {
+      spec.shape.setDefaultColor(storedColor);
+      spec.shape.setModelMatrix(model);
+      spec.shape.draw(view);
+    } else {
+      spec.damagedShape.setDefaultColor(storedColor);
+      spec.damagedShape.setModelMatrix(model);
+      spec.damagedShape.draw(view);
+    }
+    if (destroyedCnt < 0) {
+      spec.bridgeShape.setDefaultColor(storedColor);
+      spec.bridgeShape.setModelMatrix(model);
+      spec.bridgeShape.draw(view);
+    }
+
     if (destroyedCnt >= 0)
       return;
-    for (int i = 0; i < spec.turretGroupNum; i++)
-      turretGroup[i].draw();
+    for (int i = 0; i < spec.turretGroupNum; i++) {
+      turretGroup[i].setDefaultColor(storedColor);
+      turretGroup[i].draw(view);
+    }
     if (multiplier > 1) {
       float ox, oy;
       if (multiplier < 10)
@@ -550,8 +570,8 @@ public class EnemyState {
         ox += 4;
         oy -= 1.25f;
       }
-      Letter.drawNumSign(cast(int) (multiplier * 1000),
-                         pos.x + ox, pos.y + oy, 0.33f, 1, 33, 3);
+      Letter.drawNumSign(view, cast(int) (multiplier * 1000),
+                         pos.x + ox, pos.y + oy, 0.33f, Letter.COLOR1, 33 /* x */, 3);
     }
   }
 }
@@ -770,8 +790,8 @@ public class EnemySpec {
     return es.move();
   }
 
-  public void draw(EnemyState es) {
-    es.draw();
+  public void draw(mat4 view, EnemyState es) {
+    es.draw(view);
   }
 
   public float size() {
@@ -1263,13 +1283,13 @@ public class ShipEnemySpec: EnemySpec, HasAppearType {
     return true;
   }
 
-  public override void draw(EnemyState es) {
+  public override void draw(mat4 view, EnemyState es) {
     if (es.destroyedCnt >= 0)
-      Screen.setColor(
+      es.setDefaultColor(vec3(
         EnemyShape.MIDDLE_COLOR_R * (1 - cast(float) es.destroyedCnt / SINK_INTERVAL) * 0.5f,
         EnemyShape.MIDDLE_COLOR_G * (1 - cast(float) es.destroyedCnt / SINK_INTERVAL) * 0.5f,
-        EnemyShape.MIDDLE_COLOR_B * (1 - cast(float) es.destroyedCnt / SINK_INTERVAL) * 0.5f);
-    super.draw(es);
+        EnemyShape.MIDDLE_COLOR_B * (1 - cast(float) es.destroyedCnt / SINK_INTERVAL) * 0.5f));
+    super.draw(view, es);
   }
 
   public override int score() {

@@ -11,9 +11,11 @@ private import derelict.opengl3.gl;
 private import gl3n.linalg;
 private import abagames.util.actor;
 private import abagames.util.rand;
+private import abagames.util.sdl.shaderprogram;
 private import abagames.util.sdl.shape;
 private import abagames.gr.field;
 private import abagames.gr.screen;
+private import abagames.gr.shaders;
 private import abagames.gr.enemy;
 private import abagames.gr.particle;
 private import abagames.gr.bullet;
@@ -27,6 +29,9 @@ public class Shot: Actor {
   static const float SPEED = 0.6f;
   static const float LANCE_SPEED = 0.5f;//0.4f;
  private:
+  static ShaderProgram program;
+  static GLuint vao;
+  static GLuint vbo;
   static ShotShape shape;
   static LanceShape lanceShape;
   static Rand rand;
@@ -55,14 +60,70 @@ public class Shot: Actor {
     shape = new ShotShape;
     lanceShape = new LanceShape;
     rand = new Rand;
+
+    program = new ShaderProgram;
+    program.setVertexShader(
+      "uniform mat4 projmat;\n"
+      "uniform mat4 modelmat;\n"
+      "uniform float size;\n"
+      "\n"
+      "attribute vec3 pos;\n"
+      "\n"
+      "void main() {\n"
+      "  vec3 sizev = vec3(size, 1, size);\n"
+      "  vec4 pos4 = vec4(pos * sizev, 1);\n"
+      "  gl_Position = projmat * pos4;\n"
+      "}\n"
+    );
+    program.setFragmentShader(
+      "uniform float brightness;\n"
+      "uniform vec4 color;\n"
+      "\n"
+      "void main() {\n"
+      "  vec4 brightness4 = vec4(vec3(brightness), 1);\n"
+      "  gl_FragColor = color * brightness4;\n"
+      "}\n"
+    );
+    GLint posLoc = 0;
+    program.bindAttribLocation(posLoc, "pos");
+    program.link();
+    program.use();
+
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
+
+    static const float[] VTX = [
+      -1,  LANCE_SPEED, 0.5f,
+       1,  LANCE_SPEED, 0.5f,
+       1, -LANCE_SPEED, 0.5f,
+      -1, -LANCE_SPEED, 0.5f
+    ];
+
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(posLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
   }
 
   public static void setRandSeed(long seed) {
     rand.setSeed(seed);
   }
 
-  public static void close() {
+  public override void close() {
     shape.close();
+
+    if (program !is null) {
+      glDeleteVertexArrays(1, &vao);
+      glDeleteBuffers(1, &vbo);
+      program.close();
+      program = null;
+    }
   }
 
   public this() {
@@ -174,11 +235,16 @@ public class Shot: Actor {
     }
   }
 
-  public override void draw() {
+  public override void draw(mat4 view) {
     if (lance) {
       float x = pos.x, y = pos.y;
       float size = 0.25f, a = 0.6f;
       int hc = hitCnt;
+
+      program.use();
+
+      program.setUniform("brightness", Screen.brightness);
+
       for (int i = 0; i < cnt / 4 + 1; i++) {
         size *= 0.9f;
         a *= 0.8f;
@@ -187,38 +253,35 @@ public class Shot: Actor {
           continue;
         }
         float d = i * 13 + cnt * 3;
+
+        mat4 model = mat4.identity;
+        model.rotate(-d / 180 * PI, vec3(0, 1, 0));
+        model.rotate(_deg, vec3(0, 0, 1));
+        model.translate(x, y, 0);
+        program.setUniform("modelmat", model);
+
+        program.setUniform("size", size);
+
         for (int j = 0; j < 6; j++) {
-          glPushMatrix();
-          glTranslatef(x, y, 0);
-          glRotatef(-_deg * 180 / PI, 0, 0, 1);
-          glRotatef(d, 0, 1, 0);
-          Screen.setColor(0.4f, 0.8f, 0.8f, a);
-          glBegin(GL_LINE_LOOP);
-          glVertex3f(-size, LANCE_SPEED, size / 2);
-          glVertex3f(size, LANCE_SPEED, size / 2);
-          glVertex3f(size, -LANCE_SPEED, size / 2);
-          glVertex3f(-size, -LANCE_SPEED, size / 2);
-          glEnd();
-          Screen.setColor(0.2f, 0.5f, 0.5f, a / 2);
-          glBegin(GL_TRIANGLE_FAN);
-          glVertex3f(-size, LANCE_SPEED, size / 2);
-          glVertex3f(size, LANCE_SPEED, size / 2);
-          glVertex3f(size, -LANCE_SPEED, size / 2);
-          glVertex3f(-size, -LANCE_SPEED, size / 2);
-          glEnd();
-          glPopMatrix();
+          program.setUniform("color", 0.4f, 0.8f, 0.8f, a);
+          glDrawArrays(GL_LINE_LOOP, 0, 4);
+
+          program.setUniform("color", 0.2f, 0.5f, 0.5f, a / 2);
+          glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+
           d += 60;
         }
         x -= sin(deg) * LANCE_SPEED * 2;
         y -= cos(deg) * LANCE_SPEED * 2;
       }
     } else {
-      glPushMatrix();
-      Screen.glTranslate(pos);
-      glRotatef(-_deg * 180 / PI, 0, 0, 1);
-      glRotatef(cnt * 31, 0, 1, 0);
-      shape.draw();
-      glPopMatrix();
+      mat4 model = mat4.identity;
+      model.rotate(-cnt * 31 / 180 * PI, vec3(0, 1, 0));
+      model.rotate(_deg, vec3(0, 0, 1));
+      model.translate(pos.x, pos.y, 0);
+      shape.setModelMatrix(model);
+
+      shape.draw(view);
     }
   }
 
@@ -253,22 +316,49 @@ public class ShotPool: ActorPool!(Shot) {
 }
 
 public class ShotShape: CollidableDrawable {
-  protected override void createDisplayList() {
-    Screen.setColor(0.1f, 0.33f, 0.1f);
-    glBegin(GL_QUADS);
-    glVertex3f(0, 0.3f, 0.1f);
-    glVertex3f(0.066f, 0.3f, -0.033f);
-    glVertex3f(0.1f, -0.3f, -0.05f);
-    glVertex3f(0, -0.3f, 0.15f);
-    glVertex3f(0.066f, 0.3f, -0.033f);
-    glVertex3f(-0.066f, 0.3f, -0.033f);
-    glVertex3f(-0.1f, -0.3f, -0.05f);
-    glVertex3f(0.1f, -0.3f, -0.05f);
-    glVertex3f(-0.066f, 0.3f, -0.033f);
-    glVertex3f(0, 0.3f, 0.1f);
-    glVertex3f(0, -0.3f, 0.15f);
-    glVertex3f(-0.1f, -0.3f, -0.05f);
-    glEnd();
+  mixin UniformColorShader!(3, 3);
+
+  protected void fillStaticShaderData() {
+    program.setUniform("color", 0.1f, 0.33f, 0.1f);
+
+    static const float[] VTX = [
+       0,       0.3f,  0.1f,
+       0.066f,  0.3f, -0.033f,
+       0.1f,   -0.3f, -0.05f,
+       0,      -0.3f,  0.15f,
+
+       0.066f,  0.3f, -0.033f,
+      -0.066f,  0.3f, -0.033f,
+      -0.1f,   -0.3f, -0.05f,
+       0.1f,   -0.3f, -0.05f,
+
+      -0.066f,  0.3f, -0.033f,
+       0,       0.3f,  0.1f,
+       0,      -0.3f,  0.15f,
+      -0.1f,   -0.3f, -0.05f
+    ];
+
+    glBindVertexArray(vao[0]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+    glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(posLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+  }
+
+  protected override void drawShape() {
+    program.setUniform("brightness", Screen.brightness);
+
+    glBindVertexArray(vao[0]);
+    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+    glDrawArrays(GL_TRIANGLE_FAN, 4, 4);
+    glDrawArrays(GL_TRIANGLE_FAN, 8, 4);
+
+    glBindVertexArray(0);
   }
 
   protected override void setCollision() {

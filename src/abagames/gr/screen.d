@@ -7,6 +7,7 @@ module abagames.gr.screen;
 
 private import std.math;
 private import derelict.opengl3.gl;
+private import gl3n.linalg;
 private import abagames.util.rand;
 private import abagames.util.sdl.screen3d;
 private import abagames.util.sdl.luminous;
@@ -28,7 +29,7 @@ private static float dot2(
   return x1 * x2 - y1 * y2;
 }
 
-private static void cross(
+private static void _cross(
     ref float x, ref float y, ref float z,
     float x1, float y1, float z1,
     float x2, float y2, float z2) {
@@ -82,7 +83,7 @@ public class Screen: Screen3D {
     glDisable(GL_CULL_FACE);
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_LIGHTING);
-    setClearColor(0, 0, 0, 1);
+    glClearColor(0, 0, 0, 1);
     if (_luminosity > 0) {
       luminousScreen = new LuminousScreen;
       luminousScreen.init(_luminosity, width, height);
@@ -109,19 +110,18 @@ public class Screen: Screen3D {
       luminousScreen.endRender();
   }
 
-  public void drawLuminous() {
+  public void drawLuminous(mat4 view) {
     if (luminousScreen)
-      luminousScreen.draw();
+      luminousScreen.draw(view);
   }
 
-  public override void resized(int width, int height) {
+  public override mat4 resized(int width, int height) {
     if (luminousScreen)
       luminousScreen.resized(width, height);
-    super.resized(width, height);
+    return super.resized(width, height);
   }
 
-  public override void screenResized() {
-    super.screenResized();
+  public override mat4 screenResized() {
     float lw = (cast(float) width / 640 + cast(float) height / 480) / 2;
     if (lw < 1)
       lw = 1;
@@ -129,6 +129,7 @@ public class Screen: Screen3D {
       lw = 4;
     lineWidthBase = lw;
     lineWidth(1);
+    return super.screenResized();
   }
 
   public static void lineWidth(int w) {
@@ -139,62 +140,24 @@ public class Screen: Screen3D {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
   }
 
-  public static void viewOrthoFixed() {
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    glOrtho(0, 640, 480, 0, -1, 1);
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
+  public static mat4 fixedOrthoView() {
+    // TODO: Remove the 640x480 assumption.
+    return mat4.orthographic(0, 640, 480, 0, -1, 1);
   }
 
-  public static void viewPerspective() {
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-  }
-
-  public void setEyepos() {
-    float ex, ey, ez;
-    float lx, ly, lz;
-    ex = ey = 0;
-    ez = 13.0f;
-    lx = ly = lz = 0;
+  public mat4 projectiveView() {
+    vec3 e = vec3(0, 0, 13.0f);
+    vec3 l = vec3(0);
     if (screenShakeCnt > 0) {
       float mx = rand.nextSignedFloat(screenShakeIntense * (screenShakeCnt + 4));
       float my = rand.nextSignedFloat(screenShakeIntense * (screenShakeCnt + 4));
-      ex += mx;
-      ey += my;
-      lx += mx;
-      ly += my;
+      e.x += mx;
+      e.y += my;
+      l.x += mx;
+      l.y += my;
     }
 
-    float fx, fy, fz;
-    fx = lx - ex;
-    fy = ly - ey;
-    fz = lz - ez;
-    normalize(fx, fy, fz);
-    float sx, sy, sz;
-    cross(sx, sy, sz,
-          fx, fy, fz,
-          0., 1., 0.);
-    normalize(sx, sy, sz);
-    float ux, uy, uz;
-    cross(ux, uy, uz,
-          sx, sy, sz,
-          fx, fy, fz);
-    normalize(ux, uy, uz);
-    float[] matrix = [
-      sx, ux, -fx, 0.,
-      sy, uy, -fy, 0.,
-      sz, uz, -fz, 0.,
-      0., 0., 0., 1.];
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadMatrixf(matrix.ptr);
-    glTranslatef(-ex, -ey, -ez);
+    return mat4.look_at(e, l, vec3(0, 1, 0));
   }
 
   public void setScreenShake(int cnt, float its) {

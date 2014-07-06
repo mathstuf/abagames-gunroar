@@ -5,11 +5,13 @@
  */
 module abagames.util.sdl.screen;
 
+private import gl3n.linalg;
+
 /**
  * SDL screen handler interface.
  */
 public interface Screen {
-  public void initSDL();
+  public mat4 initSDL();
   public void closeSDL();
   public void flip();
   public void clear();

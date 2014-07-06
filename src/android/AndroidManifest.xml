@@ -6,6 +6,8 @@
       android:installLocation="auto">
     <uses-sdk android:minSdkVersion="13"
               android:targetSdkVersion="19" />
+    <uses-feature android:minSdkVersion="13"
+                  android:required="true" />
     <supports-screens android:smallScreens="false"
                       android:normalScreens="false"
                       android:requiresSmallestWidthDp="600" />

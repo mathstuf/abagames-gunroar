@@ -16,6 +16,7 @@ private import abagames.util.sdl.touch;
 private import abagames.util.sdl.accelerometer;
 private import abagames.util.sdl.mouse;
 private import abagames.util.sdl.recordableinput;
+private import abagames.util.sdl.shaderprogram;
 private import abagames.util.sdl.shape;
 private import abagames.gr.field;
 private import abagames.gr.gamemanager;
@@ -36,6 +37,9 @@ private import abagames.gr.mouseandpad;
  */
 public class Ship {
  private:
+  static ShaderProgram program;
+  static GLuint vao;
+  static GLuint[2] vbo;
   static const float SCROLL_SPEED_BASE = 0.01f;
   static const float SCROLL_SPEED_MAX = 0.1f;
   static const float SCROLL_START_Y = 2.5f;
@@ -74,6 +78,70 @@ public class Ship {
     _nearPos = vec2(0);
     _nearVel = vec2(0);
     bridgeShape = new BaseShape(0.3f, 0.2f, 0.1f, BaseShape.ShapeType.BRIDGE, 0.3f, 0.7f, 0.7f);
+
+    program = new ShaderProgram;
+    program.setVertexShader(
+      "uniform mat4 projmat;\n"
+      "uniform mat4 rotmat;\n"
+      "\n"
+      "attribute float pos;\n"
+      "attribute vec4 color;\n"
+      "\n"
+      "varying vec4 f_color;\n"
+      "\n"
+      "void main() {\n"
+      "  gl_Position = projmat * rotmat * vec4(pos, 0, 0, 1);\n"
+      "  f_color = color;\n"
+      "}\n"
+    );
+    program.setFragmentShader(
+      "uniform float brightness;\n"
+      "\n"
+      "varying vec4 f_color;\n"
+      "\n"
+      "void main() {\n"
+      "  vec4 brightness4 = vec4(vec3(brightness), 1);\n"
+      "  gl_FragColor = f_color * vec4(vec3(brightness), 1);\n"
+      "}\n"
+    );
+    GLint posLoc = 0;
+    GLint colorLoc = 1;
+    program.bindAttribLocation(posLoc, "pos");
+    program.bindAttribLocation(colorLoc, "color");
+    program.link();
+    program.use();
+
+    glGenBuffers(2, vbo.ptr);
+    glGenVertexArrays(1, &vao);
+
+    static const float[] VTX = [
+      0,
+      0.5f,
+      1,
+    ];
+    static const float[] COLOR = [
+      0.5f, 0.5f, 0.9f, 0.8f,
+      0.5f, 0.5f, 0.9f, 0.3f,
+      0.5f, 0.5f, 0.9f, 0.8f
+    ];
+
+    glBindVertexArray(vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+    glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(posLoc, 1, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(posLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+    glBufferData(GL_ARRAY_BUFFER, COLOR.length * float.sizeof, COLOR.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(colorLoc, 4, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(colorLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
   }
 
   public void setRandSeed(long seed) {
@@ -83,6 +151,10 @@ public class Ship {
   public void close() {
     foreach (Boat b; boat)
       b.close();
+
+    glDeleteVertexArrays(1, &vao);
+    glDeleteBuffers(2, vbo.ptr);
+    program.close();
   }
 
   public void setShots(ShotPool shots) {
@@ -164,34 +236,48 @@ public class Ship {
       boat[i].destroyedBoat();
   }
 
-  public void draw() {
+  public void draw(mat4 view) {
     for (int i = 0; i < boatNum; i++)
-      boat[i].draw();
+      boat[i].draw(view);
     if ((gameMode == InGameState.GameMode.DOUBLE_PLAY ||
          gameMode == InGameState.GameMode.DOUBLE_PLAY_TOUCH) && boat[0].hasCollision) {
-      Screen.setColor(0.5f, 0.5f, 0.9f, 0.8f);
-      glBegin(GL_LINE_STRIP);
-      glVertex2f(boat[0].pos.x, boat[0].pos.y);
-      Screen.setColor(0.5f, 0.5f, 0.9f, 0.3f);
-      glVertex2f(midstPos.x, midstPos.y);
-      Screen.setColor(0.5f, 0.5f, 0.9f, 0.8f);
-      glVertex2f(boat[1].pos.x, boat[1].pos.y);
-      glEnd();
-      glPushMatrix();
-      Screen.glTranslate(midstPos);
-      glRotatef(-degAmongBoats * 180 / PI, 0, 0, 1);
-      bridgeShape.draw();
-      glPopMatrix();
+      program.use();
+
+      float dist = distance(boat[0].pos, boat[1].pos);
+      mat4 rotmat = mat4.identity;
+      rotmat.scale(dist, 0, 0);
+      rotmat.rotate(degAmongBoats, vec3(0, 0, 1));
+      rotmat.translate(boat[0].pos.x, boat[0].pos.y, 0);
+
+      program.setUniform("projmat", view);
+      program.setUniform("rotmat", rotmat);
+      program.setUniform("brightness", Screen.brightness);
+
+      glBindVertexArray(vao);
+      glDrawArrays(GL_LINE_STRIP, 0, 3);
+
+      glBindVertexArray(0);
+
+      mat4 model = mat4.identity;
+      model.rotate(degAmongBoats, vec3(0, 0, 1));
+      model.translate(midstPos.x, midstPos.y, 0);
+      bridgeShape.setModelMatrix(model);
+
+      bridgeShape.draw(view);
     }
   }
 
-  public void drawFront() {
+  public void drawFront(mat4 view) {
     for (int i = 0; i < boatNum; i++)
-      boat[i].drawFront();
+      boat[i].drawFront(view);
   }
 
-  public void drawShape() {
-    boat[0].drawShape();
+  public void setModelMatrix(mat4 model) {
+    boat[0].setModelMatrix(model);
+  }
+
+  public void drawShape(mat4 view) {
+    boat[0].drawShape(view);
   }
 
   public float scrollSpeedBase() {
@@ -284,6 +370,10 @@ public class Ship {
 
 public class Boat {
  private:
+  static ShaderProgram sightProgram;
+  static ShaderProgram lineProgram;
+  static GLuint[2] vao;
+  static GLuint[3] vbo;
   static const int RESTART_CNT = 300;
   static const int INVINCIBLE_CNT = 228;
   static const float HIT_WIDTH = 0.02f;
@@ -367,6 +457,123 @@ public class Boat {
 
   public static void init() {
     rand = new Rand;
+
+    sightProgram = new ShaderProgram;
+    sightProgram.setVertexShader(
+      "uniform mat4 projmat;\n"
+      "uniform vec2 pos;\n"
+      "uniform float size;\n"
+      "\n"
+      "attribute vec2 sizeFactor;\n"
+      "\n"
+      "void main() {\n"
+      "  vec4 pos4 = vec4(pos + size * sizeFactor, 0, 1);\n"
+      "  gl_Position = projmat * pos4;\n"
+      "}\n"
+    );
+    sightProgram.setFragmentShader(
+      "uniform float brightness;\n"
+      "uniform vec4 color;\n"
+      "\n"
+      "void main() {\n"
+      "  vec4 brightness4 = vec4(vec3(brightness), 1);\n"
+      "  gl_FragColor = color * brightness4;\n"
+      "}\n"
+    );
+    GLint sizeFactorLoc = 0;
+    sightProgram.bindAttribLocation(sizeFactorLoc, "sizeFactor");
+    sightProgram.link();
+    sightProgram.use();
+
+    glGenBuffers(3, vbo.ptr);
+    glGenVertexArrays(2, vao.ptr);
+
+    static const float[] SIZEFACTOR = [
+      -1,    -0.5f,
+      -1,    -1,
+      -0.5f, -1,
+
+       1,    -0.5f,
+       1,    -1,
+       0.5f, -1,
+
+       1,     0.5f,
+       1,     1,
+       0.5f,  1,
+
+      -1,     0.5f,
+      -1,     1,
+      -0.5f,  1
+    ];
+
+    glBindVertexArray(vao[0]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+    glBufferData(GL_ARRAY_BUFFER, SIZEFACTOR.length * float.sizeof, SIZEFACTOR.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(sizeFactorLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(sizeFactorLoc);
+
+    lineProgram = new ShaderProgram;
+    lineProgram.setVertexShader(
+      "uniform mat4 projmat;\n"
+      "uniform vec2 pos;\n"
+      "uniform float deg;\n"
+      "\n"
+      "attribute float rotFactor;\n"
+      "attribute vec4 color;\n"
+      "\n"
+      "varying vec4 f_color;\n"
+      "\n"
+      "void main() {\n"
+      "  vec2 rot = 20. * rotFactor * vec2(sin(deg), cos(deg));\n"
+      "  vec4 pos4 = vec4(pos + rot, 0, 1);\n"
+      "  gl_Position = projmat * pos4;\n"
+      "  f_color = color;\n"
+      "}\n"
+    );
+    lineProgram.setFragmentShader(
+      "uniform float brightness;\n"
+      "\n"
+      "varying vec4 f_color;\n"
+      "\n"
+      "void main() {\n"
+      "  gl_FragColor = f_color * vec4(vec3(brightness), 1);\n"
+      "}\n"
+    );
+    GLint rotFactorLoc = 0;
+    GLint colorLoc = 1;
+    lineProgram.bindAttribLocation(rotFactorLoc, "rotFactor");
+    lineProgram.bindAttribLocation(colorLoc, "color");
+    lineProgram.link();
+    lineProgram.use();
+
+    glBindVertexArray(vao[1]);
+
+    static const float[] ROTFACTOR = [
+      0,
+      1
+    ];
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+    glBufferData(GL_ARRAY_BUFFER, ROTFACTOR.length * float.sizeof, ROTFACTOR.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(rotFactorLoc, 1, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(rotFactorLoc);
+
+    static const float[] COLOR = [
+      0.5f, 0.9f, 0.7f, 0.4f,
+      0.5f, 0.9f, 0.7f, 0.8f
+    ];
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+    glBufferData(GL_ARRAY_BUFFER, COLOR.length * float.sizeof, COLOR.ptr, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(colorLoc, 4, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(colorLoc);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
   }
 
   public static void setRandSeed(long seed) {
@@ -424,6 +631,15 @@ public class Boat {
     _shape.close();
     bridgeShape.close();
     shieldShape.close();
+
+    if (sightProgram !is null) {
+      glDeleteVertexArrays(2, vao.ptr);
+      glDeleteBuffers(3, vbo.ptr);
+      sightProgram.close();
+      sightProgram = null;
+      lineProgram.close();
+      lineProgram = null;
+    }
   }
 
   public void setShots(ShotPool shots) {
@@ -1126,75 +1342,93 @@ public class Boat {
       return true;
   }
 
-  public void draw() {
+  public void draw(mat4 view) {
     if (cnt < -INVINCIBLE_CNT)
       return;
     if (fireDeg < 99999) {
-      Screen.setColor(0.5f, 0.9f, 0.7f, 0.4f);
-      glBegin(GL_LINE_STRIP);
-      glVertex2f(_pos.x, _pos.y);
-      Screen.setColor(0.5f, 0.9f, 0.7f, 0.8f);
-      glVertex2f(_pos.x + sin(fireDeg) * 20, _pos.y + cos(fireDeg) * 20);
-      glEnd();
+      lineProgram.use();
+
+      lineProgram.setUniform("brightness", Screen.brightness);
+      lineProgram.setUniform("pos", _pos);
+      lineProgram.setUniform("deg", fireDeg);
+
+      glBindVertexArray(vao[1]);
+      glDrawArrays(GL_LINE_STRIP, 0, 2);
+
+      glBindVertexArray(0);
+      glUseProgram(0);
     }
     if (cnt < 0 && (-cnt % 32) < 16)
       return;
-    glPushMatrix();
-    Screen.glTranslate(pos);
-    glRotatef(-deg * 180 / PI, 0, 0, 1);
-    _shape.draw();
-    bridgeShape.draw();
+
+    mat4 model = mat4.identity;
+    model.rotate(deg, vec3(0, 0, 1));
+    model.translate(pos.x, pos.y, 0);
+    _shape.setModelMatrix(model);
+    bridgeShape.setModelMatrix(model);
+
+    _shape.draw(view);
+    bridgeShape.draw(view);
     if (shieldCnt > 0) {
       float ss = 0.66f;
       if (shieldCnt < 120)
         ss *= cast(float) shieldCnt / 120;
-      glScalef(ss, ss, ss);
-      glRotatef(shieldCnt * 5, 0, 0, 1);
-      shieldShape.draw();
+
+      mat4 shield = mat4.identity;
+      shield.scale(ss, ss, ss);
+      shield.rotate(-shieldCnt * 5. / 180 * PI, vec3(0, 0, 1));
+      shieldShape.setModelMatrix(model * shield);
+
+      shieldShape.draw(view);
     }
-    glPopMatrix();
   }
 
-  public void drawFront() {
+  public void drawFront(mat4 view) {
     if (cnt < -INVINCIBLE_CNT)
       return;
     if (gameMode == InGameState.GameMode.MOUSE) {
-      Screen.setColor(0.7f, 0.9f, 0.8f, 1.0f);
+      sightProgram.use();
+
+      sightProgram.setUniform("brightness", Screen.brightness);
+      sightProgram.setUniform("projmat", view);
+
       Screen.lineWidth(2);
+
+      sightProgram.setUniform("color", 0.7f, 0.9f, 0.8f, 1);
       drawSight(mouseInput.x, mouseInput.y, 0.3f);
+
       float ss = 0.9f - 0.8f * ((cnt + 1024) % 32) / 32;
-      Screen.setColor(0.5f, 0.9f, 0.7f, 0.8f);
+
+      sightProgram.setUniform("color", 0.5f, 0.9f, 0.7f, 0.8f);
       drawSight(mouseInput.x, mouseInput.y, ss);
+
       Screen.lineWidth(1);
+
+      glUseProgram(0);
     }
   }
 
   private void drawSight(float x, float y, float size) {
-    glBegin(GL_LINE_STRIP);
-    glVertex2f(x - size, y - size * 0.5f);
-    glVertex2f(x - size, y - size);
-    glVertex2f(x - size * 0.5f, y - size);
-    glEnd();
-    glBegin(GL_LINE_STRIP);
-    glVertex2f(x + size, y - size * 0.5f);
-    glVertex2f(x + size, y - size);
-    glVertex2f(x + size * 0.5f, y - size);
-    glEnd();
-    glBegin(GL_LINE_STRIP);
-    glVertex2f(x + size, y + size * 0.5f);
-    glVertex2f(x + size, y + size);
-    glVertex2f(x + size * 0.5f, y + size);
-    glEnd();
-    glBegin(GL_LINE_STRIP);
-    glVertex2f(x - size, y + size * 0.5f);
-    glVertex2f(x - size, y + size);
-    glVertex2f(x - size * 0.5f, y + size);
-    glEnd();
+    sightProgram.setUniform("pos", x, y);
+    sightProgram.setUniform("size", size);
+
+    glBindVertexArray(vao[0]);
+    glDrawArrays(GL_LINE_STRIP, 0, 3);
+    glDrawArrays(GL_LINE_STRIP, 3, 3);
+    glDrawArrays(GL_LINE_STRIP, 6, 3);
+    glDrawArrays(GL_LINE_STRIP, 9, 3);
+
+    glBindVertexArray(0);
   }
 
-  public void drawShape() {
-    _shape.draw();
-    bridgeShape.draw();
+  public void setModelMatrix(mat4 model) {
+    _shape.setModelMatrix(model);
+    bridgeShape.setModelMatrix(model);
+  }
+
+  public void drawShape(mat4 view) {
+    _shape.draw(view);
+    bridgeShape.draw(view);
   }
 
   public void clearBullets() {

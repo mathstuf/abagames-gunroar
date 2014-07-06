@@ -74,10 +74,11 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
   GameState state;
   TitleState titleState;
   InGameState inGameState;
+  mat4 windowmat;
   bool escPressed;
   bool backgrounded;
 
-  public override void init() {
+  public override void init(mat4 windowmat) {
     Letter.init();
     Shot.init();
     BulletShape.init();
@@ -86,7 +87,7 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
     TurretShape.init();
     Fragment.init();
     SparkFragment.init();
-    Crystal.init();
+    Crystal.initShape();
     prefManager = cast(PrefManager) abstPrefManager;
     screen = cast(Screen) abstScreen;
     pad = cast(Pad) (cast(MultipleInputDevice) input).inputs[0];
@@ -168,18 +169,29 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
                                 titleManager, inGameState);
     ship.setGameState(inGameState);
 
+    this.windowmat = windowmat;
     escPressed = false;
     backgrounded = false;
   }
 
   public override void close() {
     ship.close();
+    shots.close();
+    bullets.close();
+    enemies.close();
+    field.close();
+    sparks.close();
+    smokes.close();
+    fragments.close();
+    sparkFragments.close();
+    wakes.close();
+    crystals.close();
+    numIndicators.close();
     BulletShape.close();
     EnemyShape.close();
+    Turret.close();
     TurretShape.close();
-    Fragment.close();
-    SparkFragment.close();
-    Crystal.close();
+    Crystal.closeShape();
     titleState.close();
     Letter.close();
   }
@@ -273,29 +285,24 @@ public class GameManager: abagames.util.sdl.gamemanager.GameManager {
       Sint32 w = we.data1;
       Sint32 h = we.data2;
       if (w > 150 && h > 100)
-        screen.resized(w, h);
+        windowmat = screen.resized(w, h);
     }
+    mat4 view = windowmat * screen.projectiveView();
     if (screen.startRenderToLuminousScreen()) {
-      glPushMatrix();
-      screen.setEyepos();
-      state.drawLuminous();
-      glPopMatrix();
+      state.drawLuminous(view);
       screen.endRenderToLuminousScreen();
     }
     screen.clear();
-    glPushMatrix();
-    screen.setEyepos();
-    state.draw();
-    glPopMatrix();
-    screen.drawLuminous();
-    glPushMatrix();
-    screen.setEyepos();
-    field.drawSideWalls();
-    state.drawFront();
-    glPopMatrix();
-    screen.viewOrthoFixed();
-    state.drawOrtho();
-    screen.viewPerspective();
+
+    state.draw(view);
+
+    screen.drawLuminous(windowmat);
+
+    field.drawSideWalls(view);
+    state.drawFront(view);
+
+    mat4 orthoView = screen.fixedOrthoView();
+    state.drawOrtho(orthoView);
   }
 
   private bool handleAppEvents(ref SDL_Event e) {
@@ -395,10 +402,10 @@ public class GameState {
 
   public abstract void start();
   public abstract void move();
-  public abstract void draw();
-  public abstract void drawLuminous();
-  public abstract void drawFront();
-  public abstract void drawOrtho();
+  public abstract void draw(mat4 view);
+  public abstract void drawLuminous(mat4 view);
+  public abstract void drawFront(mat4 view);
+  public abstract void drawOrtho(mat4 view);
 
   protected void clearAll() {
     shots.clear();
@@ -625,66 +632,60 @@ public class InGameState: GameState {
     SoundManager.playMarkedSe();
   }
 
-  public override void draw() {
-    field.draw();
-    glBegin(GL_TRIANGLES);
-    wakes.draw();
-    sparks.draw();
-    glEnd();
+  public override void draw(mat4 view) {
+    field.draw(view);
+    wakes.draw(view);
+    sparks.draw(view);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glBegin(GL_QUADS);
-    smokes.draw();
-    glEnd();
-    fragments.draw();
-    sparkFragments.draw();
-    crystals.draw();
+    smokes.draw(view);
+    fragments.draw(view);
+    sparkFragments.draw(view);
+    crystals.draw(view);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-    enemies.draw();
-    shots.draw();
-    ship.draw();
-    bullets.draw();
+    enemies.draw(view);
+    shots.draw(view);
+    ship.draw(view);
+    bullets.draw(view);
   }
 
-  public override void drawFront() {
-    ship.drawFront();
-    scoreReel.draw(11.5f + (SCORE_REEL_SIZE_DEFAULT - scoreReelSize) * 3,
+  public override void drawFront(mat4 view) {
+    ship.drawFront(view);
+    scoreReel.draw(view, 11.5f + (SCORE_REEL_SIZE_DEFAULT - scoreReelSize) * 3,
                    -8.2f - (SCORE_REEL_SIZE_DEFAULT - scoreReelSize) * 3,
                    scoreReelSize);
     float x = -12;
     for (int i = 0; i < left; i++) {
-      glPushMatrix();
-      glTranslatef(x, -9, 0);
-      glScalef(0.7f, 0.7f, 0.7f);
-      ship.drawShape();
-      glPopMatrix();
+      mat4 model = mat4.identity;
+      model.scale(0.7f, 0.7f, 0.7f);
+      model.translate(x, -9, 0);
+      ship.setModelMatrix(model);
+
+      ship.drawShape(view);
       x += 0.7f;
     }
-    numIndicators.draw();
+    ship.setModelMatrix(mat4.identity);
+    numIndicators.draw(view);
   }
 
-  public void drawGameParams() {
-    stageManager.draw();
+  public void drawGameParams(mat4 view) {
+    stageManager.draw(view);
   }
 
-  public override void drawOrtho() {
-    drawGameParams();
+  public override void drawOrtho(mat4 view) {
+    drawGameParams(view);
     if (isGameOver)
-      Letter.drawString("GAME OVER", 190, 180, 15);
+      Letter.drawString(view, "GAME OVER", 190, 180, 15);
     else if (pauseCnt > 0 && (pauseCnt % 64) < 32)
-      Letter.drawString("PAUSE", 265, 210, 12);
+      Letter.drawString(view, "PAUSE", 265, 210, 12);
     else if (_gameMode == GameMode.TOUCH) {
       // TODO: Draw the touch regions.
     }
   }
 
-  public override void drawLuminous() {
-    glBegin(GL_TRIANGLES);
-    sparks.drawLuminous();
-    glEnd();
-    sparkFragments.drawLuminous();
-    glBegin(GL_QUADS);
-    smokes.drawLuminous();
-    glEnd();
+  public override void drawLuminous(mat4 view) {
+    sparks.drawLuminous(view);
+    sparkFragments.drawLuminous(view);
+    smokes.drawLuminous(view);
   }
 
   public void shipDestroyed() {
@@ -833,26 +834,26 @@ public class TitleState: GameState {
     titleManager.move();
   }
 
-  public override void draw() {
+  public override void draw(mat4 view) {
     if (_replayData) {
-      inGameState.draw();
+      inGameState.draw(view);
     } else {
-      field.draw();
+      field.draw(view);
     }
   }
 
-  public override void drawFront() {
+  public override void drawFront(mat4 view) {
     if (_replayData)
-      inGameState.drawFront();
+      inGameState.drawFront(view);
   }
 
-  public override void drawOrtho() {
+  public override void drawOrtho(mat4 view) {
     if (_replayData)
-      inGameState.drawGameParams();
-    titleManager.draw();
+      inGameState.drawGameParams(view);
+    titleManager.draw(view);
   }
 
-  public override void drawLuminous() {
-    inGameState.drawLuminous();
+  public override void drawLuminous(mat4 view) {
+    inGameState.drawLuminous(view);
   }
 }

@@ -6,6 +6,7 @@
 module abagames.util.sdl.mainloop;
 
 private import derelict.sdl2.sdl;
+private import gl3n.linalg;
 private import abagames.util.logger;
 private import abagames.util.rand;
 private import abagames.util.prefmanager;
@@ -47,14 +48,14 @@ public class MainLoop {
   }
 
   // Initialize and load preference.
-  private void initFirst() {
+  private void initFirst(mat4 windowmat) {
     prefManager.load();
     try {
       SoundManager.init();
     } catch (SDLInitFailedException e) {
       Logger.error(e);
     }
-    gameManager.init();
+    gameManager.init(windowmat);
     initInterval();
   }
 
@@ -79,8 +80,8 @@ public class MainLoop {
     int i;
     long nowTick;
     int frame;
-    screen.initSDL();
-    initFirst();
+    mat4 windowmat = screen.initSDL();
+    initFirst(windowmat);
     gameManager.start();
     while (!done) {
       if (SDL_PollEvent(&event) == 0)

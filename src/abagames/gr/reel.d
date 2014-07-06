@@ -49,10 +49,10 @@ public class ScoreReel {
       numReel[i].move();
   }
 
-  public void draw(float x, float y, float s) {
+  public void draw(mat4 view, float x, float y, float s) {
     float lx = x, ly = y;
     for (int i = 0; i < digit; i++) {
-      numReel[i].draw(lx, ly, s);
+      numReel[i].draw(view, lx, ly, s);
       lx -= s * 2;
     }
   }
@@ -129,7 +129,7 @@ public class NumReel {
       deg = _targetDeg;
   }
 
-  public void draw(float x, float y, float s) {
+  public void draw(mat4 view, float x, float y, float s) {
     int n = cast(int) ((deg * 10 / 360 + 0.99f) + 1) % 10;
     float d = deg % 360;
     float od = d - n * 360 / 10;
@@ -137,22 +137,22 @@ public class NumReel {
     Math.normalizeDeg360(od);
     od *= 1.5f;
     for (int i = 0; i < 3; i++) {
-      glPushMatrix();
+      mat4 model = mat4.identity;
+      model.scale(s, -s, s);
+      model.translate(0, 0, s * 2.4f);
+      model.rotate(-od / 180 * PI, vec3(1, 0, 0));
       if (ofs > 0.005f)
-        glTranslatef(x + rand.nextSignedFloat(1) * ofs, y + rand.nextSignedFloat(1) * ofs, 0);
+        model.translate(x + rand.nextSignedFloat(1) * ofs, y + rand.nextSignedFloat(1) * ofs, 0);
       else
-        glTranslatef(x, y, 0);
-      glRotatef(od, 1, 0, 0);
-      glTranslatef(0, 0, s * 2.4f);
-      glScalef(s, -s, s);
+        model.translate(x, y, 0);
+
       float a = 1 - fabs((od + 15) / (360 / 10 * 1.5f)) / 2;
       if (a < 0)
         a = 0;
-      Screen.setColor(a, a, a);
-      Letter.drawLetter(n, 2);
-      Screen.setColor(a / 2, a / 2, a / 2);
-      Letter.drawLetter(n, 3);
-      glPopMatrix();
+      Letter.setColor(vec4(a, a, a, 1));
+      Letter.drawLetter(view * model, n, Letter.LINE_COLOR);
+      Letter.setColor(vec4(a / 2, a / 2, a / 2, 1));
+      Letter.drawLetter(view * model, n, Letter.POLY_COLOR);
       n--;
       if (n < 0)
         n = 9;
@@ -267,6 +267,9 @@ public class NumIndicator: Actor {
     scoreReel = cast(ScoreReel) args[0];
   }
 
+  public override void close() {
+  }
+
   public void set(int n, IndicatorType type, float size, vec2 p) {
     set(n, type, size, p.x, p.y);
   }
@@ -376,15 +379,14 @@ public class NumIndicator: Actor {
       gotoNextTarget();
   }
 
-  public override void draw() {
-    Screen.setColor(alpha, alpha, alpha);
+  public override void draw(mat4 view) {
+    Letter.setColor(vec4(alpha, alpha, alpha, 1));
     switch (type) {
     case IndicatorType.SCORE:
-      Letter.drawNumSign(n, pos.x, pos.y, size, Letter.LINE_COLOR);
+      Letter.drawNumSign(view, n, pos.x, pos.y, size, Letter.LINE_COLOR);
       break;
     case IndicatorType.MULTIPLIER:
-      Screen.setColor(alpha, alpha, alpha);
-      Letter.drawNumSign(n, pos.x, pos.y, size, Letter.LINE_COLOR, 33, 3);
+      Letter.drawNumSign(view, n, pos.x, pos.y, size, Letter.LINE_COLOR, 33 /* x */, Letter.POLY_COLOR);
       break;
     default:
       assert(0);

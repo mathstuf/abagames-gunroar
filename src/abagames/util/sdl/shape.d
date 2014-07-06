@@ -7,13 +7,14 @@ module abagames.util.sdl.shape;
 
 private import derelict.opengl3.gl;
 private import gl3n.linalg;
-private import abagames.util.sdl.displaylist;
+private import abagames.util.sdl.shaderprogram;
 
 /**
  * Interface for drawing a shape.
  */
 public interface Drawable {
-  public void draw();
+  public void draw(mat4);
+  public void setModelMatrix(mat4);
 }
 
 /**
@@ -45,24 +46,36 @@ public template CollidableImpl() {
  * Drawable that has a single displaylist.
  */
 public abstract class DrawableShape: Drawable {
-  protected DisplayList displayList;
+  private ShaderProgram program;
+  private bool hasModelmat;
  private:
 
   public this() {
-    displayList = new DisplayList(1);
-    displayList.beginNewList();
-    createDisplayList();
-    displayList.endNewList();
+    program = initShader();
+
+    hasModelmat = program.uniformLocation("modelmat") >= 0;
   }
 
-  protected abstract void createDisplayList();
+  protected abstract ShaderProgram initShader();
+  protected abstract void drawShape();
 
   public void close() {
-    displayList.close();
+    program.close();
   }
 
-  public void draw() {
-    displayList.call(0);
+  public void draw(mat4 view) {
+    program.use();
+    program.setUniform("projmat", view);
+    drawShape();
+    glUseProgram(0);
+  }
+
+  public void setModelMatrix(mat4 model) {
+    if (hasModelmat) {
+      program.use();
+      program.setUniform("modelmat", model);
+      glUseProgram(0);
+    }
   }
 }
 
@@ -96,9 +109,14 @@ public class ResizableDrawable: Drawable, Collidable {
   float _size;
   vec2 _collision;
 
-  public void draw() {
-    glScalef(_size, _size, _size);
-    _shape.draw();
+  public void draw(mat4 view) {
+    _shape.draw(view);
+  }
+
+  public void setModelMatrix(mat4 model) {
+    mat4 scalemat = mat4.identity;
+    scalemat.scale(_size, _size, _size);
+    _shape.setModelMatrix(model * scalemat);
   }
 
   public Drawable shape(Drawable v) {

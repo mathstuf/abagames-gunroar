@@ -76,6 +76,9 @@ public class Bullet: Actor {
     crystals = cast(CrystalPool) args[5];
   }
 
+  public override void close() {
+  }
+
   public void set(int enemyIdx,
                   vec2 p, float deg,
                   float speed, float size, int shapeType, float range,
@@ -157,19 +160,21 @@ public class Bullet: Actor {
     exists = false;
   }
 
-  public override void draw() {
+  public override void draw(mat4 view) {
     if (!field.checkInOuterField(pos))
       return;
-    glPushMatrix();
-    Screen.glTranslate(pos);
+
+    mat4 model = mat4.identity;
     if (_destructive) {
-      glRotatef(cnt * 13, 0, 0, 1);
+      model.rotate(-cnt * 13. / 180 * PI, vec3(0, 0, 1));
     } else {
-      glRotatef(-deg * 180 / PI, 0, 0, 1);
-      glRotatef(cnt * 13, 0, 1, 0);
+      model.rotate(-cnt * 13. / 180 * PI, vec3(0, 1, 0));
+      model.rotate(deg, vec3(0, 0, 1));
     }
-    shape.draw();
-    glPopMatrix();
+    model.translate(pos.x, pos.y, 0);
+    shape.setModelMatrix(model);
+
+    shape.draw(view);
   }
 
   public void checkShotHit(vec2 p, Collidable s, Shot shot) {

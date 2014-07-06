@@ -5,6 +5,7 @@
  */
 module abagames.util.sdl.gamemanager;
 
+private import gl3n.linalg;
 private import abagames.util.prefmanager;
 private import abagames.util.sdl.mainloop;
 private import abagames.util.sdl.screen;
@@ -34,7 +35,7 @@ public class GameManager {
     abstPrefManager = prefManager;
   }
 
-  public abstract void init();
+  public abstract void init(mat4 windowmat);
   public abstract void start();
   public abstract void close();
   public abstract void move();

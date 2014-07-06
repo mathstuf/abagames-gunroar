@@ -1,6 +1,5 @@
 set(util_sdl_srcs
     accelerometer.d
-    displaylist.d
     gamemanager.d
     input.d
     luminous.d
@@ -11,6 +10,7 @@ set(util_sdl_srcs
     screen.d
     screen3d.d
     sdlexception.d
+    shaderprogram.d
     shape.d
     sound.d
     texture.d

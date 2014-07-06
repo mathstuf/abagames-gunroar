@@ -34,12 +34,15 @@ public class Crystal: Actor {
     assert(vel.y < 10 && vel.y > -10);
   }
 
-  public static void init() {
+  public static void initShape() {
     _shape = new CrystalShape;
   }
 
-  public static void close() {
+  public static void closeShape() {
     _shape.close();
+  }
+
+  public override void close() {
   }
 
   public this() {
@@ -77,16 +80,17 @@ public class Crystal: Actor {
     pos += vel;
   }
 
-  public override void draw() {
+  public override void draw(mat4 view) {
     float r = 0.25f;
     float d = cnt * 0.1f;
     if (cnt > PULLIN_COUNT)
       r *= (cast(float) (COUNT - cnt)) / (COUNT - PULLIN_COUNT);
     for (int i = 0; i < 4; i++) {
-      glPushMatrix();
-      glTranslatef(pos.x + sin(d) * r, pos.y + cos(d) * r, 0);
-      _shape.draw();
-      glPopMatrix();
+      mat4 model = mat4.identity;
+      model.translate(pos.x + sin(d) * r, pos.y + cos(d) * r, 0);
+      _shape.setModelMatrix(model);
+
+      _shape.draw(view);
       d += PI / 2;
     }
   }

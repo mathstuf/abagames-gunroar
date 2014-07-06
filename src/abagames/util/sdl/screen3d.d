@@ -30,10 +30,10 @@ public class Screen3D: Screen, SizableScreen {
   protected abstract void init();
   protected abstract void close();
 
-  public void initSDL() {
+  public mat4 initSDL() {
     // Initialize Derelict.
     DerelictSDL2.load();
-    DerelictGL.load(); // We use deprecated features.
+    DerelictGL3.load();
     // Initialize SDL.
     version (Android) {
       // Already initialized at this point.
@@ -59,39 +59,28 @@ public class Screen3D: Screen, SizableScreen {
     }
     SDL_GL_CreateContext(_window);
     // Reload GL now to get any features.
-    DerelictGL.reload();
+    DerelictGL3.reload();
     glViewport(0, 0, width, height);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-    resized(_width, _height);
+    mat4 windowmat = resized(_width, _height);
     SDL_ShowCursor(SDL_DISABLE);
     init();
+    return windowmat;
   }
 
   // Reset a viewport when the screen is resized.
-  public void screenResized() {
-    glViewport(0, 0, _width, _height);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    /* FIXME: Why does removing this work? What was gluPerspective doing before?
-     *float aspect = cast(GLfloat) width / cast(GLfloat) height;
-     *float ymax = _nearPlane * tan(45.0f * PI / 360.0);
-     *float ymin = -ymax;
-     *float xmin = ymin * aspect;
-     *float xmax = ymax * aspect;
-     *glFrustum(xmin, xmax, ymin, ymax, _nearPlane, _farPlane);
-     */
-    glFrustum(-_nearPlane,
-              _nearPlane,
-              -_nearPlane * cast(GLfloat) _height / cast(GLfloat) _width,
-              _nearPlane * cast(GLfloat) _height / cast(GLfloat) _width,
-              0.1f, _farPlane);
-    glMatrixMode(GL_MODELVIEW);
+  public mat4 screenResized() {
+    const float ratio = cast(float) _height / cast(float) _width;
+    return mat4.perspective(
+      -_nearPlane, _nearPlane,
+      -_nearPlane * ratio, _nearPlane * ratio,
+      0.1f, _farPlane);
   }
 
-  public void resized(int w, int h) {
+  public mat4 resized(int w, int h) {
     _width = w;
     _height = h;
-    screenResized();
+    return screenResized();
   }
 
   public void closeSDL() {
@@ -144,31 +133,11 @@ public class Screen3D: Screen, SizableScreen {
     return _height;
   }
 
-  public static void glVertex(vec2 v) {
-    glVertex3f(v.x, v.y, 0);
-  }
-
-  public static void glVertex(vec3 v) {
-    glVertex3f(v.x, v.y, v.z);
-  }
-
-  public static void glTranslate(vec2 v) {
-    glTranslatef(v.x, v.y, 0);
-  }
-
-  public static void glTranslate(vec3 v) {
-    glTranslatef(v.x, v.y, v.z);
-  }
-
-  public static void setColor(float r, float g, float b, float a = 1) {
-    glColor4f(r * _brightness, g * _brightness, b * _brightness, a);
-  }
-
-  public static void setClearColor(float r, float g, float b, float a = 1) {
-    glClearColor(r * _brightness, g * _brightness, b * _brightness, a);
-  }
-
   public static float brightness(float v) {
     return _brightness = v;
+  }
+
+  public static float brightness() {
+    return _brightness;
   }
 }
