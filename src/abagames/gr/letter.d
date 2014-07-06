@@ -7,7 +7,7 @@ module abagames.gr.letter;
 
 private import std.math;
 private import gl3n.linalg;
-private import abagames.util.gl.gl;
+private import abagames.util.support.gl;
 private import abagames.util.sdl.shaderprogram;
 private import abagames.gr.screen;
 

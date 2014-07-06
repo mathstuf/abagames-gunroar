@@ -5,7 +5,7 @@
  */
 module abagames.gr.shaders;
 
-private import abagames.util.gl.gl;
+private import abagames.util.support.gl;
 private import abagames.util.sdl.shaderprogram;
 
 public template makevec4(int size, string name) {

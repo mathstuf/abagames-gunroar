@@ -3,7 +3,7 @@
  *
  * Copyright 2004 Kenta Cho. Some rights reserved.
  */
-module abagames.util.gl.gl;
+module abagames.util.support.gl;
 
 version (Android) {
     private import derelict.gles.egl;
