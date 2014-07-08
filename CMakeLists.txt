@@ -44,3 +44,16 @@ install(
     DIRECTORY   "images" "sounds"
     DESTINATION "share${asset_suffix}"
     COMPONENT   runtime)
+
+if (WIN32)
+    # Nothing needed for the icon.
+elseif (UNIX)
+    install(
+        FILES       "resource/gunroar.desktop"
+        DESTINATION "share/applications"
+        COMPONENT   runtime)
+    install(
+        FILES       "resource/gunroar.png"
+        DESTINATION "share/icons/locolor/128x128"
+        COMPONENT   runtime)
+endif ()
