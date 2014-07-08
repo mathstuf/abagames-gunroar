@@ -170,7 +170,7 @@ public class Chunk: Sound {
   public void load(string name, int ch) {
     if (SoundManager.noSound)
       return;
-    string path = dataStoragePath();
+    string path = assetStoragePath();
     path ~= "/" ~ dir ~ "/" ~ name;
     chunk = Mix_LoadWAV(std.string.toStringz(path));
     if (!chunk) {
