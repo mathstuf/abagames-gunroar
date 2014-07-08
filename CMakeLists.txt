@@ -14,6 +14,14 @@ if (GUNROAR_ANDROID)
     endif ()
 endif ()
 
+include(CMakeDependentOption)
+cmake_dependent_option(GUNROAR_INSTALL "Whether to build an installable Gunroar or not" OFF
+    "NOT GUNROAR_ANDROID" OFF)
+if (GUNROAR_INSTALL)
+    set(CMAKE_D_FLAGS
+        "${CMAKE_D_FLAGS} ${CMAKE_D_VERSION_FLAG}GunroarInstall")
+endif ()
+
 get_filename_component(CMAKE_SYSTEM_ROOT "${CMAKE_D_COMPILER}" DIRECTORY)
 get_filename_component(CMAKE_SYSTEM_ROOT "${CMAKE_SYSTEM_ROOT}" DIRECTORY)
 

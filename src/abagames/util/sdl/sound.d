@@ -79,11 +79,13 @@ public class Music: Sound {
   public void load(string name) {
     if (SoundManager.noSound)
       return;
-    string fileName = dir ~ "/" ~ name;
-    music = Mix_LoadMUS(std.string.toStringz(fileName));
+    string path = assetStoragePath() ~ "/" ~ dir;
+    ensureDir(path);
+    path ~= "/" ~ name;
+    music = Mix_LoadMUS(std.string.toStringz(path));
     if (!music) {
       SoundManager.noSound = true;
-      throw new SDLException("Couldn't load: " ~ fileName ~
+      throw new SDLException("Couldn't load: " ~ path ~
                              " (" ~ to!string(Mix_GetError()) ~ ")");
     }
   }
