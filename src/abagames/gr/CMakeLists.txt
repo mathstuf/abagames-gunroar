@@ -53,8 +53,16 @@ if (GUNROAR_ANDROID)
             LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
             RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 else ()
+    set(resource_files)
+    if (WIN32)
+        list(APPEND resource_files
+            "${CMAKE_SOURCE_DIR}/resource/gr.def"
+            "${CMAKE_SOURCE_DIR}/resource/gr.rc"
+            "${CMAKE_SOURCE_DIR}/resource/gr.RES")
+    endif ()
     add_executable(gunroar
-        boot.d)
+        boot.d
+        ${resource_files})
     target_link_libraries(gunroar
         gr
         gr_util
