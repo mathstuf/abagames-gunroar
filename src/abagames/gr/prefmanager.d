@@ -17,7 +17,7 @@ public class PrefManager: abagames.util.prefmanager.PrefManager {
  private:
   static const int VERSION_NUM = 14;
   static const int VERSION_NUM_13 = 13;
-  static const string PREF_FILE = "gr.prf";
+  static const string PREF_FILE = "gunroar.prf";
   PrefData _prefData;
 
   public this() {

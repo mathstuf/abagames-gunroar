@@ -56,9 +56,9 @@ else ()
     set(resource_files)
     if (WIN32)
         list(APPEND resource_files
-            "${CMAKE_SOURCE_DIR}/resource/gr.def"
-            "${CMAKE_SOURCE_DIR}/resource/gr.rc"
-            "${CMAKE_SOURCE_DIR}/resource/gr.RES")
+            "${CMAKE_SOURCE_DIR}/resource/gunroar.def"
+            "${CMAKE_SOURCE_DIR}/resource/gunroar.rc"
+            "${CMAKE_SOURCE_DIR}/resource/gunroar.RES")
     endif ()
     add_executable(gunroar
         boot.d
