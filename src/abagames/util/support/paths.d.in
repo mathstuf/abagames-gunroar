@@ -14,7 +14,7 @@ public string dataStoragePath() {
     version (Android) {
         return to!string(SDL_AndroidGetExternalStoragePath());
     } else {
-        return ".";
+        return "@CMAKE_SOURCE_DIR@";
     }
 }
 
@@ -22,6 +22,6 @@ public string assetStoragePath() {
     version (Android) {
         return to!string(SDL_AndroidGetInternalStoragePath());
     } else {
-        return ".";
+        return "@CMAKE_SOURCE_DIR@";
     }
 }

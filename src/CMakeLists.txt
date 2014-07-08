@@ -10,6 +10,7 @@ find_package(Derelict REQUIRED
         sdl2
         util)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
+include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 add_subdirectory(abagames)
 
 if (GUNROAR_ANDROID)
