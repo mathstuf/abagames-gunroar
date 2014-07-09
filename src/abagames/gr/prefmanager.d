@@ -17,7 +17,7 @@ public class PrefManager: abagames.util.prefmanager.PrefManager {
  private:
   static const int VERSION_NUM = 14;
   static const int VERSION_NUM_13 = 13;
-  static const string PREF_FILE = "gr.prf";
+  static const string PREF_FILE = "gunroar.prf";
   PrefData _prefData;
 
   public this() {
@@ -29,6 +29,7 @@ public class PrefManager: abagames.util.prefmanager.PrefManager {
     try {
       int ver;
       string path = dataStoragePath();
+      ensureDir(path);
       path ~= "/" ~ PREF_FILE;
       fd.open(path);
       fd.read(ver);
@@ -49,6 +50,7 @@ public class PrefManager: abagames.util.prefmanager.PrefManager {
   public void save() {
     scope File fd = new File;
     string path = dataStoragePath();
+    ensureDir(path);
     path ~= "/" ~ PREF_FILE;
     fd.create(path);
     fd.write(VERSION_NUM);

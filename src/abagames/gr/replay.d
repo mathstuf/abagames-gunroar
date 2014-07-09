@@ -38,8 +38,9 @@ public class ReplayData {
 
   public void save(string fileName) {
     scope File fd = new File;
-    string path = dataStoragePath();
-    path ~= "/" ~ dir ~ "/" ~ fileName;
+    string path = dataStoragePath() ~ "/" ~ dir;
+    ensureDir(path);
+    path ~= "/" ~ fileName;
     fd.create(path);
     fd.write(VERSION_NUM);
     fd.write(seed);
@@ -76,8 +77,8 @@ public class ReplayData {
 
   public void load(string fileName) {
     scope File fd = new File;
-    string path = dataStoragePath();
-    path ~= "/" ~ dir ~ "/" ~ fileName;
+    string path = dataStoragePath() ~ "/" ~ dir;
+    path ~= "/" ~ fileName;
     fd.open(path);
     int ver;
     fd.read(ver);

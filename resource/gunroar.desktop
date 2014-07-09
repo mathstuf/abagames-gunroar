@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=gunroar
+GenericName=Maritime shoot-em-up game
+TryExec=gunroar
+Exec=gunroar
+Terminal=false
+Type=Application
+Icon=gunroar
+NoDisplay=true
+Categories=Game;
