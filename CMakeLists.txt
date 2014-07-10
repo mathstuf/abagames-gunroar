@@ -54,6 +54,6 @@ elseif (UNIX)
         COMPONENT   runtime)
     install(
         FILES       "resource/gunroar.png"
-        DESTINATION "share/icons/locolor/128x128"
+        DESTINATION "share/icons/locolor/32x32"
         COMPONENT   runtime)
 endif ()
