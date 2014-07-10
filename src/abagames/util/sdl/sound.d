@@ -80,7 +80,6 @@ public class Music: Sound {
     if (SoundManager.noSound)
       return;
     string path = assetStoragePath() ~ "/" ~ dir;
-    ensureDir(path);
     path ~= "/" ~ name;
     music = Mix_LoadMUS(std.string.toStringz(path));
     if (!music) {
