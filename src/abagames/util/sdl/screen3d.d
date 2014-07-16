@@ -26,7 +26,7 @@ public class Screen3D: Screen, SizableScreen {
   int _height = 480;
   bool _windowMode = false;
   SDL_Window* _window = null;
-  SDL_Renderer* _renderer = null;
+  //SDL_Renderer* _renderer = null;
 
   protected abstract void init();
   protected abstract void close();
@@ -62,7 +62,7 @@ public class Screen3D: Screen, SizableScreen {
       throw new SDLInitFailedException
         ("Unable to create SDL screen: " ~ to!string(SDL_GetError()));
     }
-    _renderer = SDL_CreateRenderer(_window, -1, 0);
+    SDL_Renderer* _renderer = SDL_CreateRenderer(_window, -1, 0);
     SDL_RendererInfo info;
     SDL_GetRendererInfo(_renderer, &info);
     SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
