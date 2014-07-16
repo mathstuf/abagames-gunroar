@@ -233,10 +233,6 @@ public class TitleManager {
     glVertexAttribPointer(colorLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
     glEnableVertexAttribArray(colorLoc);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-    glUseProgram(0);
-
     gameMode = prefManager.prefData.gameMode;
   }
 
@@ -435,8 +431,5 @@ public class TitleManager {
     glDrawArrays(GL_TRIANGLE_FAN, 3, 3);
 
     Screen.lineWidth(1);
-
-    glBindVertexArray(0);
-    glUseProgram(0);
   }
 }

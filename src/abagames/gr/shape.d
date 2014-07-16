@@ -304,9 +304,6 @@ public class BaseShape: Drawable {
 
     glVertexAttribPointer(degLoc, 1, GL_FLOAT, GL_FALSE, 0, null);
     glEnableVertexAttribArray(degLoc);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
   }
 
   public void close() {
@@ -341,8 +338,6 @@ public class BaseShape: Drawable {
 
     pillarProgram.use();
     pillarProgram.setUniform("modelmat", model);
-
-    glUseProgram(0);
   }
 
   public override void draw(mat4 view) {
@@ -431,8 +426,6 @@ public class BaseShape: Drawable {
     default:
       assert(0);
     }
-
-    glUseProgram(0);
   }
 
   private void createLoop(GLenum drawType, float s, float z, bool backToFirst = false) {
@@ -461,8 +454,6 @@ public class BaseShape: Drawable {
 
     glBindVertexArray(vaoLoop);
     glDrawElements(drawType, vn, GL_UNSIGNED_INT, VTXELEM.ptr);
-
-    glBindVertexArray(0);
   }
 
   private void createSquareLoop(GLenum drawType, float s, float z, bool backToFirst = false, float yRatio = 1) {
@@ -481,8 +472,6 @@ public class BaseShape: Drawable {
 
     glBindVertexArray(vaoSquareLoop);
     glDrawArrays(drawType, 0, pn);
-
-    glBindVertexArray(0);
   }
 
   private void createPillar(GLenum drawType, vec2 p, float s, float z) {
@@ -495,8 +484,6 @@ public class BaseShape: Drawable {
 
     glBindVertexArray(vaoPillar);
     glDrawArrays(drawType, 0, PILLAR_POINT_NUM);
-
-    glBindVertexArray(0);
   }
 
   public void addWake(WakePool wakes, vec2 pos, float deg, float spd, float sr = 1) {
@@ -711,9 +698,6 @@ public class NormalBulletShape: DrawableShape {
 
     glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
     glEnableVertexAttribArray(posLoc);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
   }
 
   public override void drawShape() {
@@ -762,9 +746,6 @@ public class SmallBulletShape: DrawableShape {
 
     glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
     glEnableVertexAttribArray(posLoc);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
   }
 
   public override void drawShape() {
@@ -813,9 +794,6 @@ public class MovingTurretBulletShape: DrawableShape {
 
     glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
     glEnableVertexAttribArray(posLoc);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
   }
 
   public override void drawShape() {
@@ -857,9 +835,6 @@ public class DestructiveBulletShape: DrawableShape, Collidable {
 
     glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
     glEnableVertexAttribArray(posLoc);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
 
     _collision = vec2(0.4f, 0.4f);
   }
@@ -907,9 +882,6 @@ public class CrystalShape: DrawableShape {
 
     glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
     glEnableVertexAttribArray(posLoc);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
   }
 
   public override void drawShape() {

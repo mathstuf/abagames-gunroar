@@ -67,14 +67,12 @@ public abstract class DrawableShape: Drawable {
     program.use();
     program.setUniform("projmat", view);
     drawShape();
-    glUseProgram(0);
   }
 
   public void setModelMatrix(mat4 model) {
     if (hasModelmat) {
       program.use();
       program.setUniform("modelmat", model);
-      glUseProgram(0);
     }
   }
 }

@@ -449,9 +449,6 @@ public class Field {
 
     glVertexAttribPointer(diffLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
     glEnableVertexAttribArray(diffLoc);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
   }
 
   public void draw(mat4 view) {
@@ -472,9 +469,6 @@ public class Field {
 
     sideProgram.setUniform("flip", vec4(-1, 1, 1, 1));
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-    glBindVertexArray(0);
-    glUseProgram(0);
 
     glEnable(GL_BLEND);
   }
@@ -535,9 +529,6 @@ public class Field {
       sy -= BLOCK_WIDTH;
       by++;
     }
-
-    glBindVertexArray(0);
-    glUseProgram(0);
   }
 
   private static int[2][4] degBlockOfs = [[0, -1], [1, 0], [0, 1], [-1, 0]];

@@ -154,9 +154,6 @@ public class LuminousScreen {
     glVertexAttribPointer(texLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
     glEnableVertexAttribArray(texLoc);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
     resized(width, height);
   }
 
@@ -218,10 +215,6 @@ public class LuminousScreen {
 
     glBindVertexArray(vao[1]);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-    glBindVertexArray(0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glUseProgram(0);
 
     glDisable(GL_TEXTURE_2D);
   }

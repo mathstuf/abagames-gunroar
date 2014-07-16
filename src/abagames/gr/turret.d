@@ -140,9 +140,6 @@ public class Turret {
 
     glVertexAttribPointer(angleChoiceLoc, 1, GL_FLOAT, GL_FALSE, 0, null);
     glEnableVertexAttribArray(angleChoiceLoc);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
   }
 
   public static close() {
@@ -361,9 +358,6 @@ public class Turret {
 
       glDrawArrays(GL_LINE_STRIP, 0, 2);
     }
-
-    glBindVertexArray(0);
-    glUseProgram(0);
   }
 
   public bool checkCollision(float x, float y, Collidable c, Shot shot) {

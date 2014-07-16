@@ -137,9 +137,6 @@ public class Spark: LuminousActor {
 
     glVertexAttribPointer(colorFactorLoc, 4, GL_FLOAT, GL_FALSE, 0, null);
     glEnableVertexAttribArray(colorFactorLoc);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
   }
 
   public override void close() {
@@ -192,9 +189,6 @@ public class Spark: LuminousActor {
 
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
-
-    glBindVertexArray(0);
-    glUseProgram(0);
   }
 }
 
@@ -320,9 +314,6 @@ public class Smoke: LuminousActor {
 
     glVertexAttribPointer(diffLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
     glEnableVertexAttribArray(diffLoc);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
   }
 
   public override void close() {
@@ -504,9 +495,6 @@ public class Smoke: LuminousActor {
 
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-    glBindVertexArray(0);
-    glUseProgram(0);
   }
 }
 
@@ -591,9 +579,6 @@ public class Fragment: Actor {
 
     glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
     glEnableVertexAttribArray(posLoc);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
   }
 
   public static void setRandSeed(long seed) {
@@ -679,9 +664,6 @@ public class Fragment: Actor {
 
     program.setUniform("alpha", 0.9f);
     glDrawArrays(GL_LINE_LOOP, 0, 4);
-
-    glBindVertexArray(0);
-    glUseProgram(0);
   }
 }
 
@@ -867,9 +849,6 @@ public class SparkFragment: LuminousActor {
 
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-    glBindVertexArray(0);
-    glUseProgram(0);
   }
 }
 
@@ -1010,9 +989,6 @@ public class Wake: Actor {
 
     glVertexAttribPointer(colorLoc, 4, GL_FLOAT, GL_FALSE, 0, null);
     glEnableVertexAttribArray(colorLoc);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
   }
 
   public override void close() {
@@ -1063,9 +1039,6 @@ public class Wake: Actor {
 
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
-
-    glBindVertexArray(0);
-    glUseProgram(0);
   }
 }
 

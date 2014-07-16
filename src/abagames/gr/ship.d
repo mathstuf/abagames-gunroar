@@ -138,10 +138,6 @@ public class Ship {
 
     glVertexAttribPointer(colorLoc, 4, GL_FLOAT, GL_FALSE, 0, null);
     glEnableVertexAttribArray(colorLoc);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
   }
 
   public void setRandSeed(long seed) {
@@ -255,8 +251,6 @@ public class Ship {
 
       glBindVertexArray(vao);
       glDrawArrays(GL_LINE_STRIP, 0, 3);
-
-      glBindVertexArray(0);
 
       mat4 model = mat4.identity;
       model.rotate(degAmongBoats, vec3(0, 0, 1));
@@ -571,9 +565,6 @@ public class Boat {
 
     glVertexAttribPointer(colorLoc, 4, GL_FLOAT, GL_FALSE, 0, null);
     glEnableVertexAttribArray(colorLoc);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
   }
 
   public static void setRandSeed(long seed) {
@@ -1354,9 +1345,6 @@ public class Boat {
 
       glBindVertexArray(vao[1]);
       glDrawArrays(GL_LINE_STRIP, 0, 2);
-
-      glBindVertexArray(0);
-      glUseProgram(0);
     }
     if (cnt < 0 && (-cnt % 32) < 16)
       return;
@@ -1403,8 +1391,6 @@ public class Boat {
       drawSight(mouseInput.x, mouseInput.y, ss);
 
       Screen.lineWidth(1);
-
-      glUseProgram(0);
     }
   }
 
@@ -1417,8 +1403,6 @@ public class Boat {
     glDrawArrays(GL_LINE_STRIP, 3, 3);
     glDrawArrays(GL_LINE_STRIP, 6, 3);
     glDrawArrays(GL_LINE_STRIP, 9, 3);
-
-    glBindVertexArray(0);
   }
 
   public void setModelMatrix(mat4 model) {

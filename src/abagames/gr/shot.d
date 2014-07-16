@@ -106,9 +106,6 @@ public class Shot: Actor {
 
     glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
     glEnableVertexAttribArray(posLoc);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
   }
 
   public static void setRandSeed(long seed) {
@@ -345,9 +342,6 @@ public class ShotShape: CollidableDrawable {
 
     glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
     glEnableVertexAttribArray(posLoc);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
   }
 
   protected override void drawShape() {
@@ -357,8 +351,6 @@ public class ShotShape: CollidableDrawable {
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     glDrawArrays(GL_TRIANGLE_FAN, 4, 4);
     glDrawArrays(GL_TRIANGLE_FAN, 8, 4);
-
-    glBindVertexArray(0);
   }
 
   protected override void setCollision() {
