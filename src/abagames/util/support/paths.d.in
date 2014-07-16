@@ -6,54 +6,54 @@
 module abagames.util.support.paths;
 
 version (Android) {
-    private import std.conv;
-    private import derelict.sdl2.sdl;
+  private import std.conv;
+  private import derelict.sdl2.sdl;
 } else version (GunroarInstall) {
-    private import std.path;
-    private import std.process;
+  private import std.path;
+  private import std.process;
 }
 private import std.file;
 
 public string dataStoragePath() {
-    version (Android) {
-        return to!string(SDL_AndroidGetExternalStoragePath());
-    } else version (GunroarInstall) {
-        version (Windows) {
-            string basePath = environment.get("APPDATA",
-                    environment.get("USERPROFILE", "") ~ "\\Application Data");
-            return basePath ~ "\\gunroar\\data";
-        } else {
-            string basePath = environment.get("XDG_DATA_HOME",
-                    environment.get("HOME", "") ~ "/.local/share");
-            return basePath ~ dirSeparator ~ "gunroar";
-        }
+  version (Android) {
+    return to!string(SDL_AndroidGetExternalStoragePath());
+  } else version (GunroarInstall) {
+    version (Windows) {
+      string basePath = environment.get("APPDATA",
+          environment.get("USERPROFILE", "") ~ "\\Application Data");
+      return basePath ~ "\\gunroar\\data";
     } else {
-        return "@CMAKE_SOURCE_DIR@";
+      string basePath = environment.get("XDG_DATA_HOME",
+          environment.get("HOME", "") ~ "/.local/share");
+      return basePath ~ dirSeparator ~ "gunroar";
     }
+  } else {
+    return "@CMAKE_SOURCE_DIR@";
+  }
 }
 
 public string assetStoragePath() {
-    version (Android) {
-        return to!string(SDL_AndroidGetInternalStoragePath());
-    } else version (GunroarInstall) {
-        version (Windows) {
-            return "@CMAKE_INSTALL_PREFIX@/share";
-        } else {
-            return "@CMAKE_INSTALL_PREFIX@/share/gunroar";
-        }
+  version (Android) {
+    return to!string(SDL_AndroidGetInternalStoragePath());
+  } else version (GunroarInstall) {
+    version (Windows) {
+      return "@CMAKE_INSTALL_PREFIX@/share";
     } else {
-        return "@CMAKE_SOURCE_DIR@";
+      return "@CMAKE_INSTALL_PREFIX@/share/gunroar";
     }
+  } else {
+    return "@CMAKE_SOURCE_DIR@";
+  }
 }
 
 public void ensureDir(string path) {
-    if (isDir(path)) {
-        return;
-    }
+  if (isDir(path)) {
+    return;
+  }
 
-    if (exists(path)) {
-        throw new Exception("Unable to create directory: " ~ path);
-    }
+  if (exists(path)) {
+    throw new Exception("Unable to create directory: " ~ path);
+  }
 
-    mkdirRecurse(path);
+  mkdirRecurse(path);
 }
