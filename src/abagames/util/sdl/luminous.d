@@ -47,15 +47,17 @@ public class LuminousScreen {
     program.setVertexShader(
       "uniform mat4 projmat;\n"
       "uniform float luminousFactor;\n"
+      "uniform vec2 screenSize;\n"
       "\n"
-      "attribute vec2 diff;\n"
+      "attribute vec2 screenFactor;\n"
       "attribute vec2 pos;\n"
       "attribute vec2 tex;\n"
       "\n"
       "varying vec2 f_tc;\n"
       "\n"
       "void main() {\n"
-      "  gl_Position = projmat * vec4(diff + pos * luminousFactor, 0, 1);\n"
+      "  vec2 screenOffset = screenSize * screenFactor;\n"
+      "  gl_Position = projmat * vec4(screenOffset + pos * luminousFactor, 0, 1);\n"
       "  f_tc = tex;\n"
       "}\n"
     );
@@ -69,10 +71,10 @@ public class LuminousScreen {
       "  gl_FragColor = texture2D(sampler, f_tc) * color;\n"
       "}\n"
     );
-    GLint diffLoc = 0;
+    GLint screenFactorLoc = 0;
     GLint posLoc = 1;
     GLint texLoc = 2;
-    program.bindAttribLocation(diffLoc, "diff");
+    program.bindAttribLocation(screenFactorLoc, "screenFactor");
     program.bindAttribLocation(posLoc, "pos");
     program.bindAttribLocation(texLoc, "tex");
     program.link();
@@ -85,6 +87,12 @@ public class LuminousScreen {
     glGenBuffers(4, vbo.ptr);
     glGenVertexArrays(2, vao.ptr);
 
+    static const float[] SCREENFACTOR = [
+      0, 0,
+      0, 1,
+      1, 1,
+      1, 0
+    ];
     static const float[] VTX1 = [
       lmOfs_a0, lmOfs_a1,
       lmOfs_a0, lmOfs_a1,
@@ -105,16 +113,17 @@ public class LuminousScreen {
     ];
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+    glBufferData(GL_ARRAY_BUFFER, SCREENFACTOR.length * float.sizeof, SCREENFACTOR.ptr, GL_STATIC_DRAW);
 
     glBindVertexArray(vao[0]);
 
-    glVertexAttribPointer(diffLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
-    glEnableVertexAttribArray(diffLoc);
+    glVertexAttribPointer(screenFactorLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(screenFactorLoc);
 
     glBindVertexArray(vao[1]);
 
-    glVertexAttribPointer(diffLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
-    glEnableVertexAttribArray(diffLoc);
+    glVertexAttribPointer(screenFactorLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    glEnableVertexAttribArray(screenFactorLoc);
 
     glBindVertexArray(vao[0]);
 
@@ -193,18 +202,7 @@ public class LuminousScreen {
 
     mat4 view = mat4.orthographic(0, screenWidth, screenHeight, 0, -1, 1);
     program.setUniform("projmat", view);
-
-    const float[] DIFF = [
-      0,           0,
-      0,           screenHeight,
-      screenWidth, screenHeight,
-      screenWidth, 0
-    ];
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, DIFF.length * float.sizeof, DIFF.ptr, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    program.setUniform("screenSize", screenWidth, screenHeight);
   }
 
   public void draw(mat4 /*view*/) {
