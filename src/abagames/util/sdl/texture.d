@@ -137,7 +137,7 @@ public class Texture {
           }
         }
         glBindTexture(GL_TEXTURE_2D, num + ti);
-        glTexImage2D(GL_TEXTURE_2D, 4, GL_RGBA, panelWidth, panelHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, maskPixels.ptr);
+        glTexImage2D(GL_TEXTURE_2D, 4, GL_RGBA, panelWidth, panelHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels.ptr);
         glGenerateMipmap(GL_TEXTURE_2D);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
