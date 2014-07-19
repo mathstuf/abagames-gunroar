@@ -255,9 +255,8 @@ public class Ship {
       mat4 model = mat4.identity;
       model.rotate(degAmongBoats, vec3(0, 0, 1));
       model.translate(midstPos.x, midstPos.y, 0);
-      bridgeShape.setModelMatrix(model);
 
-      bridgeShape.draw(view);
+      bridgeShape.draw(view, model);
     }
   }
 
@@ -266,12 +265,8 @@ public class Ship {
       boat[i].drawFront(view);
   }
 
-  public void setModelMatrix(mat4 model) {
-    boat[0].setModelMatrix(model);
-  }
-
-  public void drawShape(mat4 view) {
-    boat[0].drawShape(view);
+  public void drawShape(mat4 view, mat4 model) {
+    boat[0].drawShape(view, model);
   }
 
   public float scrollSpeedBase() {
@@ -1352,11 +1347,10 @@ public class Boat {
     mat4 model = mat4.identity;
     model.rotate(deg, vec3(0, 0, 1));
     model.translate(pos.x, pos.y, 0);
-    _shape.setModelMatrix(model);
-    bridgeShape.setModelMatrix(model);
 
-    _shape.draw(view);
-    bridgeShape.draw(view);
+    _shape.draw(view, model);
+    bridgeShape.draw(view, model);
+
     if (shieldCnt > 0) {
       float ss = 0.66f;
       if (shieldCnt < 120)
@@ -1365,9 +1359,8 @@ public class Boat {
       mat4 shield = mat4.identity;
       shield.scale(ss, ss, ss);
       shield.rotate(-shieldCnt * 5. / 180 * PI, vec3(0, 0, 1));
-      shieldShape.setModelMatrix(model * shield);
 
-      shieldShape.draw(view);
+      shieldShape.draw(view, model * shield);
     }
   }
 
@@ -1405,14 +1398,9 @@ public class Boat {
     glDrawArrays(GL_LINE_STRIP, 9, 3);
   }
 
-  public void setModelMatrix(mat4 model) {
-    _shape.setModelMatrix(model);
-    bridgeShape.setModelMatrix(model);
-  }
-
-  public void drawShape(mat4 view) {
-    _shape.draw(view);
-    bridgeShape.draw(view);
+  public void drawShape(mat4 view, mat4 model) {
+    _shape.draw(view, model);
+    bridgeShape.draw(view, model);
   }
 
   public void clearBullets() {

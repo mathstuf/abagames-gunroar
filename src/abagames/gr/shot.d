@@ -276,9 +276,8 @@ public class Shot: Actor {
       model.rotate(-cnt * 31 / 180 * PI, vec3(0, 1, 0));
       model.rotate(_deg, vec3(0, 0, 1));
       model.translate(pos.x, pos.y, 0);
-      shape.setModelMatrix(model);
 
-      shape.draw(view);
+      shape.draw(view, model);
     }
   }
 

@@ -88,9 +88,8 @@ public class Crystal: Actor {
     for (int i = 0; i < 4; i++) {
       mat4 model = mat4.identity;
       model.translate(pos.x + sin(d) * r, pos.y + cos(d) * r, 0);
-      _shape.setModelMatrix(model);
 
-      _shape.draw(view);
+      _shape.draw(view, model);
       d += PI / 2;
     }
   }

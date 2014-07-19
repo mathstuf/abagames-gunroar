@@ -172,9 +172,8 @@ public class Bullet: Actor {
       model.rotate(deg, vec3(0, 0, 1));
     }
     model.translate(pos.x, pos.y, 0);
-    shape.setModelMatrix(model);
 
-    shape.draw(view);
+    shape.draw(view, model);
   }
 
   public void checkShotHit(vec2 p, Collidable s, Shot shot) {

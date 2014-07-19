@@ -658,12 +658,11 @@ public class InGameState: GameState {
       mat4 model = mat4.identity;
       model.scale(0.7f, 0.7f, 0.7f);
       model.translate(x, -9, 0);
-      ship.setModelMatrix(model);
 
-      ship.drawShape(view);
+      ship.drawShape(view, model);
+
       x += 0.7f;
     }
-    ship.setModelMatrix(mat4.identity);
     numIndicators.draw(view);
   }
 

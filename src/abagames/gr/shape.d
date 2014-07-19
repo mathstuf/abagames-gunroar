@@ -329,18 +329,7 @@ public class BaseShape: Drawable {
     storedColor = color;
   }
 
-  public override void setModelMatrix(mat4 model) {
-    loopProgram.use();
-    loopProgram.setUniform("modelmat", model);
-
-    squareLoopProgram.use();
-    squareLoopProgram.setUniform("modelmat", model);
-
-    pillarProgram.use();
-    pillarProgram.setUniform("modelmat", model);
-  }
-
-  public override void draw(mat4 view) {
+  public override void draw(mat4 view, mat4 model) {
     float height = size * 0.5f;
     float z = 0;
     float sz = 1;
@@ -355,6 +344,7 @@ public class BaseShape: Drawable {
     loopProgram.use();
 
     loopProgram.setUniform("projmat", view);
+    loopProgram.setUniform("modelmat", model);
     loopProgram.setUniform("brightness", Screen.brightness);
     loopProgram.setUniform("distRatio", distRatio);
     loopProgram.setUniform("spinyRatio", spinyRatio);
@@ -363,12 +353,14 @@ public class BaseShape: Drawable {
     squareLoopProgram.use();
 
     squareLoopProgram.setUniform("projmat", view);
+    squareLoopProgram.setUniform("modelmat", model);
     squareLoopProgram.setUniform("brightness", Screen.brightness);
     squareLoopProgram.setUniform("size", size);
 
     pillarProgram.use();
 
     pillarProgram.setUniform("projmat", view);
+    pillarProgram.setUniform("modelmat", model);
     pillarProgram.setUniform("brightness", Screen.brightness);
 
     if (type != ShapeType.BRIDGE)

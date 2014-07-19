@@ -13,8 +13,7 @@ private import abagames.util.sdl.shaderprogram;
  * Interface for drawing a shape.
  */
 public interface Drawable {
-  public void draw(mat4);
-  public void setModelMatrix(mat4);
+  public void draw(mat4, mat4);
 }
 
 /**
@@ -47,13 +46,10 @@ public template CollidableImpl() {
  */
 public abstract class DrawableShape: Drawable {
   private ShaderProgram program;
-  private bool hasModelmat;
  private:
 
   public this() {
     program = initShader();
-
-    hasModelmat = program.uniformLocation("modelmat") >= 0;
   }
 
   protected abstract ShaderProgram initShader();
@@ -63,17 +59,11 @@ public abstract class DrawableShape: Drawable {
     program.close();
   }
 
-  public void draw(mat4 view) {
+  public void draw(mat4 view, mat4 model) {
     program.use();
     program.setUniform("projmat", view);
+    program.setUniform("modelmat", model);
     drawShape();
-  }
-
-  public void setModelMatrix(mat4 model) {
-    if (hasModelmat) {
-      program.use();
-      program.setUniform("modelmat", model);
-    }
   }
 }
 
@@ -107,14 +97,10 @@ public class ResizableDrawable: Drawable, Collidable {
   float _size;
   vec2 _collision;
 
-  public void draw(mat4 view) {
-    _shape.draw(view);
-  }
-
-  public void setModelMatrix(mat4 model) {
+  public void draw(mat4 view, mat4 model) {
     mat4 scalemat = mat4.identity;
     scalemat.scale(_size, _size, _size);
-    _shape.setModelMatrix(model * scalemat);
+    _shape.draw(view, model * scalemat);
   }
 
   public Drawable shape(Drawable v) {

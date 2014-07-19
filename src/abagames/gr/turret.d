@@ -291,16 +291,13 @@ public class Turret {
     }
     if (destroyedCnt >= 0) {
       spec.destroyedShape.setDefaultColor(storedColor);
-      spec.destroyedShape.setModelMatrix(model);
-      spec.destroyedShape.draw(view);
+      spec.destroyedShape.draw(view, model);
     } else if (!damaged) {
       spec.shape.setDefaultColor(storedColor);
-      spec.shape.setModelMatrix(model);
-      spec.shape.draw(view);
+      spec.shape.draw(view, model);
     } else {
       spec.damagedShape.setDefaultColor(storedColor);
-      spec.damagedShape.setModelMatrix(model);
-      spec.damagedShape.draw(view);
+      spec.damagedShape.draw(view, model);
     }
 
     if (destroyedCnt >= 0)
