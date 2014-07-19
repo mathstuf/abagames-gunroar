@@ -143,10 +143,6 @@ public class Screen: Screen3D {
     glLineWidth(cast(int) (lineWidthBase * w));
   }
 
-  public override void clear() {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-  }
-
   public static mat4 fixedOrthoView() {
     // TODO: Remove the 640x480 assumption.
     return mat4.orthographic(0, 640, 480, 0, -1, 1);
