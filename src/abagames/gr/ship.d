@@ -249,7 +249,7 @@ public class Ship {
       program.setUniform("rotmat", rotmat);
       program.setUniform("brightness", Screen.brightness);
 
-      glBindVertexArray(vao);
+      program.useVao(vao);
       glDrawArrays(GL_LINE_STRIP, 0, 3);
 
       mat4 model = mat4.identity;
@@ -1338,7 +1338,7 @@ public class Boat {
       lineProgram.setUniform("pos", _pos);
       lineProgram.setUniform("deg", fireDeg);
 
-      glBindVertexArray(vao[1]);
+      lineProgram.useVao(vao[1]);
       glDrawArrays(GL_LINE_STRIP, 0, 2);
     }
     if (cnt < 0 && (-cnt % 32) < 16)
@@ -1391,7 +1391,7 @@ public class Boat {
     sightProgram.setUniform("pos", x, y);
     sightProgram.setUniform("size", size);
 
-    glBindVertexArray(vao[0]);
+    sightProgram.useVao(vao[0]);
     glDrawArrays(GL_LINE_STRIP, 0, 3);
     glDrawArrays(GL_LINE_STRIP, 3, 3);
     glDrawArrays(GL_LINE_STRIP, 6, 3);

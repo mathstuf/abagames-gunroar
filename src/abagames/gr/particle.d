@@ -187,7 +187,7 @@ public class Spark: LuminousActor {
     program.setUniform("pos", pos);
     program.setUniform("vel", vel);
 
-    glBindVertexArray(vao);
+    program.useVao(vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
   }
 }
@@ -493,7 +493,7 @@ public class Smoke: LuminousActor {
     program.setUniform("size", size);
     program.setUniform("pos", pos);
 
-    glBindVertexArray(vao);
+    program.useVao(vao);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
   }
 }
@@ -657,7 +657,7 @@ public class Fragment: Actor {
     program.setUniform("modelmat", model);
     program.setUniform("brightness", Screen.brightness);
 
-    glBindVertexArray(vao);
+    program.useVao(vao);
 
     program.setUniform("alpha", 0.5f);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -847,7 +847,7 @@ public class SparkFragment: LuminousActor {
     program.setUniform("color", 1, rand.nextFloat(1), 0, 0.8f);
     program.setUniform("brightness", Screen.brightness);
 
-    glBindVertexArray(vao);
+    program.useVao(vao);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
   }
 }
@@ -1037,7 +1037,7 @@ public class Wake: Actor {
     program.setUniform("size", size);
     program.setUniform("revShape", revShape);
 
-    glBindVertexArray(vao);
+    program.useVao(vao);
     glDrawArrays(GL_TRIANGLES, 0, 3);
   }
 }

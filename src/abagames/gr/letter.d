@@ -121,7 +121,7 @@ public class Letter {
     draw.translate(x, y, 0);
     program.setUniform("drawmat", draw);
 
-    glBindVertexArray(vao);
+    program.useVao(vao);
     setLetter(n, c);
   }
 

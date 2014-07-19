@@ -346,7 +346,7 @@ public class ShotShape: CollidableDrawable {
   protected override void drawShape() {
     program.setUniform("brightness", Screen.brightness);
 
-    glBindVertexArray(vao[0]);
+    program.useVao(vao[0]);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
     glDrawArrays(GL_TRIANGLE_FAN, 4, 4);
     glDrawArrays(GL_TRIANGLE_FAN, 8, 4);

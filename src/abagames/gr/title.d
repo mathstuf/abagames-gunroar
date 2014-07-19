@@ -411,7 +411,7 @@ public class TitleManager {
     glActiveTexture(GL_TEXTURE0);
     logo.bind();
 
-    glBindVertexArray(vao[0]);
+    titleProgram.useVao(vao[0]);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
     glDisable(GL_TEXTURE_2D);
@@ -420,13 +420,13 @@ public class TitleManager {
 
     logoLineProgram.use();
 
-    glBindVertexArray(vao[1]);
+    logoLineProgram.useVao(vao[1]);
     glDrawArrays(GL_LINE_STRIP, 0, 3);
     glDrawArrays(GL_LINE_STRIP, 3, 3);
 
     logoFillProgram.use();
 
-    glBindVertexArray(vao[2]);
+    logoFillProgram.useVao(vao[2]);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 3);
     glDrawArrays(GL_TRIANGLE_FAN, 3, 3);
 

@@ -444,7 +444,7 @@ public class BaseShape: Drawable {
     loopProgram.setUniform("s", s);
     loopProgram.setUniform("z", z);
 
-    glBindVertexArray(vaoLoop);
+    loopProgram.useVao(vaoLoop);
     glDrawElements(drawType, vn, GL_UNSIGNED_INT, VTXELEM.ptr);
   }
 
@@ -462,7 +462,7 @@ public class BaseShape: Drawable {
     squareLoopProgram.setUniform("s", s);
     squareLoopProgram.setUniform("z", z);
 
-    glBindVertexArray(vaoSquareLoop);
+    squareLoopProgram.useVao(vaoSquareLoop);
     glDrawArrays(drawType, 0, pn);
   }
 
@@ -474,7 +474,7 @@ public class BaseShape: Drawable {
     pillarProgram.setUniform("s", s);
     pillarProgram.setUniform("z", z);
 
-    glBindVertexArray(vaoPillar);
+    pillarProgram.useVao(vaoPillar);
     glDrawArrays(drawType, 0, PILLAR_POINT_NUM);
   }
 
@@ -695,7 +695,7 @@ public class NormalBulletShape: DrawableShape {
   public override void drawShape() {
     program.setUniform("brightness", Screen.brightness);
 
-    glBindVertexArray(vao[0]);
+    program.useVao(vao[0]);
 
     glDisable(GL_BLEND);
 
@@ -743,7 +743,7 @@ public class SmallBulletShape: DrawableShape {
   public override void drawShape() {
     program.setUniform("brightness", Screen.brightness);
 
-    glBindVertexArray(vao[0]);
+    program.useVao(vao[0]);
 
     glDisable(GL_BLEND);
 
@@ -791,7 +791,7 @@ public class MovingTurretBulletShape: DrawableShape {
   public override void drawShape() {
     program.setUniform("brightness", Screen.brightness);
 
-    glBindVertexArray(vao[0]);
+    program.useVao(vao[0]);
 
     glDisable(GL_BLEND);
 
@@ -834,7 +834,7 @@ public class DestructiveBulletShape: DrawableShape, Collidable {
   public override void drawShape() {
     program.setUniform("brightness", Screen.brightness);
 
-    glBindVertexArray(vao[0]);
+    program.useVao(vao[0]);
 
     glDisable(GL_BLEND);
 
@@ -879,7 +879,7 @@ public class CrystalShape: DrawableShape {
   public override void drawShape() {
     program.setUniform("brightness", Screen.brightness);
 
-    glBindVertexArray(vao[0]);
+    program.useVao(vao[0]);
     glDrawArrays(GL_LINE_LOOP, 0, 4);
   }
 }
@@ -960,10 +960,10 @@ public class ShieldShape: DrawableShape {
   public override void drawShape() {
     program.setUniform("brightness", Screen.brightness);
 
-    glBindVertexArray(vao[0]);
+    program.useVao(vao[0]);
     glDrawArrays(GL_LINE_LOOP, 1, 8);
 
-    glBindVertexArray(vao[1]);
+    program.useVao(vao[1]);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 10);
   }
 }

@@ -462,7 +462,7 @@ public class Field {
 
     sideProgram.setUniform("projmat", view);
 
-    glBindVertexArray(vaoSide);
+    sideProgram.useVao(vaoSide);
 
     sideProgram.setUniform("flip", vec4(1, 1, 1, 1));
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -496,7 +496,7 @@ public class Field {
     panelProgram.setUniform("projmat", view);
     panelProgram.setUniform("brightness", Screen.brightness);
 
-    glBindVertexArray(vaoPanel);
+    panelProgram.useVao(vaoPanel);
 
     for (int y = -1; y < SCREEN_BLOCK_SIZE_Y + NEXT_BLOCK_AREA_SIZE; y++) {
       if (by >= BLOCK_SIZE_Y)

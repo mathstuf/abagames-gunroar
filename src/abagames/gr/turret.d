@@ -323,7 +323,7 @@ public class Turret {
       program.setUniform("minAlphaFactor", 1f);
       program.setUniform("maxAlphaFactor", 0.5f);
 
-      glBindVertexArray(vao);
+      program.useVao(vao);
       glDrawArrays(GL_LINE_STRIP, 0, 2);
     } else {
       td -= spec.nwayAngle * (spec.nway - 1) / 2;
@@ -332,7 +332,7 @@ public class Turret {
       program.setUniform("minAlphaFactor", 0.75f);
       program.setUniform("maxAlphaFactor", 0.25f);
 
-      glBindVertexArray(vao);
+      program.useVao(vao);
       glDrawArrays(GL_LINE_STRIP, 0, 2);
 
       program.setUniform("minAlphaFactor", 0.3f);

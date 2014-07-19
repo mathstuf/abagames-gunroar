@@ -210,10 +210,10 @@ public class LuminousScreen {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, luminousTexture);
 
-    glBindVertexArray(vao[0]);
+    program.useVao(vao[0]);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-    glBindVertexArray(vao[1]);
+    program.useVao(vao[1]);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
     glDisable(GL_TEXTURE_2D);
