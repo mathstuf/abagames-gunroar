@@ -38,7 +38,7 @@ public class TitleManager {
   ShaderProgram logoFillProgram;
   ShaderProgram titleProgram;
   GLuint[3] vao;
-  GLuint[5] vbo;
+  GLuint[2] vbo;
   Texture logo;
   int cnt;
   ReplayData _replayData;
@@ -96,33 +96,29 @@ public class TitleManager {
     titleProgram.setUniform("sampler", 0);
 
     glGenVertexArrays(3, vao.ptr);
-    glGenBuffers(5, vbo.ptr);
+    glGenBuffers(2, vbo.ptr);
 
-    static const float[] TEX = [
-      0, 0,
-      1, 0,
-      1, 1,
-      0, 1
+    static const float[] BUF1 = [
+      /*
+      pos,      tex */
+      0,   -63, 0, 0,
+      255, -63, 1, 0,
+      255,  0,  1, 1,
+      0,    0,  0, 1
     ];
-    static const float[] TITLEVTX = [
-      0,   -63,
-      255, -63,
-      255,  0,
-      0,    0
-    ];
+    enum POS = 0;
+    enum TEX = 2;
+    enum BUF1SZ = 4;
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+    glBufferData(GL_ARRAY_BUFFER, BUF1.length * float.sizeof, BUF1.ptr, GL_STATIC_DRAW);
 
     glBindVertexArray(vao[0]);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, TITLEVTX.length * float.sizeof, TITLEVTX.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(posLoc, 2, BUF1SZ, POS);
     glEnableVertexAttribArray(posLoc);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-    glBufferData(GL_ARRAY_BUFFER, TEX.length * float.sizeof, TEX.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(texLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(texLoc, 2, BUF1SZ, TEX);
     glEnableVertexAttribArray(texLoc);
 
     logoLineProgram = new ShaderProgram;
@@ -150,22 +146,28 @@ public class TitleManager {
 
     logoLineProgram.setUniform("color", 1, 1, 1);
 
-    static const float[] LINEVTX = [
-      -80,  -7,
-      -20,  -7,
-       10, -70,
+    static const float[] BUF2 = [
+      /*
+      linePos,  fillPos,  color,   padding */
+      -80,  -7, -19,  -6, 1, 1, 1, 0,
+      -20,  -7, -79,  -6, 0, 0, 0, 0,
+       10, -70,  11, -69, 0, 0, 0, 0,
 
-       45,  -2,
-      -15,  -2,
-      -45,  61
+       45,  -2, -16,  -3, 1, 1, 1, 0,
+      -15,  -2,  44,  -3, 0, 0, 0, 0,
+      -45,  61, -46,  60, 0, 0, 0, 0
     ];
+    enum LINEPOS = 0;
+    enum FILLPOS = 2;
+    enum COLOR = 4;
+    enum BUF2SZ = 8;
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+    glBufferData(GL_ARRAY_BUFFER, BUF2.length * float.sizeof, BUF2.ptr, GL_STATIC_DRAW);
 
     glBindVertexArray(vao[1]);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
-    glBufferData(GL_ARRAY_BUFFER, LINEVTX.length * float.sizeof, LINEVTX.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(posLoc, 2, BUF2SZ, LINEPOS);
     glEnableVertexAttribArray(posLoc);
 
     logoFillProgram = new ShaderProgram;
@@ -199,38 +201,12 @@ public class TitleManager {
     logoFillProgram.link();
     logoFillProgram.use();
 
-    static const float[] FILLVTX = [
-      -19,  -6,
-      -79,  -6,
-       11, -69,
-
-      -16,  -3,
-       44,  -3,
-      -46,  60
-    ];
-
-    static const float[] COLOR = [
-      1, 1, 1,
-      0, 0, 0,
-      0, 0, 0,
-
-      1, 1, 1,
-      0, 0, 0,
-      0, 0, 0
-    ];
-
     glBindVertexArray(vao[2]);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
-    glBufferData(GL_ARRAY_BUFFER, FILLVTX.length * float.sizeof, FILLVTX.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(posLoc, 2, BUF2SZ, FILLPOS);
     glEnableVertexAttribArray(posLoc);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
-    glBufferData(GL_ARRAY_BUFFER, COLOR.length * float.sizeof, COLOR.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(colorLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(colorLoc, 3, BUF2SZ, COLOR);
     glEnableVertexAttribArray(colorLoc);
 
     gameMode = prefManager.prefData.gameMode;
@@ -240,7 +216,7 @@ public class TitleManager {
     logo.close();
 
     glDeleteVertexArrays(3, vao.ptr);
-    glDeleteBuffers(5, vbo.ptr);
+    glDeleteBuffers(2, vbo.ptr);
     titleProgram.close();
     logoLineProgram.close();
     logoFillProgram.close();

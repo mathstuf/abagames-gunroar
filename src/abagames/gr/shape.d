@@ -31,7 +31,7 @@ public class BaseShape: Drawable {
   static ShaderProgram squareLoopProgram;
   static ShaderProgram pillarProgram;
   static GLuint vaoLoop;
-  static GLuint[2] vboLoop;
+  static GLuint vboLoop;
   static GLuint vaoSquareLoop;
   static GLuint vboSquareLoop;
   static GLuint vaoPillar;
@@ -172,14 +172,11 @@ public class BaseShape: Drawable {
     loopProgram.link();
     loopProgram.use();
 
-    glGenBuffers(2, vboLoop.ptr);
+    glGenBuffers(1, &vboLoop);
     glGenVertexArrays(1, &vaoLoop);
 
-    float[POINT_NUM] DEG;
-    size_t dn = 0;
-    float[2 * POINT_NUM] SPOS;
+    float[4 * POINT_NUM] BUF1;
     size_t vn = 0;
-
     for (int i = 0; i < POINT_NUM; i++) {
       float d = PI * 2 * i / POINT_NUM;
       float sx, sy;
@@ -194,23 +191,24 @@ public class BaseShape: Drawable {
       if (i >= POINT_NUM / 4 && i <= POINT_NUM / 4 * 3)
         sy *= -1;
 
-      DEG[dn++] = d;
-      SPOS[vn++] = sx;
-      SPOS[vn++] = sy;
+      BUF1[vn++] = d;
+      BUF1[vn++] = sx;
+      BUF1[vn++] = sy;
+      BUF1[vn++] = 0; // padding
     }
+    enum DEG1 = 0;
+    enum SPOS1 = 1;
+    enum BUF1SZ = 4;
+
+    glBindBuffer(GL_ARRAY_BUFFER, vboLoop);
+    glBufferData(GL_ARRAY_BUFFER, BUF1.length * float.sizeof, BUF1.ptr, GL_STATIC_DRAW);
 
     glBindVertexArray(vaoLoop);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vboLoop[0]);
-    glBufferData(GL_ARRAY_BUFFER, DEG.length * float.sizeof, DEG.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(degLoc, 1, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(degLoc, 1, BUF1SZ, DEG1);
     glEnableVertexAttribArray(degLoc);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vboLoop[1]);
-    glBufferData(GL_ARRAY_BUFFER, SPOS.length * float.sizeof, SPOS.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(sposLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(sposLoc, 2, BUF1SZ, SPOS1);
     glEnableVertexAttribArray(sposLoc);
 
     squareLoopProgram = new ShaderProgram;
@@ -247,18 +245,19 @@ public class BaseShape: Drawable {
     glGenBuffers(1, &vboSquareLoop);
     glGenVertexArrays(1, &vaoSquareLoop);
 
-    float[5] SQUARELOOP;
-
+    float[5] BUF2;
     for (int i = 0; i <= 4; i++) {
-      SQUARELOOP[i] = PI * 2 * i / 4 + PI / 4;
+      BUF2[i] = PI * 2 * i / 4 + PI / 4;
     }
+    enum DEG2 = 0;
+    enum BUF2SZ = 1;
+
+    glBindBuffer(GL_ARRAY_BUFFER, vboSquareLoop);
+    glBufferData(GL_ARRAY_BUFFER, BUF2.length * float.sizeof, BUF2.ptr, GL_STATIC_DRAW);
 
     glBindVertexArray(vaoSquareLoop);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vboSquareLoop);
-    glBufferData(GL_ARRAY_BUFFER, SQUARELOOP.length * float.sizeof, SQUARELOOP.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(degLoc, 1, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(degLoc, 1, BUF2SZ, DEG2);
     glEnableVertexAttribArray(degLoc);
 
     pillarProgram = new ShaderProgram;
@@ -291,25 +290,26 @@ public class BaseShape: Drawable {
     glGenBuffers(1, &vboPillar);
     glGenVertexArrays(1, &vaoPillar);
 
-    float[PILLAR_POINT_NUM] PILLAR;
-
+    float[PILLAR_POINT_NUM] BUF3;
     for (int i = 0; i < PILLAR_POINT_NUM; i++) {
-      PILLAR[i] = PI * 2 * i / PILLAR_POINT_NUM;
+      BUF3[i] = PI * 2 * i / PILLAR_POINT_NUM;
     }
+    enum DEG3 = 0;
+    enum BUF3SZ = 1;
+
+    glBindBuffer(GL_ARRAY_BUFFER, vboPillar);
+    glBufferData(GL_ARRAY_BUFFER, BUF3.length * float.sizeof, BUF3.ptr, GL_STATIC_DRAW);
 
     glBindVertexArray(vaoPillar);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vboPillar);
-    glBufferData(GL_ARRAY_BUFFER, PILLAR.length * float.sizeof, PILLAR.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(degLoc, 1, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(degLoc, 1, BUF3SZ, DEG3);
     glEnableVertexAttribArray(degLoc);
   }
 
   public void close() {
     if (loopProgram !is null) {
       glDeleteVertexArrays(1, &vaoLoop);
-      glDeleteBuffers(2, vboLoop.ptr);
+      glDeleteBuffers(1, &vboLoop);
       loopProgram.close();
       loopProgram = null;
 
@@ -666,29 +666,33 @@ public class NormalBulletShape: DrawableShape {
   mixin UniformColorShader!(3, 3);
 
   public void fillStaticShaderData() {
-    static const float[] VTX = [
-       0.2f, -0.25f, 0.2f,
-       0,     0.33f, 0,
-      -0.2f, -0.25f, -0.2f,
+    static const float[] BUF = [
+      /*
+      pos,                   padding */
+       0.2f, -0.25f,  0.2f,  0,
+       0,     0.33f,  0,     0,
+      -0.2f, -0.25f, -0.2f,  0,
 
-      -0.2f, -0.25f, 0.2f,
-       0,     0.33f, 0,
-       0.2f, -0.25f, -0.2f,
+      -0.2f, -0.25f,  0.2f,  0,
+       0,     0.33f,  0,     0,
+       0.2f, -0.25f, -0.2f,  0,
 
-       0,     0.33f,  0,
-       0.2f, -0.25f,  0.2f,
-      -0.2f, -0.25f,  0.2f,
-      -0.2f, -0.25f, -0.2f,
-       0.2f, -0.25f, -0.2f,
-       0.2f, -0.25f,  0.2f
+       0,     0.33f,  0,     0,
+       0.2f, -0.25f,  0.2f,  0,
+      -0.2f, -0.25f,  0.2f,  0,
+      -0.2f, -0.25f, -0.2f,  0,
+       0.2f, -0.25f, -0.2f,  0,
+       0.2f, -0.25f,  0.2f,  0,
     ];
+    enum POS = 0;
+    enum BUFSZ = 4;
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+    glBufferData(GL_ARRAY_BUFFER, BUF.length * float.sizeof, BUF.ptr, GL_STATIC_DRAW);
 
     glBindVertexArray(vao[0]);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(posLoc, 3, BUFSZ, POS);
     glEnableVertexAttribArray(posLoc);
   }
 
@@ -714,29 +718,33 @@ public class SmallBulletShape: DrawableShape {
   mixin UniformColorShader!(3, 3);
 
   public void fillStaticShaderData() {
-    static const float[] VTX = [
-       0.25f, -0.25f,  0.25f,
-       0,      0.33f,  0,
-      -0.25f, -0.25f, -0.25f,
+    static const float[] BUF = [
+      /*
+      pos */
+       0.25f, -0.25f,  0.25f, 0,
+       0,      0.33f,  0,     0,
+      -0.25f, -0.25f, -0.25f, 0,
 
-      -0.25f, -0.25f,  0.25f,
-       0,      0.33f,  0,
-       0.25f, -0.25f, -0.25f,
+      -0.25f, -0.25f,  0.25f, 0,
+       0,      0.33f,  0,     0,
+       0.25f, -0.25f, -0.25f, 0,
 
-       0,      0.33f,  0,
-       0.25f, -0.25f,  0.25f,
-      -0.25f, -0.25f,  0.25f,
-      -0.25f, -0.25f, -0.25f,
-       0.25f, -0.25f, -0.25f,
-       0.25f, -0.25f,  0.25f
+       0,      0.33f,  0,     0,
+       0.25f, -0.25f,  0.25f, 0,
+      -0.25f, -0.25f,  0.25f, 0,
+      -0.25f, -0.25f, -0.25f, 0,
+       0.25f, -0.25f, -0.25f, 0,
+       0.25f, -0.25f,  0.25f, 0
     ];
+    enum POS = 0;
+    enum BUFSZ = 4;
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+    glBufferData(GL_ARRAY_BUFFER, BUF.length * float.sizeof, BUF.ptr, GL_STATIC_DRAW);
 
     glBindVertexArray(vao[0]);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(posLoc, 3, BUFSZ, POS);
     glEnableVertexAttribArray(posLoc);
   }
 
@@ -762,29 +770,33 @@ public class MovingTurretBulletShape: DrawableShape {
   mixin UniformColorShader!(3, 3);
 
   public void fillStaticShaderData() {
-    static const float[] VTX = [
-       0.25f, -0.25f,  0.25f,
-       0,      0.33f,  0,
-      -0.25f, -0.25f, -0.25f,
+    static const float[] BUF = [
+      /*
+      pos */
+       0.25f, -0.25f,  0.25f, 0,
+       0,      0.33f,  0,     0,
+      -0.25f, -0.25f, -0.25f, 0,
 
-      -0.25f, -0.25f,  0.25f,
-       0,      0.33f,  0,
-       0.25f, -0.25f, -0.25f,
+      -0.25f, -0.25f,  0.25f, 0,
+       0,      0.33f,  0,     0,
+       0.25f, -0.25f, -0.25f, 0,
 
-       0,      0.33f,  0,
-       0.25f, -0.25f,  0.25f,
-      -0.25f, -0.25f,  0.25f,
-      -0.25f, -0.25f, -0.25f,
-       0.25f, -0.25f, -0.25f,
-       0.25f, -0.25f,  0.25f
+       0,      0.33f,  0,     0,
+       0.25f, -0.25f,  0.25f, 0,
+      -0.25f, -0.25f,  0.25f, 0,
+      -0.25f, -0.25f, -0.25f, 0,
+       0.25f, -0.25f, -0.25f, 0,
+       0.25f, -0.25f,  0.25f, 0
     ];
+    enum POS = 0;
+    enum BUFSZ = 4;
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+    glBufferData(GL_ARRAY_BUFFER, BUF.length * float.sizeof, BUF.ptr, GL_STATIC_DRAW);
 
     glBindVertexArray(vao[0]);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(posLoc, 3, BUFSZ, POS);
     glEnableVertexAttribArray(posLoc);
   }
 
@@ -813,19 +825,23 @@ public class DestructiveBulletShape: DrawableShape, Collidable {
   vec2 _collision;
 
   public void fillStaticShaderData() {
-    static const float[] VTX = [
+    static const float[] BUF = [
+      /*
+      pos */
        0.2f,  0,
        0,     0.4f,
       -0.2f,  0,
        0,    -0.4f
     ];
+    enum POS = 0;
+    enum BUFSZ = 2;
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+    glBufferData(GL_ARRAY_BUFFER, BUF.length * float.sizeof, BUF.ptr, GL_STATIC_DRAW);
 
     glBindVertexArray(vao[0]);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(posLoc, 2, BUFSZ, POS);
     glEnableVertexAttribArray(posLoc);
 
     _collision = vec2(0.4f, 0.4f);
@@ -860,19 +876,23 @@ public class CrystalShape: DrawableShape {
   public void fillStaticShaderData() {
     program.setUniform("color", 0.6f, 1, 0.7f);
 
-    static const float[] VTX = [
+    static const float[] BUF = [
+      /*
+      pos */
       -0.2f,  0.2f,
        0.2f,  0.2f,
        0.2f, -0.2f,
       -0.2f, -0.2f
     ];
+    enum POS = 0;
+    enum BUFSZ = 2;
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+    glBufferData(GL_ARRAY_BUFFER, BUF.length * float.sizeof, BUF.ptr, GL_STATIC_DRAW);
 
     glBindVertexArray(vao[0]);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(posLoc, 2, BUFSZ, POS);
     glEnableVertexAttribArray(posLoc);
   }
 
@@ -885,75 +905,55 @@ public class CrystalShape: DrawableShape {
 }
 
 public class ShieldShape: DrawableShape {
-  mixin AttributeColorShader!(2, 3, 3, 2);
+  mixin AttributeColorShader!(2, 3, 1, 2);
 
   public void fillStaticShaderData() {
-    static float[2 * 10] VTX;
-    size_t vn = 0;
+    static float[(2 + 3 + 3) * 10] BUF = [
+      /*
+      pos,  lineColor,        fillColor */
+      0, 0, 0.5f, 0.5f, 0.7f, 0,    0,    0,
+      0, 0, 0.5f, 0.5f, 0.7f, 0.3f, 0.3f, 0.5f,
+      0, 0, 0.5f, 0.5f, 0.7f, 0.3f, 0.3f, 0.5f,
+      0, 0, 0.5f, 0.5f, 0.7f, 0.3f, 0.3f, 0.5f,
+      0, 0, 0.5f, 0.5f, 0.7f, 0.3f, 0.3f, 0.5f,
+      0, 0, 0.5f, 0.5f, 0.7f, 0.3f, 0.3f, 0.5f,
+      0, 0, 0.5f, 0.5f, 0.7f, 0.3f, 0.3f, 0.5f,
+      0, 0, 0.5f, 0.5f, 0.7f, 0.3f, 0.3f, 0.5f,
+      0, 0, 0.5f, 0.5f, 0.7f, 0.3f, 0.3f, 0.5f,
+      0, 0, 0,    0,    0,    0.3f, 0.3f, 0.5f
+    ];
+    enum POS = 0;
+    enum LINECOLOR = 2;
+    enum FILLCOLOR = 5;
+    enum BUFSZ = 8;
 
-    VTX[vn++] = 0;
-    VTX[vn++] = 0;
-
+    size_t vn = BUFSZ + POS; // Start with pos[1], pos[0] == (0, 0).
     float d = 0;
     for (int i = 0; i < 9; i++) {
-      VTX[vn++] = sin(d);
-      VTX[vn++] = cos(d);
+      BUF[vn + 0] = sin(d);
+      BUF[vn + 1] = cos(d);
 
+      vn += BUFSZ;
       d += PI / 4;
     }
 
-    static const float[] LINECOLOR = [
-      0.5f, 0.5f, 0.7f,
-      0.5f, 0.5f, 0.7f,
-      0.5f, 0.5f, 0.7f,
-      0.5f, 0.5f, 0.7f,
-      0.5f, 0.5f, 0.7f,
-      0.5f, 0.5f, 0.7f,
-      0.5f, 0.5f, 0.7f,
-      0.5f, 0.5f, 0.7f,
-      0.5f, 0.5f, 0.7f
-    ];
-
-    static const float[] FILLCOLOR = [
-      0,    0,    0,
-      0.3f, 0.3f, 0.5f,
-      0.3f, 0.3f, 0.5f,
-      0.3f, 0.3f, 0.5f,
-      0.3f, 0.3f, 0.5f,
-      0.3f, 0.3f, 0.5f,
-      0.3f, 0.3f, 0.5f,
-      0.3f, 0.3f, 0.5f,
-      0.3f, 0.3f, 0.5f,
-      0.3f, 0.3f, 0.5f
-    ];
-
     glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, BUF.length * float.sizeof, BUF.ptr, GL_STATIC_DRAW);
 
     glBindVertexArray(vao[0]);
 
-    glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(posLoc, 2, BUFSZ, POS);
     glEnableVertexAttribArray(posLoc);
 
-    glBindVertexArray(vao[1]);
-
-    glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
-    glEnableVertexAttribArray(posLoc);
-
-    glBindVertexArray(vao[0]);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-    glBufferData(GL_ARRAY_BUFFER, LINECOLOR.length * float.sizeof, LINECOLOR.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(colorLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(colorLoc, 3, BUFSZ, LINECOLOR);
     glEnableVertexAttribArray(colorLoc);
 
     glBindVertexArray(vao[1]);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
-    glBufferData(GL_ARRAY_BUFFER, FILLCOLOR.length * float.sizeof, FILLCOLOR.ptr, GL_STATIC_DRAW);
+    vertexAttribPointer(posLoc, 2, BUFSZ, POS);
+    glEnableVertexAttribArray(posLoc);
 
-    glVertexAttribPointer(colorLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(colorLoc, 3, BUFSZ, FILLCOLOR);
     glEnableVertexAttribArray(colorLoc);
   }
 

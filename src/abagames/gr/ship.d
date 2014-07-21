@@ -39,7 +39,7 @@ public class Ship {
  private:
   static ShaderProgram program;
   static GLuint vao;
-  static GLuint[2] vbo;
+  static GLuint vbo;
   static const float SCROLL_SPEED_BASE = 0.01f;
   static const float SCROLL_SPEED_MAX = 0.1f;
   static const float SCROLL_START_Y = 2.5f;
@@ -111,32 +111,29 @@ public class Ship {
     program.link();
     program.use();
 
-    glGenBuffers(2, vbo.ptr);
+    glGenBuffers(1, &vbo);
     glGenVertexArrays(1, &vao);
 
-    static const float[] VTX = [
-      0,
-      0.5f,
-      1,
+    static const float[] BUF = [
+      /*
+      pos,  color,                  padding */
+      0,    0.5f, 0.5f, 0.9f, 0.8f, 0,
+      0.5f, 0.5f, 0.5f, 0.9f, 0.3f, 0,
+      1,    0.5f, 0.5f, 0.9f, 0.8f, 0
     ];
-    static const float[] COLOR = [
-      0.5f, 0.5f, 0.9f, 0.8f,
-      0.5f, 0.5f, 0.9f, 0.3f,
-      0.5f, 0.5f, 0.9f, 0.8f
-    ];
+    enum POS = 0;
+    enum COLOR = 1;
+    enum BUFSZ = 6;
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, BUF.length * float.sizeof, BUF.ptr, GL_STATIC_DRAW);
 
     glBindVertexArray(vao);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(posLoc, 1, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(posLoc, 1, BUFSZ, POS);
     glEnableVertexAttribArray(posLoc);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-    glBufferData(GL_ARRAY_BUFFER, COLOR.length * float.sizeof, COLOR.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(colorLoc, 4, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(colorLoc, 4, BUFSZ, COLOR);
     glEnableVertexAttribArray(colorLoc);
   }
 
@@ -149,7 +146,7 @@ public class Ship {
       b.close();
 
     glDeleteVertexArrays(1, &vao);
-    glDeleteBuffers(2, vbo.ptr);
+    glDeleteBuffers(1, &vbo);
     program.close();
   }
 
@@ -474,10 +471,12 @@ public class Boat {
     sightProgram.link();
     sightProgram.use();
 
-    glGenBuffers(3, vbo.ptr);
+    glGenBuffers(2, vbo.ptr);
     glGenVertexArrays(2, vao.ptr);
 
-    static const float[] SIZEFACTOR = [
+    static const float[] BUF1 = [
+      /*
+      sizeFactor */
       -1,    -0.5f,
       -1,    -1,
       -0.5f, -1,
@@ -494,13 +493,15 @@ public class Boat {
       -1,     1,
       -0.5f,  1
     ];
+    enum SIZEFACTOR = 0;
+    enum BUF1SZ = 2;
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+    glBufferData(GL_ARRAY_BUFFER, BUF1.length * float.sizeof, BUF1.ptr, GL_STATIC_DRAW);
 
     glBindVertexArray(vao[0]);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, SIZEFACTOR.length * float.sizeof, SIZEFACTOR.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(sizeFactorLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(sizeFactorLoc, 2, BUF1SZ, SIZEFACTOR);
     glEnableVertexAttribArray(sizeFactorLoc);
 
     lineProgram = new ShaderProgram;
@@ -537,28 +538,25 @@ public class Boat {
     lineProgram.link();
     lineProgram.use();
 
-    glBindVertexArray(vao[1]);
-
-    static const float[] ROTFACTOR = [
-      0,
-      1
+    static const float[] BUF2 = [
+      /*
+      rotFactor, color,                  padding */
+      0,         0.5f, 0.9f, 0.7f, 0.4f, 0,
+      1,         0.5f, 0.9f, 0.7f, 0.8f, 0
     ];
+    enum ROTFACTOR = 0;
+    enum COLOR = 1;
+    enum BUF2SZ = 6;
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-    glBufferData(GL_ARRAY_BUFFER, ROTFACTOR.length * float.sizeof, ROTFACTOR.ptr, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, BUF2.length * float.sizeof, BUF2.ptr, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(rotFactorLoc, 1, GL_FLOAT, GL_FALSE, 0, null);
+    glBindVertexArray(vao[1]);
+
+    vertexAttribPointer(rotFactorLoc, 1, BUF2SZ, ROTFACTOR);
     glEnableVertexAttribArray(rotFactorLoc);
 
-    static const float[] COLOR = [
-      0.5f, 0.9f, 0.7f, 0.4f,
-      0.5f, 0.9f, 0.7f, 0.8f
-    ];
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
-    glBufferData(GL_ARRAY_BUFFER, COLOR.length * float.sizeof, COLOR.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(colorLoc, 4, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(colorLoc, 4, BUF2SZ, COLOR);
     glEnableVertexAttribArray(colorLoc);
   }
 
@@ -620,7 +618,7 @@ public class Boat {
 
     if (sightProgram !is null) {
       glDeleteVertexArrays(2, vao.ptr);
-      glDeleteBuffers(3, vbo.ptr);
+      glDeleteBuffers(2, vbo.ptr);
       sightProgram.close();
       sightProgram = null;
       lineProgram.close();

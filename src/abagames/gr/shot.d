@@ -92,19 +92,23 @@ public class Shot: Actor {
     glGenVertexArrays(1, &vao);
     glGenBuffers(1, &vbo);
 
-    static const float[] VTX = [
-      -1,  LANCE_SPEED, 0.5f,
-       1,  LANCE_SPEED, 0.5f,
-       1, -LANCE_SPEED, 0.5f,
-      -1, -LANCE_SPEED, 0.5f
+    static const float[] BUF = [
+      /*
+      pos */
+      -1,  LANCE_SPEED, 0.5f, 0,
+       1,  LANCE_SPEED, 0.5f, 0,
+       1, -LANCE_SPEED, 0.5f, 0,
+      -1, -LANCE_SPEED, 0.5f, 0
     ];
+    enum POS = 0;
+    enum BUFSZ = 4;
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, BUF.length * float.sizeof, BUF.ptr, GL_STATIC_DRAW);
 
     glBindVertexArray(vao);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(posLoc, 3, BUFSZ, POS);
     glEnableVertexAttribArray(posLoc);
   }
 
@@ -317,29 +321,33 @@ public class ShotShape: CollidableDrawable {
   protected void fillStaticShaderData() {
     program.setUniform("color", 0.1f, 0.33f, 0.1f);
 
-    static const float[] VTX = [
-       0,       0.3f,  0.1f,
-       0.066f,  0.3f, -0.033f,
-       0.1f,   -0.3f, -0.05f,
-       0,      -0.3f,  0.15f,
+    static const float[] BUF = [
+      /*
+      pos,                     padding */
+       0,       0.3f,  0.1f,   0,
+       0.066f,  0.3f, -0.033f, 0,
+       0.1f,   -0.3f, -0.05f,  0,
+       0,      -0.3f,  0.15f,  0,
 
-       0.066f,  0.3f, -0.033f,
-      -0.066f,  0.3f, -0.033f,
-      -0.1f,   -0.3f, -0.05f,
-       0.1f,   -0.3f, -0.05f,
+       0.066f,  0.3f, -0.033f, 0,
+      -0.066f,  0.3f, -0.033f, 0,
+      -0.1f,   -0.3f, -0.05f,  0,
+       0.1f,   -0.3f, -0.05f,  0,
 
-      -0.066f,  0.3f, -0.033f,
-       0,       0.3f,  0.1f,
-       0,      -0.3f,  0.15f,
-      -0.1f,   -0.3f, -0.05f
+      -0.066f,  0.3f, -0.033f, 0,
+       0,       0.3f,  0.1f,   0,
+       0,      -0.3f,  0.15f,  0,
+      -0.1f,   -0.3f, -0.05f,  0
     ];
+    enum POS = 0;
+    enum BUFSZ = 4;
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+    glBufferData(GL_ARRAY_BUFFER, BUF.length * float.sizeof, BUF.ptr, GL_STATIC_DRAW);
 
     glBindVertexArray(vao[0]);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(posLoc, 3, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(posLoc, 3, BUFSZ, POS);
     glEnableVertexAttribArray(posLoc);
   }
 

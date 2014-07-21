@@ -24,7 +24,7 @@ public class Spark: LuminousActor {
   static Rand rand;
   static ShaderProgram program;
   static GLuint vao;
-  static GLuint[3] vbo;
+  static GLuint vbo;
   vec2 pos;
   vec2 vel;
   float r, g, b;
@@ -99,50 +99,40 @@ public class Spark: LuminousActor {
     program.link();
     program.use();
 
-    glGenBuffers(3, vbo.ptr);
+    glGenBuffers(1, &vbo);
     glGenVertexArrays(1, &vao);
 
-    static const float[] VELFACTOR = [
-      -2, -2,
-      -1,  1,
-       1, -1
+    static const float[] BUF = [
+      /*
+      velFactor, velFlip, colorFactor,         padding */
+      -2, -2,    0,       1,    1,    1,    1, 0,
+      -1,  1,    1,       0.5f, 0.5f, 0.5f, 0, 0,
+       1, -1,    1,       0.5f, 0.5f, 0.5f, 0, 0
     ];
-    static const float[] VELFLIP = [
-      0,
-      1,
-      1
-    ];
-    static const float[] COLORFACTOR = [
-      1,    1,    1,    1,
-      0.5f, 0.5f, 0.5f, 0,
-      0.5f, 0.5f, 0.5f, 0
-    ];
+    enum VELFACTOR = 0;
+    enum VELFLIP = 2;
+    enum COLORFACTOR = 3;
+    enum BUFSZ = 8;
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, BUF.length * float.sizeof, BUF.ptr, GL_STATIC_DRAW);
 
     glBindVertexArray(vao);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, VELFACTOR.length * float.sizeof, VELFACTOR.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(velFactorLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(velFactorLoc, 2, BUFSZ, VELFACTOR);
     glEnableVertexAttribArray(velFactorLoc);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-    glBufferData(GL_ARRAY_BUFFER, VELFLIP.length * float.sizeof, VELFLIP.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(velFlipLoc, 1, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(velFlipLoc, 1, BUFSZ, VELFLIP);
     glEnableVertexAttribArray(velFlipLoc);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
-    glBufferData(GL_ARRAY_BUFFER, COLORFACTOR.length * float.sizeof, COLORFACTOR.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(colorFactorLoc, 4, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(colorFactorLoc, 4, BUFSZ, COLORFACTOR);
     glEnableVertexAttribArray(colorFactorLoc);
   }
 
   public override void close() {
     if (program !is null) {
       glDeleteVertexArrays(1, &vao);
-      glDeleteBuffers(3, vbo.ptr);
+      glDeleteBuffers(1, &vbo);
       program.close();
       program = null;
     }
@@ -300,19 +290,21 @@ public class Smoke: LuminousActor {
     glGenBuffers(1, &vbo);
     glGenVertexArrays(1, &vao);
 
-    glBindVertexArray(vao);
-
-    const float[] DIFF = [
+    const float[] BUF = [
       -0.5f, -0.5f,
        0.5f, -0.5f,
        0.5f,  0.5f,
-      -0.5f,  0.5f,
+      -0.5f,  0.5f
     ];
+    enum DIFF = 0;
+    enum BUFSZ = 2;
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, DIFF.length * float.sizeof, DIFF.ptr, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, BUF.length * float.sizeof, BUF.ptr, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(diffLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    glBindVertexArray(vao);
+
+    vertexAttribPointer(diffLoc, 2, BUFSZ, DIFF);
     glEnableVertexAttribArray(diffLoc);
   }
 
@@ -565,19 +557,21 @@ public class Fragment: Actor {
     glGenBuffers(1, &vbo);
     glGenVertexArrays(1, &vao);
 
-    static const float[] VTX = [
+    static const float[] BUF = [
       -0.5f, -0.25f,
        0.5f, -0.25f,
        0.5f,  0.25f,
       -0.5f,  0.25f
     ];
+    enum POS = 0;
+    enum BUFSZ = 2;
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, BUF.length * float.sizeof, BUF.ptr, GL_STATIC_DRAW);
 
     glBindVertexArray(vao);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(posLoc, 2, BUFSZ, POS);
     glEnableVertexAttribArray(posLoc);
   }
 
@@ -734,19 +728,21 @@ public class SparkFragment: LuminousActor {
     glGenBuffers(1, &vbo);
     glGenVertexArrays(1, &vao);
 
-    static const float[] VTX = [
+    static const float[] BUF = [
       -0.25f, -0.25f,
        0.25f, -0.25f,
        0.25f,  0.25f,
       -0.25f,  0.25f
     ];
+    enum POS = 0;
+    enum BUFSZ = 2;
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, BUF.length * float.sizeof, BUF.ptr, GL_STATIC_DRAW);
 
     glBindVertexArray(vao);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, VTX.length * float.sizeof, VTX.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(posLoc, 2, BUFSZ, POS);
     glEnableVertexAttribArray(posLoc);
   }
 
@@ -865,7 +861,7 @@ public class Wake: Actor {
  private:
   static ShaderProgram program;
   static GLuint vao;
-  static GLuint[3] vbo;
+  static GLuint vbo;
   Field field;
   vec2 pos;
   vec2 vel;
@@ -951,50 +947,40 @@ public class Wake: Actor {
     program.link();
     program.use();
 
-    glGenBuffers(3, vbo.ptr);
+    glGenBuffers(1, &vbo);
     glGenVertexArrays(1, &vao);
 
-    static const float[] VELFACTOR = [
-      -1,    -1,
-      -0.2f,  0.2f,
-       0.2f, -0.2f
+    static const float[] BUF = [
+      /*
+      velFactor,    velFlip, color,                    padding */
+      -1,    -1,    0,       0.33f, 0.33f, 1,    1,    0,
+      -0.2f,  0.2f, 1,       0.2f,  0.2f,  0.6f, 0.5f, 0,
+       0.2f, -0.2f, 1,       0.2f,  0.2f,  0.6f, 0.5f, 0
     ];
-    static const float[] VELFLIP = [
-      0,
-      1,
-      1
-    ];
-    static const float[] COLOR = [
-      0.33f, 0.33f, 1,    1,
-      0.2f,  0.2f,  0.6f, 0.5f,
-      0.2f,  0.2f,  0.6f, 0.5f
-    ];
+    enum VELFACTOR = 0;
+    enum VELFLIP = 2;
+    enum COLOR = 3;
+    enum BUFSZ = 8;
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, BUF.length * float.sizeof, BUF.ptr, GL_STATIC_DRAW);
 
     glBindVertexArray(vao);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, VELFACTOR.length * float.sizeof, VELFACTOR.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(velFactorLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(velFactorLoc, 2, BUFSZ, VELFACTOR);
     glEnableVertexAttribArray(velFactorLoc);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-    glBufferData(GL_ARRAY_BUFFER, VELFLIP.length * float.sizeof, VELFLIP.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(velFlipLoc, 1, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(velFlipLoc, 1, BUFSZ, VELFLIP);
     glEnableVertexAttribArray(velFlipLoc);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
-    glBufferData(GL_ARRAY_BUFFER, COLOR.length * float.sizeof, COLOR.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(colorLoc, 4, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(colorLoc, 4, BUFSZ, COLOR);
     glEnableVertexAttribArray(colorLoc);
   }
 
   public override void close() {
     if (program !is null) {
       glDeleteVertexArrays(1, &vao);
-      glDeleteBuffers(3, vbo.ptr);
+      glDeleteBuffers(1, &vbo);
       program.close();
       program = null;
     }

@@ -28,7 +28,7 @@ public class LuminousScreen {
   float luminosity;
   ShaderProgram program;
   GLuint[2] vao;
-  GLuint[4] vbo;
+  GLuint vbo;
 
   //private int lmOfs[5][2] = [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]];
   //private const float lmOfsBs = 5;
@@ -84,74 +84,46 @@ public class LuminousScreen {
     program.setUniform("sampler", 0);
     program.setUniform("luminousFactor", lmOfsBs);
 
-    glGenBuffers(4, vbo.ptr);
+    glGenBuffers(1, &vbo);
     glGenVertexArrays(2, vao.ptr);
 
-    static const float[] SCREENFACTOR = [
-      0, 0,
-      0, 1,
-      1, 1,
-      1, 0
+    static const float[] BUF = [
+      /*
+      screenFactor, pos,                pos,                tex */
+      0, 0,         lmOfs_a0, lmOfs_a1, lmOfs_b0, lmOfs_b1, TEXTURE_SIZE_MIN, TEXTURE_SIZE_MAX,
+      0, 1,         lmOfs_a0, lmOfs_a1, lmOfs_b0, lmOfs_b1, TEXTURE_SIZE_MIN, TEXTURE_SIZE_MIN,
+      1, 1,         lmOfs_a0, lmOfs_a0, lmOfs_b0, lmOfs_b0, TEXTURE_SIZE_MAX, TEXTURE_SIZE_MIN,
+      1, 0,         lmOfs_a0, lmOfs_a0, lmOfs_b0, lmOfs_b0, TEXTURE_SIZE_MAX, TEXTURE_SIZE_MAX
     ];
-    static const float[] VTX1 = [
-      lmOfs_a0, lmOfs_a1,
-      lmOfs_a0, lmOfs_a1,
-      lmOfs_a0, lmOfs_a0,
-      lmOfs_a0, lmOfs_a0
-    ];
-    static const float[] VTX2 = [
-      lmOfs_b0, lmOfs_b1,
-      lmOfs_b0, lmOfs_b1,
-      lmOfs_b0, lmOfs_b0,
-      lmOfs_b0, lmOfs_b0
-    ];
-    static const float[] TEXTURE = [
-      TEXTURE_SIZE_MIN, TEXTURE_SIZE_MAX,
-      TEXTURE_SIZE_MIN, TEXTURE_SIZE_MIN,
-      TEXTURE_SIZE_MAX, TEXTURE_SIZE_MIN,
-      TEXTURE_SIZE_MAX, TEXTURE_SIZE_MAX
-    ];
+    enum SCREENFACTOR = 0;
+    enum POS1 = 2;
+    enum POS2 = 4;
+    enum TEX = 6;
+    enum BUFSZ = 8;
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, SCREENFACTOR.length * float.sizeof, SCREENFACTOR.ptr, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, BUF.length * float.sizeof, BUF.ptr, GL_STATIC_DRAW);
 
     glBindVertexArray(vao[0]);
 
-    glVertexAttribPointer(screenFactorLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(screenFactorLoc, 2, BUFSZ, SCREENFACTOR);
     glEnableVertexAttribArray(screenFactorLoc);
 
-    glBindVertexArray(vao[1]);
-
-    glVertexAttribPointer(screenFactorLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
-    glEnableVertexAttribArray(screenFactorLoc);
-
-    glBindVertexArray(vao[0]);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-    glBufferData(GL_ARRAY_BUFFER, VTX1.length * float.sizeof, VTX1.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(posLoc, 2, BUFSZ, POS1);
     glEnableVertexAttribArray(posLoc);
 
-    glBindVertexArray(vao[1]);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
-    glBufferData(GL_ARRAY_BUFFER, VTX2.length * float.sizeof, VTX2.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
-    glEnableVertexAttribArray(posLoc);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
-    glBufferData(GL_ARRAY_BUFFER, TEXTURE.length * float.sizeof, TEXTURE.ptr, GL_STATIC_DRAW);
-
-    glBindVertexArray(vao[0]);
-
-    glVertexAttribPointer(texLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(texLoc, 2, BUFSZ, TEX);
     glEnableVertexAttribArray(texLoc);
 
     glBindVertexArray(vao[1]);
 
-    glVertexAttribPointer(texLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(screenFactorLoc, 2, BUFSZ, SCREENFACTOR);
+    glEnableVertexAttribArray(screenFactorLoc);
+
+    vertexAttribPointer(posLoc, 2, BUFSZ, POS2);
+    glEnableVertexAttribArray(posLoc);
+
+    vertexAttribPointer(texLoc, 2, BUFSZ, TEX);
     glEnableVertexAttribArray(texLoc);
 
     resized(width, height);
@@ -179,7 +151,7 @@ public class LuminousScreen {
   public void close() {
     glDeleteTextures(1, &luminousTexture);
     glDeleteVertexArrays(2, vao.ptr);
-    glDeleteBuffers(4, vbo.ptr);
+    glDeleteBuffers(1, &vbo);
     program.close();
   }
 

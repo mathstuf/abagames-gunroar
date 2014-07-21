@@ -74,10 +74,9 @@ public class Field {
   float time;
   ShaderProgram sideProgram;
   GLuint vaoSide;
-  GLuint vboSide;
   ShaderProgram panelProgram;
   GLuint vaoPanel;
-  GLuint vboPanel;
+  GLuint vbo;
 
   invariant() {
     assert(_lastScrollY >= 0 && _lastScrollY < 10);
@@ -103,12 +102,12 @@ public class Field {
 
   public void close() {
     glDeleteVertexArrays(1, &vaoSide);
-    glDeleteBuffers(1, &vboSide);
     sideProgram.close();
 
     glDeleteVertexArrays(1, &vaoPanel);
-    glDeleteBuffers(1, &vboPanel);
     panelProgram.close();
+
+    glDeleteBuffers(1, &vbo);
   }
 
   public void setRandSeed(long s) {
@@ -387,22 +386,28 @@ public class Field {
 
     sideProgram.setUniform("color", 0, 0, 0, 1);
 
-    glGenBuffers(1, &vboSide);
-    glGenVertexArrays(1, &vaoSide);
+    glGenBuffers(1, &vbo);
 
-    static const float[] SIDEWALL = [
-      SIDEWALL_X1,  SIDEWALL_Y,
-      SIDEWALL_X2,  SIDEWALL_Y,
-      SIDEWALL_X2, -SIDEWALL_Y,
-      SIDEWALL_X1, -SIDEWALL_Y
+    static const float[] BUF = [
+      /*
+      sidewallPos,              panelPos */
+      SIDEWALL_X1,  SIDEWALL_Y, 0,  0,
+      SIDEWALL_X2,  SIDEWALL_Y, 1,  0,
+      SIDEWALL_X2, -SIDEWALL_Y, 1, -1,
+      SIDEWALL_X1, -SIDEWALL_Y, 0, -1
     ];
+    enum SIDEWALLPOS = 0;
+    enum PANELPOS = 2;
+    enum BUFSZ = 4;
+
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, BUF.length * float.sizeof, BUF.ptr, GL_STATIC_DRAW);
+
+    glGenVertexArrays(1, &vaoSide);
 
     glBindVertexArray(vaoSide);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vboSide);
-    glBufferData(GL_ARRAY_BUFFER, SIDEWALL.length * float.sizeof, SIDEWALL.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(posLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(posLoc, 2, BUFSZ, SIDEWALLPOS);
     glEnableVertexAttribArray(posLoc);
 
     panelProgram = new ShaderProgram;
@@ -433,21 +438,10 @@ public class Field {
     panelProgram.use();
 
     glGenVertexArrays(1, &vaoPanel);
-    glGenBuffers(1, &vboPanel);
 
     glBindVertexArray(vaoPanel);
 
-    static const float[] DIFF = [
-      0,  0,
-      1,  0,
-      1, -1,
-      0, -1
-    ];
-
-    glBindBuffer(GL_ARRAY_BUFFER, vboPanel);
-    glBufferData(GL_ARRAY_BUFFER, DIFF.length * float.sizeof, DIFF.ptr, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(diffLoc, 2, GL_FLOAT, GL_FALSE, 0, null);
+    vertexAttribPointer(diffLoc, 2, BUFSZ, PANELPOS);
     glEnableVertexAttribArray(diffLoc);
   }
 
