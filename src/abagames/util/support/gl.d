@@ -51,3 +51,7 @@ version (Android) {
     glDeleteVertexArraysOES(n, arrays);
   }
 }
+
+public void vertexAttribPointer(GLuint index, GLint size, GLsizei stride, GLsizei offset) {
+    glVertexAttribPointer(index, size, GL_FLOAT, GL_FALSE, cast(GLsizei)(stride * float.sizeof), cast(const(void*))(offset * float.sizeof));
+}
