@@ -41,7 +41,10 @@ int Java_org_libsdl_app_SDLActivity_nativeInit(JNIEnv* env, jclass cls,
     snprintf(width_str, 20, "%d", width);
     snprintf(height_str, 20, "%d", height);
     char *argv[5];
-    argv[0] = SDL_strdup("SDL_app");
+     /* Use the name "app_process" so PHYSFS_platformCalcBaseDir() works.
+        https://bitbucket.org/MartinFelis/love-android-sdl2/issue/23/release-build-crash-on-start
+      */
+    argv[0] = SDL_strdup("app_process");
     argv[1] = SDL_strdup("-res");
     argv[2] = SDL_strdup(width_str);
     argv[3] = SDL_strdup(height_str);
