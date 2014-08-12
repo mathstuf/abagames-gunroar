@@ -60,7 +60,7 @@ otherwise (it looks like a linker script is not executed when using `ld.gold`,
 but only with GDC; GCC is fine).
 
 Once the toolchain is built, build all of the required Derelict libraries
-(Util, SDL2, and GL3) configure a CMake build using a `CMAKE_TOOLCHAIN_FILE`
+(Util, SDL2, and GLES) configure a CMake build using a `CMAKE_TOOLCHAIN_FILE`
 argument pointing to a CMake script setting the compiler, linker, archiver,
 etc. just built above. An example file is provided in the repository as
 `src/android/toolchain.cmake` which just needs a few variables set. SDL and
