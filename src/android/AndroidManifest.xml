@@ -8,6 +8,8 @@
               android:targetSdkVersion="19" />
     <uses-feature android:minSdkVersion="13"
                   android:required="true" />
+    <uses-feature android:glEsVersion="0x00020000"
+                  android:required="true" />
     <supports-screens android:smallScreens="false"
                       android:normalScreens="false"
                       android:requiresSmallestWidthDp="600" />
