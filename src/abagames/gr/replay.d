@@ -23,7 +23,7 @@ private import abagames.gr.mouseandpad;
 public class ReplayData {
  public:
   static const string dir = "replay";
-  static const int VERSION_NUM = 11;
+  static const int VERSION_NUM = 12;
   InputRecord!(PadState) padInputRecord;
   InputRecord!(TwinStickState) twinStickInputRecord;
   InputRecord!(AccelerometerAndTouchState) accelerometerAndTouchInputRecord;
