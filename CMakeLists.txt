@@ -15,7 +15,7 @@ set(CMAKE_D_FLAGS
 option(GUNROAR_ANDROID "Build for Android" OFF)
 if (GUNROAR_ANDROID)
     if (NOT CMAKE_D_COMPILER_ID STREQUAL "GNU")
-        message(FATAL_ERROR "Only GDC is supported for Android builds")
+        message(FATAL_ERROR "Only GDC is supported for Android builds (patches welcome)")
     endif ()
 endif ()
 
