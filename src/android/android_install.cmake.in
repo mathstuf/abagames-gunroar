@@ -1,4 +1,4 @@
 file(INSTALL
-    $<TARGET_FILE:gr_main>
+    "$<TARGET_FILE:gr_main>"
     DESTINATION "@CMAKE_CURRENT_SOURCE_DIR@/jni/gunroar"
     USE_SOURCE_PERMISSIONS)
