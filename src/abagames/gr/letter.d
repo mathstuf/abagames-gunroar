@@ -60,6 +60,8 @@ public class Letter {
     glGenVertexArrays(1, &vao);
 
     static const float[] BUF = [
+      /*
+      pos */
       -0.5f,   0,
       -0.33f, -0.5f,
        0.33f, -0.5f,

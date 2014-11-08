@@ -558,6 +558,8 @@ public class Fragment: Actor {
     glGenVertexArrays(1, &vao);
 
     static const float[] BUF = [
+      /*
+      pos */
       -0.5f, -0.25f,
        0.5f, -0.25f,
        0.5f,  0.25f,
@@ -729,6 +731,8 @@ public class SparkFragment: LuminousActor {
     glGenVertexArrays(1, &vao);
 
     static const float[] BUF = [
+      /*
+      pos */
       -0.25f, -0.25f,
        0.25f, -0.25f,
        0.25f,  0.25f,

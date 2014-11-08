@@ -94,7 +94,7 @@ public class Shot: Actor {
 
     static const float[] BUF = [
       /*
-      pos */
+      pos,                    padding */
       -1,  LANCE_SPEED, 0.5f, 0,
        1,  LANCE_SPEED, 0.5f, 0,
        1, -LANCE_SPEED, 0.5f, 0,

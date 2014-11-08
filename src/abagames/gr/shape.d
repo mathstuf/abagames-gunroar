@@ -720,7 +720,7 @@ public class SmallBulletShape: DrawableShape {
   public void fillStaticShaderData() {
     static const float[] BUF = [
       /*
-      pos */
+      pos,                    padding */
        0.25f, -0.25f,  0.25f, 0,
        0,      0.33f,  0,     0,
       -0.25f, -0.25f, -0.25f, 0,
@@ -772,7 +772,7 @@ public class MovingTurretBulletShape: DrawableShape {
   public void fillStaticShaderData() {
     static const float[] BUF = [
       /*
-      pos */
+      pos,                    padding */
        0.25f, -0.25f,  0.25f, 0,
        0,      0.33f,  0,     0,
       -0.25f, -0.25f, -0.25f, 0,
