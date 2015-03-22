@@ -23,10 +23,13 @@ extern void gc_init();
 extern void gc_term();
 
 /* Start up the SDL app */
-int Java_org_libsdl_app_SDLActivity_nativeInit(JNIEnv* env, jclass cls,
-        jint width, jint height)
+int Java_org_libsdl_app_SDLActivity_nativeInit(JNIEnv* env, jclass cls, jobject array)
 {
-    /* This interface could expand with ABI negotiation, calbacks, etc. */
+    int i;
+    int argc;
+    int status;
+
+    /* This interface could expand with ABI negotiation, callbacks, etc. */
     SDL_Android_Init(env, cls);
 
     rt_init();
@@ -34,25 +37,46 @@ int Java_org_libsdl_app_SDLActivity_nativeInit(JNIEnv* env, jclass cls,
 
     SDL_SetMainReady();
 
-    /* Run the application code! */
-    int status;
-    char width_str[20];
-    char height_str[20];
-    snprintf(width_str, 20, "%d", width);
-    snprintf(height_str, 20, "%d", height);
-    char *argv[5];
-     /* Use the name "app_process" so PHYSFS_platformCalcBaseDir() works.
-        https://bitbucket.org/MartinFelis/love-android-sdl2/issue/23/release-build-crash-on-start
-      */
-    argv[0] = SDL_strdup("app_process");
-    argv[1] = SDL_strdup("-res");
-    argv[2] = SDL_strdup(width_str);
-    argv[3] = SDL_strdup(height_str);
-    argv[4] = NULL;
+    /* Prepare the arguments. */
 
-    status = SDL_main(4, argv);
+    int len = (*env)->GetArrayLength(env, array);
+    char* argv[1 + len + 1];
+    argc = 0;
+    /* Use the name "app_process" so PHYSFS_platformCalcBaseDir() works.
+       https://bitbucket.org/MartinFelis/love-android-sdl2/issue/23/release-build-crash-on-start
+     */
+    argv[argc++] = SDL_strdup("app_process");
+    for (i = 0; i < len; ++i) {
+        const char* utf;
+        char* arg = NULL;
+        jstring string = (*env)->GetObjectArrayElement(env, array, i);
+        if (string) {
+            utf = (*env)->GetStringUTFChars(env, string, 0);
+            if (utf) {
+                arg = SDL_strdup(utf);
+                (*env)->ReleaseStringUTFChars(env, string, utf);
+            }
+            (*env)->DeleteLocalRef(env, string);
+        }
+        if (!arg) {
+            arg = SDL_strdup("");
+        }
+        argv[argc++] = arg;
+    }
+    argv[argc] = NULL;
+
+
+    /* Run the application. */
+
+    status = SDL_main(argc, argv);
 
     gc_term();
+
+    /* Release the arguments. */
+
+    for (i = 0; i < argc; ++i) {
+        SDL_free(argv[i]);
+    }
 
     /* Do not issue an exit or the whole application will terminate instead of just the SDL thread */
     /* exit(status); */
