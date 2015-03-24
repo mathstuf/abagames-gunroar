@@ -379,8 +379,7 @@ public class EnemyState {
   public bool destroyed(Shot shot = null) {
     float vz;
     if (shot) {
-      explodeVel.x = Shot.SPEED * sin(shot.deg) / 2;
-      explodeVel.y = Shot.SPEED * cos(shot.deg) / 2;
+      explodeVel = Shot.SPEED * vec2(sin(shot.deg), cos(shot.deg)) / 2;
       vz = 0;
     } else {
       explodeVel = vec2(0);

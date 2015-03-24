@@ -67,8 +67,7 @@ public class Crystal: Actor {
     if (dist < 0.1f)
       dist = 0.1f;
     if (cnt < PULLIN_COUNT) {
-      vel.x += (ship.midstPos.x - pos.x) / dist * 0.07f;
-      vel.y += (ship.midstPos.y - pos.y) / dist * 0.07f;
+      vel += (ship.midstPos - pos) / dist * 0.07f;
       if (cnt < 0 || dist < 2) {
         exists = false;
         return;

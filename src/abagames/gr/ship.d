@@ -289,9 +289,7 @@ public class Ship {
     for (int i = 0; i < boatNum; i++) {
       _midstPos += boat[i].pos;
     }
-    // FIXME: Why does _midstPos /= boatNum not work?
-    _midstPos.x /= boatNum;
-    _midstPos.y /= boatNum;
+    _midstPos /= boatNum;
     return _midstPos;
   }
 
@@ -816,8 +814,7 @@ public class Boat {
       refVel = vec2(sin(rd), cos(rd)) * sz * 0.1f;
       float rs = refVel.length;
       if (rs > 1) {
-        refVel.x /= rs;
-        refVel.y /= rs;
+        refVel /= rs;
       }
     }
     if (shieldCnt > 0)
