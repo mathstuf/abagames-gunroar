@@ -283,8 +283,7 @@ public class NumIndicator: Actor {
     this.n = n;
     this.type = type;
     this.size = size;
-    pos.x = x;
-    pos.y = y;
+    pos = vec2(x, y);
     targetIdx = -1;
     targetNum = 0;
     alpha = 0.1f;
@@ -293,8 +292,7 @@ public class NumIndicator: Actor {
 
   public void addTarget(float x, float y, FlyingToType flyingTo, float initialVelRatio,
                         float size, int n, int cnt) {
-    target[targetNum].pos.x = x;
-    target[targetNum].pos.y = y;
+    target[targetNum].pos = vec2(x, y);
     target[targetNum].flyingTo = flyingTo;
     target[targetNum].initialVelRatio = initialVelRatio;
     target[targetNum].size = size;

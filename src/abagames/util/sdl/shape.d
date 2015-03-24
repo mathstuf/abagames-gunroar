@@ -26,15 +26,13 @@ public interface Collidable {
 
 public template CollidableImpl() {
   public bool checkCollision(float ax, float ay, Collidable shape = null) {
-    float cx, cy;
+    vec2 c;
     if (shape) {
-      cx = collision.x + shape.collision.x;
-      cy = collision.y + shape.collision.y;
+      c = collision + shape.collision;
     } else {
-      cx = collision.x;
-      cy = collision.y;
+      c = collision;
     }
-    if (ax <= cx && ay <= cy)
+    if (ax <= c.x && ay <= c.y)
       return true;
     else
       return false;
@@ -123,8 +121,7 @@ public class ResizableDrawable: Drawable, Collidable {
   public vec2 collision() {
     Collidable cd = cast(Collidable) _shape;
     if (cd) {
-      _collision.x = cd.collision.x * _size;
-      _collision.y = cd.collision.y * _size;
+      _collision = cd.collision * _size;
       return _collision;
     } else {
       return vec2(0);

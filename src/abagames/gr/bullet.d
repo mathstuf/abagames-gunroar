@@ -87,8 +87,7 @@ public class Bullet: Actor {
     if (!field.checkInOuterFieldExceptTop(p))
       return;
     _enemyIdx = enemyIdx;
-    ppos.x = pos.x = p.x;
-    ppos.y = pos.y = p.y;
+    ppos = pos = p;
     this.speed = startSpeed;
     if (startDeg == -99999)
       this.deg = deg;
@@ -106,8 +105,7 @@ public class Bullet: Actor {
   }
 
   public override void move() {
-    ppos.x = pos.x;
-    ppos.y = pos.y;
+    ppos = pos;
     if (cnt < 30) {
       speed += (trgSpeed - speed) * 0.066f;
       float md = trgDeg - deg;
@@ -120,10 +118,8 @@ public class Bullet: Actor {
     }
     if (field.checkInOuterField(pos))
       gameManager.addSlowdownRatio(speed * 0.24f);
-    float mx = sin(deg) * speed;
-    float my = cos(deg) * speed;
-    pos.x += mx;
-    pos.y += my;
+    vec2 m = vec2(sin(deg), cos(deg)) * speed;
+    pos += m;
     pos.y -= field.lastScrollY;
     if (ship.checkBulletHit(pos, ppos) || !field.checkInOuterFieldExceptTop(pos)) {
       remove();

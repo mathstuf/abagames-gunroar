@@ -485,12 +485,10 @@ public class BaseShape: Drawable {
     float sz = size;
     if (sz > 10)
       sz = 10;
-    wakePos.x = pos.x + sin(deg + PI / 2 + 0.7f) * size * 0.5f * sr;
-    wakePos.y = pos.y + cos(deg + PI / 2 + 0.7f) * size * 0.5f * sr;
+    wakePos = pos + vec2(sin(deg + PI / 2 + 0.7f), cos(deg + PI / 2 + 0.7f)) * size * 0.5f * sr;
     Wake w = wakes.getInstanceForced();
     w.set(wakePos, deg + PI - 0.2f + rand.nextSignedFloat(0.1f), sp, 40, sz * 32 * sr);
-    wakePos.x = pos.x + sin(deg - PI / 2 - 0.7f) * size * 0.5f * sr;
-    wakePos.y = pos.y + cos(deg - PI / 2 - 0.7f) * size * 0.5f * sr;
+    wakePos = pos + vec2(sin(deg - PI / 2 - 0.7f), cos(deg - PI / 2 + 0.7f)) * size * 0.5f * sr;
     w = wakes.getInstanceForced();
     w.set(wakePos, deg + PI + 0.2f + rand.nextSignedFloat(0.1f), sp, 40, sz * 32 * sr);
   }
@@ -539,7 +537,7 @@ public class CollidableBaseShape: BaseShape, Collidable {
               int type,
               float r, float g, float b) {
     super(size, distRatio, spinyRatio, type, r, g, b);
-    _collision = vec2(size / 2, size / 2);
+    _collision = vec2(size / 2);
   }
 
   public vec2 collision() {
@@ -844,7 +842,7 @@ public class DestructiveBulletShape: DrawableShape, Collidable {
     vertexAttribPointer(posLoc, 2, BUFSZ, POS);
     glEnableVertexAttribArray(posLoc);
 
-    _collision = vec2(0.4f, 0.4f);
+    _collision = vec2(0.4f);
   }
 
   public override void drawShape() {
@@ -862,7 +860,7 @@ public class DestructiveBulletShape: DrawableShape, Collidable {
     program.setUniform("color", 0.7f, 0.5f, 0.4f);
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-    _collision = vec2(0.4f, 0.4f);
+    _collision = vec2(0.4f);
   }
 
   public vec2 collision() {

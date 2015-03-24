@@ -293,9 +293,8 @@ public class EnemyState {
       default:
         assert(0);
       }
-      ppos.x = pos.x;
-      ppos.y = pos.y;
-      vel.x = vel.y = 0;
+      ppos = pos;
+      vel = vec2(0);
       speed = 0;
       if (appType == AppearanceType.CENTER || checkFrontClear(true))
         return true;
@@ -308,19 +307,17 @@ public class EnemyState {
     if (checkCurrentPos)
       si = 0;
     for (int i = si; i < 5; i++) {
-      float cx = pos.x + sin(deg) * i * spec.size;
-      float cy = pos.y + cos(deg) * i * spec.size;
-      if (field.getBlock(cx, cy) >= 0)
+      vec2 c = pos + vec2(sin(deg), cos(deg)) * i * spec.size;
+      if (field.getBlock(c.x, c.y) >= 0)
         return false;
-      if (enemies.checkHitShip(cx, cy, enemy, true))
+      if (enemies.checkHitShip(c.x, c.y, enemy, true))
         return false;
     }
     return true;
   }
 
   public bool move() {
-    ppos.x = pos.x;
-    ppos.y = pos.y;
+    ppos = pos;
     multiplier -= MULTIPLIER_DECREASE_RATIO;
     if (multiplier < 1)
       multiplier = 1;
@@ -386,7 +383,7 @@ public class EnemyState {
       explodeVel.y = Shot.SPEED * cos(shot.deg) / 2;
       vz = 0;
     } else {
-      explodeVel.x = explodeVel.y = 0;
+      explodeVel = vec2(0);
       vz = 0.05f;
     }
     float ss = spec.size * 1.5f;
@@ -488,8 +485,7 @@ public class EnemyState {
     vec2[] spp = (cast(BaseShape) spec.shape.shape).pointPos;
     float[] spd = (cast(BaseShape)spec.shape.shape).pointDeg;
     int si = rand.nextInt(spp.length);
-    edgePos.x = spp[si].x * spec.size + pos.x;
-    edgePos.y = spp[si].y * spec.size + pos.y;
+    edgePos = spp[si] * spec.size + pos;
     float ss = spec.size * 0.5f;
     if (ss > 1)
       ss = 1;
@@ -918,15 +914,13 @@ public class SmallShipEnemySpec: EnemySpec, HasAppearType {
       return false;
     switch (type) {
     case MoveType.STOPANDGO:
-      es.pos.x += sin(es.velDeg) * es.speed;
-      es.pos.y += cos(es.velDeg) * es.speed;
+      es.pos += vec2(sin(es.velDeg), cos(es.velDeg)) * es.speed;
       es.pos.y -= field.lastScrollY;
       if  (es.pos.y <= -field.outerSize.y)
         return false;
       if (field.getBlock(es.pos) >= 0 || !field.checkInOuterHeightField(es.pos)) {
         es.velDeg += PI;
-        es.pos.x += sin(es.velDeg) * es.speed * 2;
-        es.pos.y += cos(es.velDeg) * es.speed * 2;
+        es.pos += vec2(sin(es.velDeg), cos(es.velDeg)) * es.speed * 2;
       }
       switch (es.state) {
       case MoveState.MOVING:
@@ -951,15 +945,13 @@ public class SmallShipEnemySpec: EnemySpec, HasAppearType {
       }
       break;
     case MoveType.CHASE:
-      es.pos.x += sin(es.velDeg) * speed;
-      es.pos.y += cos(es.velDeg) * speed;
+      es.pos += vec2(sin(es.velDeg), es.velDeg) * speed;
       es.pos.y -= field.lastScrollY;
       if  (es.pos.y <= -field.outerSize.y)
         return false;
       if (field.getBlock(es.pos) >= 0 || !field.checkInOuterHeightField(es.pos)) {
         es.velDeg += PI;
-        es.pos.x += sin(es.velDeg) * es.speed * 2;
-        es.pos.y += cos(es.velDeg) * es.speed * 2;
+        es.pos += vec2(sin(es.velDeg), cos(es.velDeg)) * es.speed * 2;
       }
       float ad;
       vec2 shipPos = ship.nearPos(es.pos);

@@ -55,11 +55,9 @@ public class Crystal: Actor {
   }
 
   public void set(vec2 p) {
-    pos.x = p.x;
-    pos.y = p.y;
+    pos = p;
     cnt = COUNT;
-    vel.x = 0;
-    vel.y = 0.1f;
+    vel = vec2(0, 0.1f);
     exists = true;
   }
 

@@ -181,11 +181,11 @@ public class Ship {
     _scrollSpeedBase = SCROLL_SPEED_BASE;
     for (int i = 0; i < boatNum; i++)
       boat[i].start(gameMode);
-    _midstPos.x = _midstPos.y = 0;
-    _higherPos.x = _higherPos.y = 0;
-    _lowerPos.x = _lowerPos.y = 0;
-    _nearPos.x = _nearPos.y = 0;
-    _nearVel.x = _nearVel.y = 0;
+    _midstPos = vec2(0);
+    _higherPos = vec2(0);
+    _lowerPos = vec2(0);
+    _nearPos = vec2(0);
+    _nearVel = vec2(0);
     restart();
   }
 
@@ -285,10 +285,9 @@ public class Ship {
   }
 
   public vec2 midstPos() {
-    _midstPos.x = _midstPos.y = 0;
+    _midstPos = vec2(0);
     for (int i = 0; i < boatNum; i++) {
-      _midstPos.x += boat[i].pos.x;
-      _midstPos.y += boat[i].pos.y;
+      _midstPos += boat[i].pos;
     }
     // FIXME: Why does _midstPos /= boatNum not work?
     _midstPos.x /= boatNum;
@@ -300,8 +299,7 @@ public class Ship {
     _higherPos.y = -99999;
     for (int i = 0; i < boatNum; i++) {
       if (boat[i].pos.y > _higherPos.y) {
-        _higherPos.x = boat[i].pos.x;
-        _higherPos.y = boat[i].pos.y;
+        _higherPos = boat[i].pos;
       }
     }
     return _higherPos;
@@ -311,8 +309,7 @@ public class Ship {
     _lowerPos.y = 99999;
     for (int i = 0; i < boatNum; i++) {
       if (boat[i].pos.y < _lowerPos.y) {
-        _lowerPos.x = boat[i].pos.x;
-        _lowerPos.y = boat[i].pos.y;
+        _lowerPos = boat[i].pos;
       }
     }
     return _lowerPos;
@@ -323,8 +320,8 @@ public class Ship {
     for (int i = 0; i < boatNum; i++) {
       if (boat[i].pos.fastdist(p) < dist) {
         dist = boat[i].pos.fastdist(p);
-        _nearPos.x = boat[i].pos.x;
-        _nearPos.y = boat[i].pos.y;
+        _nearPos = boat[i].pos;
+        _nearPos = boat[i].pos;
       }
     }
     return _nearPos;
@@ -335,8 +332,7 @@ public class Ship {
     for (int i = 0; i < boatNum; i++) {
       if (boat[i].pos.fastdist(p) < dist) {
         dist = boat[i].pos.fastdist(p);
-        _nearVel.x = boat[i].vel.x;
-        _nearVel.y = boat[i].vel.y;
+        _nearVel = boat[i].vel;
       }
     }
     return _nearVel;
@@ -660,8 +656,8 @@ public class Boat {
       _pos.x = 0;
     }
     _pos.y = -field.size.y * 0.8f;
-    firePos.x = firePos.y = 0;
-    _vel.x = _vel.y = 0;
+    firePos = vec2(0);
+    _vel = vec2(0);
     deg = 0;
     speed = SPEED_BASE;
     turnRatio = TURN_RATIO_BASE;
@@ -698,7 +694,7 @@ public class Boat {
       onBlock = true;
     else
       onBlock = false;
-    refVel.x = refVel.y = 0;
+    refVel = vec2(0);
     shieldCnt = 20 * 60;
   }
 
@@ -821,8 +817,7 @@ public class Boat {
         rd = atan2(_pos.x - he.pos.x, _pos.y - he.pos.y);
       assert(!rd.isNaN);
       float sz = he.size;
-      refVel.x = sin(rd) * sz * 0.1f;
-      refVel.y = cos(rd) * sz * 0.1f;
+      refVel = vec2(sin(rd), cos(rd)) * sz * 0.1f;
       float rs = refVel.length;
       if (rs > 1) {
         refVel.x /= rs;
@@ -1059,8 +1054,7 @@ public class Boat {
       SoundManager.playSe("shot.wav");
       Shot s = shots.getInstance();
       int foc = (fireSprCnt % 2) * 2 - 1;
-      firePos.x = _pos.x + cos(fireDeg + PI) * 0.2f * foc;
-      firePos.y = _pos.y - sin(fireDeg + PI) * 0.2f * foc;
+      firePos = _pos + vec2(cos(fireDeg + PI), -sin(fireDeg + PI)) * 0.2f * foc;
       if (s)
         s.set(firePos, fireDeg);
       fireCnt = cast(int) fireInterval;
@@ -1118,8 +1112,7 @@ public class Boat {
        if (rsd > 1)
          rsd = 1;
        fireSprDeg = 1 - rsd + 0.05f;
-       firePos.x = _pos.x + cos(fireDeg + PI) * 0.2f * foc;
-       firePos.y = _pos.y - sin(fireDeg + PI) * 0.2f * foc;
+       firePos = _pos + vec2(cos(fireDeg + PI), -sin(fireDeg + PI)) * 0.2f * foc;
        fireCnt = cast(int) fireInterval;
 
        fire(foc);
@@ -1147,8 +1140,7 @@ public class Boat {
       SoundManager.playSe("shot.wav");
       int foc = (fireSprCnt % 2) * 2 - 1;
       fireDeg = 0;//ship.degAmongBoats() + PI / 2;
-      firePos.x = _pos.x + cos(fireDeg + PI) * 0.2f * foc;
-      firePos.y = _pos.y - sin(fireDeg + PI) * 0.2f * foc;
+      firePos = _pos + vec2(cos(fireDeg + PI), -sin(fireDeg + PI)) * 0.2f * foc;
       Shot s = shots.getInstance();
       if (s)
         s.set(firePos, fireDeg, false , 2);
@@ -1170,8 +1162,7 @@ public class Boat {
         default:
           assert(0);
         }
-        firePos.x = ship.midstPos.x + cos(fd + PI) * 0.2f * foc;
-        firePos.y = ship.midstPos.y - sin(fd + PI) * 0.2f * foc;
+        firePos = ship.midstPos + vec2(cos(fd + PI), -sin(fd + PI)) * 0.2f * foc;
         s = shots.getInstance();
         if (s)
           s.set(firePos, fd, false, 2);
@@ -1214,8 +1205,7 @@ public class Boat {
         if (mouseInput.button & MouseState.Button.RIGHT)
           fstd += 0.5f;
         fireSprDeg += (fstd - fireSprDeg) * 0.16f;
-        firePos.x = _pos.x + cos(fireDeg + PI) * 0.2f * foc;
-        firePos.y = _pos.y - sin(fireDeg + PI) * 0.2f * foc;
+        firePos = _pos + vec2(cos(fireDeg + PI), -sin(fireDeg + PI)) * 0.2f * foc;
         fireCnt = cast(int) fireInterval;
 
         fire(foc);
@@ -1252,21 +1242,19 @@ public class Boat {
   public bool checkBulletHit(vec2 p, vec2 pp) {
     if (cnt <= 0)
       return false;
-    float bmvx, bmvy, inaa;
-    bmvx = pp.x;
-    bmvy = pp.y;
-    bmvx -= p.x;
-    bmvy -= p.y;
-    inaa = bmvx * bmvx + bmvy * bmvy;
+    vec2 bmv;
+    float inaa;
+    bmv = pp;
+    bmv -= p;
+    inaa = bmv * bmv;
     if (inaa > 0.00001) {
-      float sofsx, sofsy, inab, hd;
-      sofsx = _pos.x;
-      sofsy = _pos.y;
-      sofsx -= p.x;
-      sofsy -= p.y;
-      inab = bmvx * sofsx + bmvy * sofsy;
+      vec2 sofs;
+      float inab, hd;
+      sofs = _pos;
+      sofs -= p;
+      inab = bmv * sofs;
       if (inab >= 0 && inab <= inaa) {
-        hd = sofsx * sofsx + sofsy * sofsy - inab * inab / inaa;
+        hd = sofs * sofs - inab * inab / inaa;
         if (hd >= 0 && hd <= HIT_WIDTH) {
           destroyed();
           return true;

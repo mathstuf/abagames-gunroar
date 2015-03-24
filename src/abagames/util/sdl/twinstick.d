@@ -57,7 +57,7 @@ public class TwinStick: Input {
         rx = SDL_JoystickGetAxis(stick, 2);
       int ry = SDL_JoystickGetAxis(stick, 3);
       if (rx == 0 && ry == 0) {
-        state.right.x = state.right.y = 0;
+        state.right = vec2(0);
       } else {
         ry = -ry;
         float rd = atan2(cast(float) rx, cast(float) ry) * reverse + rotate;
@@ -68,7 +68,7 @@ public class TwinStick: Input {
         state.right.y = adjustAxis(cast(int) (cos(rd) * rl));
       }
     } else {
-      state.left.x = state.left.y = state.right.x = state.right.y = 0;
+      state.left = state.right = vec2(0);
     }
     if (keys[SDL_SCANCODE_D] == SDL_PRESSED)
       state.left.x = 1;
@@ -142,14 +142,12 @@ public class TwinStickState {
   }
 
   public void set(TwinStickState s) {
-    left.x = s.left.x;
-    left.y = s.left.y;
-    right.x = s.right.x;
-    right.y = s.right.y;
+    left = s.left;
+    right = s.right;
   }
 
   public void clear() {
-    left.x = left.y = right.x = right.y = 0;
+    left = right = vec2(0);
   }
 
   public void read(File fd) {
@@ -167,8 +165,7 @@ public class TwinStickState {
   }
 
   public bool equals(TwinStickState s) {
-    return (left.x == s.left.x && left.y == s.left.y &&
-            right.x == s.right.x && right.y == s.right.y);
+    return (left == s.left && right == s.right);
   }
 }
 

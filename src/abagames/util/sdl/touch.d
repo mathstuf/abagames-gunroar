@@ -87,12 +87,12 @@ public class FingerState {
   }
 
   public this() {
-    position = vec2(0, 0);
+    position = vec2(0);
     active = false;
   }
 
   public void clear() {
-    position.x = position.y = 0;
+    position = vec2(0);
     active = false;
   }
 
@@ -117,8 +117,7 @@ public class FingerState {
   }
 
   public bool equals(FingerState s) {
-    return (position.x == s.position.x && position.y == s.position.y &&
-            active == s.active);
+    return (position == s.position && active == s.active);
   }
 
   public void update() {

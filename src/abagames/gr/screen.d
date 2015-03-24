@@ -154,10 +154,9 @@ public class Screen: Screen3D {
     if (screenShakeCnt > 0) {
       float mx = rand.nextSignedFloat(screenShakeIntense * (screenShakeCnt + 4));
       float my = rand.nextSignedFloat(screenShakeIntense * (screenShakeCnt + 4));
-      e.x += mx;
-      e.y += my;
-      l.x += mx;
-      l.y += my;
+      vec2 m = vec2(mx, my);
+      e.xy += m;
+      l.xy += m;
     }
 
     return mat4.look_at(e, l, vec3(0, 1, 0));
