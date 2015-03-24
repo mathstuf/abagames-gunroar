@@ -413,8 +413,8 @@ public class Boat {
   float turnSpeed;
   bool reverseFire;
   int gameMode;
-  float ax, ay;
-  float vx, vy;
+  vec2 acc;
+  vec2 veltmp;
   int idx;
   Ship ship;
 
@@ -699,10 +699,9 @@ public class Boat {
   }
 
   public void move() {
-    float px = _pos.x, py = _pos.y;
+    vec2 p = _pos;
     cnt++;
-    ax = ay = 0;
-    vx = vy = 0;
+    acc = veltmp = vec2(0);
     switch (gameMode) {
     case InGameState.GameMode.NORMAL:
       moveNormal();
@@ -735,26 +734,24 @@ public class Boat {
     } else if (cnt < -INVINCIBLE_CNT) {
       clearBullets();
     }
-    vx *= speed;
-    vy *= speed;
-    vx += refVel.x;
-    vy += refVel.y;
+    veltmp *= speed;
+    veltmp += refVel;
     refVel *= 0.9f;
     if (field.checkInField(_pos.x, _pos.y - field.lastScrollY))
       _pos.y -= field.lastScrollY;
-    if ((onBlock || field.getBlock(_pos.x + vx, _pos.y) < 0) &&
-        field.checkInField(_pos.x + vx, _pos.y)) {
-      _pos.x += vx;
-      _vel.x = vx;
+    if ((onBlock || field.getBlock(_pos.x + veltmp.x, _pos.y) < 0) &&
+        field.checkInField(_pos.x + veltmp.x, _pos.y)) {
+      _pos.x += veltmp.x;
+      _vel.x = veltmp.x;
     } else {
       _vel.x = 0;
       refVel.x = 0;
     }
     bool srf = false;
-    if ((onBlock || field.getBlock(px, _pos.y + vy) < 0) &&
-        field.checkInField(_pos.x, _pos.y + vy)) {
-      _pos.y += vy;
-      _vel.y = vy;
+    if ((onBlock || field.getBlock(p.x, _pos.y + veltmp.y) < 0) &&
+        field.checkInField(_pos.x, _pos.y + veltmp.y)) {
+      _pos.y += veltmp.y;
+      _vel.y = veltmp.y;
     } else {
       _vel.y = 0;
       refVel.y = 0;
@@ -765,8 +762,7 @@ public class Boat {
           onBlock = true;
         } else {
           if (field.checkInField(_pos.x, _pos.y - field.lastScrollY)) {
-            _pos.x = px;
-            _pos.y = py;
+            _pos = p;
           } else {
             destroyed();
           }
@@ -800,7 +796,7 @@ public class Boat {
     }
     if (cnt % 3 == 0 && cnt >= -INVINCIBLE_CNT) {
       float sp;
-      if (vx != 0 || vy != 0)
+      if (veltmp.x != 0 || veltmp.y != 0)
         sp = 0.4f;
       else
         sp = 0.2f;
@@ -842,16 +838,15 @@ public class Boat {
     if (gameState.isGameOver || cnt < -INVINCIBLE_CNT)
       padInput.clear();
     if (padInput.dir & PadState.Dir.UP)
-      vy = 1;
+      veltmp.y = 1;
     if (padInput.dir & PadState.Dir.DOWN)
-      vy = -1;
+      veltmp.y = -1;
     if (padInput.dir & PadState.Dir.RIGHT)
-      vx = 1;
+      veltmp.x = 1;
     if (padInput.dir & PadState.Dir.LEFT)
-      vx = -1;
-    if (vx != 0 && vy != 0) {
-      vx *= 0.7f;
-      vy *= 0.7f;
+      veltmp.x = -1;
+    if (veltmp.x != 0 && veltmp.y != 0) {
+      veltmp *= 0.7f;
     }
     moveRelative();
   }
@@ -869,8 +864,7 @@ public class Boat {
     }
     if (gameState.isGameOver || cnt < -INVINCIBLE_CNT)
       stickInput.clear();
-    vx = stickInput.left.x;
-    vy = stickInput.left.y;
+    veltmp = stickInput.left;
     moveRelative();
   }
 
@@ -889,8 +883,7 @@ public class Boat {
       touchInput.clear();
     vec2 location = touchInput.getPrimaryTouch(gameState.movementRegion());
     location -= gameState.movementRegion().center();
-    vx = location.x;
-    vy = location.y;
+    veltmp = location;
     moveRelative();
   }
 
@@ -909,12 +902,10 @@ public class Boat {
       }
       if (gameState.isGameOver || cnt < -INVINCIBLE_CNT)
         stickInput.clear();
-      vx = stickInput.left.x;
-      vy = stickInput.left.y;
+      veltmp = stickInput.left;
       break;
     case 1:
-      vx = stickInput.right.x;
-      vy = stickInput.right.y;
+      veltmp = stickInput.right;
       break;
     default:
       assert(0);
@@ -940,8 +931,7 @@ public class Boat {
         touchInput.clear();
       vec2 location = touchInput.getPrimaryTouch(boatRegion);
       location -= boatRegion.center();
-      vx = location.x;
-      vy = location.y;
+      veltmp = location;
       break;
     case 1:
       TouchRegion[1] ignores;
@@ -949,8 +939,7 @@ public class Boat {
       CircularTouchRegion secondBoatRegion = new CircularTouchRegion(ship.boat[1]._pos, gameState.touchRadius());
       vec2 location = touchInput.getSecondaryTouch(secondBoatRegion, ignores, 1);
       location -= secondBoatRegion.center();
-      vx = location.x;
-      vy = location.y;
+      veltmp = location;
       break;
     default:
       assert(0);
@@ -978,10 +967,8 @@ public class Boat {
       accelerometerInput.clear();
       touchInput.clear();
     }
-    ax = accelerometerInput.tilt.x;
-    ay = accelerometerInput.tilt.y;
-    vx += ax;
-    vy += ay;
+    acc = accelerometerInput.tilt;
+    veltmp += acc;
     moveRelative();
   }
 
@@ -1006,23 +993,22 @@ public class Boat {
       mouseInput.clear();
     }
     if (padInput.dir & PadState.Dir.UP)
-      vy = 1;
+      veltmp.y = 1;
     if (padInput.dir & PadState.Dir.DOWN)
-      vy = -1;
+      veltmp.y = -1;
     if (padInput.dir & PadState.Dir.RIGHT)
-      vx = 1;
+      veltmp.x = 1;
     if (padInput.dir & PadState.Dir.LEFT)
-      vx = -1;
-    if (vx != 0 && vy != 0) {
-      vx *= 0.7f;
-      vy *= 0.7f;
+      veltmp.x = -1;
+    if (veltmp.x != 0 && veltmp.y != 0) {
+      veltmp *= 0.7f;
     }
     moveRelative();
   }
 
   private void moveRelative() {
-    if (vx != 0 || vy != 0) {
-      float ad = atan2(vx, vy);
+    if (veltmp.x != 0 || veltmp.y != 0) {
+      float ad = atan2(veltmp.x, veltmp.y);
       assert(!ad.isNaN);
       Math.normalizeDeg(ad);
       ad -= deg;
@@ -1095,8 +1081,7 @@ public class Boat {
   private void fireTouch() {
    vec2 location = touchInput.getPrimaryTouch(gameState.fireRegion());
    location -= gameState.fireRegion().center();
-   vx = location.x;
-   vy = location.y;
+   veltmp = location;
 
    fireFromLocation(location);
   }
@@ -1182,8 +1167,7 @@ public class Boat {
    CircularTouchRegion boatRegion = new CircularTouchRegion(ship.boat[0]._pos, gameState.touchRadius());
    vec2 location = touchInput.getPrimaryTouch(boatRegion);
    location -= boatRegion.center();
-   vx = location.x;
-   vy = location.y;
+   veltmp = location;
 
    fireFromLocation(location);
   }
