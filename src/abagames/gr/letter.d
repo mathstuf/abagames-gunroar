@@ -158,7 +158,7 @@ public class Letter {
   }
 
   public static void drawString(mat4 view, string str, float lx, float y, float s,
-                                int d = Direction.TO_RIGHT, int cl = 0,
+                                int d = Direction.TO_RIGHT, int cl = Letter.COLOR0,
                                 bool rev = false, float od = 0) {
     lx += LETTER_WIDTH * s / 2;
     y += LETTER_HEIGHT * s / 2;
@@ -215,7 +215,7 @@ public class Letter {
   }
 
   public static void drawNum(mat4 view, int num, float lx, float y, float s,
-                             int cl = 0, int dg = 0,
+                             int cl = Letter.COLOR0, int dg = 0,
                              int headChar = -1, int floatDigit = -1) {
     lx += LETTER_WIDTH * s / 2;
     y += LETTER_HEIGHT * s / 2;
@@ -247,7 +247,7 @@ public class Letter {
                  s * 0.6f, ld, cl);
   }
 
-  public static void drawNumSign(mat4 view, int num, float lx, float ly, float s, int cl = 0,
+  public static void drawNumSign(mat4 view, int num, float lx, float ly, float s, int cl = Letter.COLOR0,
                                  int headChar = -1, int floatDigit = -1) {
     float x = lx;
     float y = ly;
@@ -275,7 +275,7 @@ public class Letter {
                     s * 0.6f, 0, cl);
   }
 
-  public static void drawTime(mat4 view, int time, float lx, float y, float s, int cl = 0) {
+  public static void drawTime(mat4 view, int time, float lx, float y, float s, int cl = Letter.COLOR0) {
     int n = time;
     if (n < 0)
       n = 0;
