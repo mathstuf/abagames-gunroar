@@ -36,7 +36,7 @@ public class ActorPool(T) {
  public:
   T[] actor;
  protected:
-  long actorIdx = 0;
+  size_t actorIdx = 0;
  private:
 
   public this() {}
@@ -63,23 +63,17 @@ public class ActorPool(T) {
   }
 
   public T getInstance() {
-    for (int i = 0; i < actor.length; i++) {
-      actorIdx--;
-      if (actorIdx < 0)
-        actorIdx = actor.length - 1;
-      size_t idx = to!size_t(actorIdx);
-      if (!actor[idx].exists)
-        return actor[idx];
+    for (size_t i = 0; i < actor.length; i++) {
+      nextActor();
+      if (!actor[actorIdx].exists)
+        return actor[actorIdx];
     }
     return null;
   }
 
   public T getInstanceForced() {
-    actorIdx--;
-    if (actorIdx < 0)
-      actorIdx = actor.length - 1;
-    size_t idx = to!size_t(actorIdx);
-    return actor[idx];
+    nextActor();
+    return actor[actorIdx];
   }
 
   public T[] getMultipleInstances(int n) {
@@ -115,5 +109,12 @@ public class ActorPool(T) {
     foreach (T ac; actor)
       ac.exists = false;
     actorIdx = 0;
+  }
+
+  private void nextActor() {
+    if (actorIdx == 0)
+      actorIdx = actor.length - 1;
+    else
+      actorIdx--;
   }
 }
