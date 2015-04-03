@@ -144,8 +144,7 @@ public class Shot: Actor {
   }
 
   public void set(vec2 p, float d, bool lance = false, int dmg = -1) {
-    pos.x = p.x;
-    pos.y = p.y;
+    pos = p;
     cnt = hitCnt = 0;
     _deg = d;
     this.lance = lance;
@@ -175,8 +174,7 @@ public class Shot: Actor {
       else
         sp = LANCE_SPEED;
     }
-    pos.x += sin(_deg) * sp;
-    pos.y += cos(_deg) * sp;
+    pos += vec2(sin(_deg), cos(_deg)) * sp;
     pos.y -= field.lastScrollY;
     if (field.getBlock(pos) >= Field.ON_BLOCK_THRESHOLD ||
         !field.checkInOuterField(pos) || pos.y > field.size.y)
@@ -238,7 +236,7 @@ public class Shot: Actor {
 
   public override void draw(mat4 view) {
     if (lance) {
-      float x = pos.x, y = pos.y;
+      vec2 p = pos;
       float size = 0.25f, a = 0.6f;
       int hc = hitCnt;
 
@@ -258,7 +256,7 @@ public class Shot: Actor {
         mat4 model = mat4.identity;
         model.rotate(-d / 180 * PI, vec3(0, 1, 0));
         model.rotate(_deg, vec3(0, 0, 1));
-        model.translate(x, y, 0);
+        model.translate(p.x, p.y, 0);
         program.setUniform("modelmat", model);
 
         program.setUniform("size", size);
@@ -272,8 +270,7 @@ public class Shot: Actor {
 
           d += 60;
         }
-        x -= sin(deg) * LANCE_SPEED * 2;
-        y -= cos(deg) * LANCE_SPEED * 2;
+        p -= vec2(sin(deg), cos(deg)) * LANCE_SPEED * 2;
       }
     } else {
       mat4 model = mat4.identity;

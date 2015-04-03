@@ -181,11 +181,11 @@ public class Ship {
     _scrollSpeedBase = SCROLL_SPEED_BASE;
     for (int i = 0; i < boatNum; i++)
       boat[i].start(gameMode);
-    _midstPos.x = _midstPos.y = 0;
-    _higherPos.x = _higherPos.y = 0;
-    _lowerPos.x = _lowerPos.y = 0;
-    _nearPos.x = _nearPos.y = 0;
-    _nearVel.x = _nearVel.y = 0;
+    _midstPos = vec2(0);
+    _higherPos = vec2(0);
+    _lowerPos = vec2(0);
+    _nearPos = vec2(0);
+    _nearVel = vec2(0);
     restart();
   }
 
@@ -285,14 +285,11 @@ public class Ship {
   }
 
   public vec2 midstPos() {
-    _midstPos.x = _midstPos.y = 0;
+    _midstPos = vec2(0);
     for (int i = 0; i < boatNum; i++) {
-      _midstPos.x += boat[i].pos.x;
-      _midstPos.y += boat[i].pos.y;
+      _midstPos += boat[i].pos;
     }
-    // FIXME: Why does _midstPos /= boatNum not work?
-    _midstPos.x /= boatNum;
-    _midstPos.y /= boatNum;
+    _midstPos /= boatNum;
     return _midstPos;
   }
 
@@ -300,8 +297,7 @@ public class Ship {
     _higherPos.y = -99999;
     for (int i = 0; i < boatNum; i++) {
       if (boat[i].pos.y > _higherPos.y) {
-        _higherPos.x = boat[i].pos.x;
-        _higherPos.y = boat[i].pos.y;
+        _higherPos = boat[i].pos;
       }
     }
     return _higherPos;
@@ -311,8 +307,7 @@ public class Ship {
     _lowerPos.y = 99999;
     for (int i = 0; i < boatNum; i++) {
       if (boat[i].pos.y < _lowerPos.y) {
-        _lowerPos.x = boat[i].pos.x;
-        _lowerPos.y = boat[i].pos.y;
+        _lowerPos = boat[i].pos;
       }
     }
     return _lowerPos;
@@ -323,8 +318,8 @@ public class Ship {
     for (int i = 0; i < boatNum; i++) {
       if (boat[i].pos.fastdist(p) < dist) {
         dist = boat[i].pos.fastdist(p);
-        _nearPos.x = boat[i].pos.x;
-        _nearPos.y = boat[i].pos.y;
+        _nearPos = boat[i].pos;
+        _nearPos = boat[i].pos;
       }
     }
     return _nearPos;
@@ -335,8 +330,7 @@ public class Ship {
     for (int i = 0; i < boatNum; i++) {
       if (boat[i].pos.fastdist(p) < dist) {
         dist = boat[i].pos.fastdist(p);
-        _nearVel.x = boat[i].vel.x;
-        _nearVel.y = boat[i].vel.y;
+        _nearVel = boat[i].vel;
       }
     }
     return _nearVel;
@@ -417,8 +411,8 @@ public class Boat {
   float turnSpeed;
   bool reverseFire;
   int gameMode;
-  float ax, ay;
-  float vx, vy;
+  vec2 acc;
+  vec2 veltmp;
   int idx;
   Ship ship;
 
@@ -660,8 +654,8 @@ public class Boat {
       _pos.x = 0;
     }
     _pos.y = -field.size.y * 0.8f;
-    firePos.x = firePos.y = 0;
-    _vel.x = _vel.y = 0;
+    firePos = vec2(0);
+    _vel = vec2(0);
     deg = 0;
     speed = SPEED_BASE;
     turnRatio = TURN_RATIO_BASE;
@@ -698,15 +692,14 @@ public class Boat {
       onBlock = true;
     else
       onBlock = false;
-    refVel.x = refVel.y = 0;
+    refVel = vec2(0);
     shieldCnt = 20 * 60;
   }
 
   public void move() {
-    float px = _pos.x, py = _pos.y;
+    vec2 p = _pos;
     cnt++;
-    ax = ay = 0;
-    vx = vy = 0;
+    acc = veltmp = vec2(0);
     switch (gameMode) {
     case InGameState.GameMode.NORMAL:
       moveNormal();
@@ -739,26 +732,24 @@ public class Boat {
     } else if (cnt < -INVINCIBLE_CNT) {
       clearBullets();
     }
-    vx *= speed;
-    vy *= speed;
-    vx += refVel.x;
-    vy += refVel.y;
+    veltmp *= speed;
+    veltmp += refVel;
     refVel *= 0.9f;
     if (field.checkInField(_pos.x, _pos.y - field.lastScrollY))
       _pos.y -= field.lastScrollY;
-    if ((onBlock || field.getBlock(_pos.x + vx, _pos.y) < 0) &&
-        field.checkInField(_pos.x + vx, _pos.y)) {
-      _pos.x += vx;
-      _vel.x = vx;
+    if ((onBlock || field.getBlock(_pos.x + veltmp.x, _pos.y) < 0) &&
+        field.checkInField(_pos.x + veltmp.x, _pos.y)) {
+      _pos.x += veltmp.x;
+      _vel.x = veltmp.x;
     } else {
       _vel.x = 0;
       refVel.x = 0;
     }
     bool srf = false;
-    if ((onBlock || field.getBlock(px, _pos.y + vy) < 0) &&
-        field.checkInField(_pos.x, _pos.y + vy)) {
-      _pos.y += vy;
-      _vel.y = vy;
+    if ((onBlock || field.getBlock(p.x, _pos.y + veltmp.y) < 0) &&
+        field.checkInField(_pos.x, _pos.y + veltmp.y)) {
+      _pos.y += veltmp.y;
+      _vel.y = veltmp.y;
     } else {
       _vel.y = 0;
       refVel.y = 0;
@@ -769,8 +760,7 @@ public class Boat {
           onBlock = true;
         } else {
           if (field.checkInField(_pos.x, _pos.y - field.lastScrollY)) {
-            _pos.x = px;
-            _pos.y = py;
+            _pos = p;
           } else {
             destroyed();
           }
@@ -804,7 +794,7 @@ public class Boat {
     }
     if (cnt % 3 == 0 && cnt >= -INVINCIBLE_CNT) {
       float sp;
-      if (vx != 0 || vy != 0)
+      if (veltmp.x != 0 || veltmp.y != 0)
         sp = 0.4f;
       else
         sp = 0.2f;
@@ -821,12 +811,10 @@ public class Boat {
         rd = atan2(_pos.x - he.pos.x, _pos.y - he.pos.y);
       assert(!rd.isNaN);
       float sz = he.size;
-      refVel.x = sin(rd) * sz * 0.1f;
-      refVel.y = cos(rd) * sz * 0.1f;
+      refVel = vec2(sin(rd), cos(rd)) * sz * 0.1f;
       float rs = refVel.length;
       if (rs > 1) {
-        refVel.x /= rs;
-        refVel.y /= rs;
+        refVel /= rs;
       }
     }
     if (shieldCnt > 0)
@@ -847,16 +835,15 @@ public class Boat {
     if (gameState.isGameOver || cnt < -INVINCIBLE_CNT)
       padInput.clear();
     if (padInput.dir & PadState.Dir.UP)
-      vy = 1;
+      veltmp.y = 1;
     if (padInput.dir & PadState.Dir.DOWN)
-      vy = -1;
+      veltmp.y = -1;
     if (padInput.dir & PadState.Dir.RIGHT)
-      vx = 1;
+      veltmp.x = 1;
     if (padInput.dir & PadState.Dir.LEFT)
-      vx = -1;
-    if (vx != 0 && vy != 0) {
-      vx *= 0.7f;
-      vy *= 0.7f;
+      veltmp.x = -1;
+    if (veltmp.x != 0 && veltmp.y != 0) {
+      veltmp *= 0.7f;
     }
     moveRelative();
   }
@@ -874,8 +861,7 @@ public class Boat {
     }
     if (gameState.isGameOver || cnt < -INVINCIBLE_CNT)
       stickInput.clear();
-    vx = stickInput.left.x;
-    vy = stickInput.left.y;
+    veltmp = stickInput.left;
     moveRelative();
   }
 
@@ -894,8 +880,7 @@ public class Boat {
       touchInput.clear();
     vec2 location = touchInput.getPrimaryTouch(gameState.movementRegion());
     location -= gameState.movementRegion().center();
-    vx = location.x;
-    vy = location.y;
+    veltmp = location;
     moveRelative();
   }
 
@@ -914,12 +899,10 @@ public class Boat {
       }
       if (gameState.isGameOver || cnt < -INVINCIBLE_CNT)
         stickInput.clear();
-      vx = stickInput.left.x;
-      vy = stickInput.left.y;
+      veltmp = stickInput.left;
       break;
     case 1:
-      vx = stickInput.right.x;
-      vy = stickInput.right.y;
+      veltmp = stickInput.right;
       break;
     default:
       assert(0);
@@ -945,8 +928,7 @@ public class Boat {
         touchInput.clear();
       vec2 location = touchInput.getPrimaryTouch(boatRegion);
       location -= boatRegion.center();
-      vx = location.x;
-      vy = location.y;
+      veltmp = location;
       break;
     case 1:
       TouchRegion[1] ignores;
@@ -954,8 +936,7 @@ public class Boat {
       CircularTouchRegion secondBoatRegion = new CircularTouchRegion(ship.boat[1]._pos, gameState.touchRadius());
       vec2 location = touchInput.getSecondaryTouch(secondBoatRegion, ignores, 1);
       location -= secondBoatRegion.center();
-      vx = location.x;
-      vy = location.y;
+      veltmp = location;
       break;
     default:
       assert(0);
@@ -983,10 +964,8 @@ public class Boat {
       accelerometerInput.clear();
       touchInput.clear();
     }
-    ax = accelerometerInput.tilt.x;
-    ay = accelerometerInput.tilt.y;
-    vx += ax;
-    vy += ay;
+    acc = accelerometerInput.tilt;
+    veltmp += acc;
     moveRelative();
   }
 
@@ -1011,23 +990,22 @@ public class Boat {
       mouseInput.clear();
     }
     if (padInput.dir & PadState.Dir.UP)
-      vy = 1;
+      veltmp.y = 1;
     if (padInput.dir & PadState.Dir.DOWN)
-      vy = -1;
+      veltmp.y = -1;
     if (padInput.dir & PadState.Dir.RIGHT)
-      vx = 1;
+      veltmp.x = 1;
     if (padInput.dir & PadState.Dir.LEFT)
-      vx = -1;
-    if (vx != 0 && vy != 0) {
-      vx *= 0.7f;
-      vy *= 0.7f;
+      veltmp.x = -1;
+    if (veltmp.x != 0 && veltmp.y != 0) {
+      veltmp *= 0.7f;
     }
     moveRelative();
   }
 
   private void moveRelative() {
-    if (vx != 0 || vy != 0) {
-      float ad = atan2(vx, vy);
+    if (veltmp.x != 0 || veltmp.y != 0) {
+      float ad = atan2(veltmp.x, veltmp.y);
       assert(!ad.isNaN);
       Math.normalizeDeg(ad);
       ad -= deg;
@@ -1059,8 +1037,7 @@ public class Boat {
       SoundManager.playSe("shot.wav");
       Shot s = shots.getInstance();
       int foc = (fireSprCnt % 2) * 2 - 1;
-      firePos.x = _pos.x + cos(fireDeg + PI) * 0.2f * foc;
-      firePos.y = _pos.y - sin(fireDeg + PI) * 0.2f * foc;
+      firePos = _pos + vec2(cos(fireDeg + PI), -sin(fireDeg + PI)) * 0.2f * foc;
       if (s)
         s.set(firePos, fireDeg);
       fireCnt = cast(int) fireInterval;
@@ -1101,8 +1078,7 @@ public class Boat {
   private void fireTouch() {
    vec2 location = touchInput.getPrimaryTouch(gameState.fireRegion());
    location -= gameState.fireRegion().center();
-   vx = location.x;
-   vy = location.y;
+   veltmp = location;
 
    fireFromLocation(location);
   }
@@ -1118,8 +1094,7 @@ public class Boat {
        if (rsd > 1)
          rsd = 1;
        fireSprDeg = 1 - rsd + 0.05f;
-       firePos.x = _pos.x + cos(fireDeg + PI) * 0.2f * foc;
-       firePos.y = _pos.y - sin(fireDeg + PI) * 0.2f * foc;
+       firePos = _pos + vec2(cos(fireDeg + PI), -sin(fireDeg + PI)) * 0.2f * foc;
        fireCnt = cast(int) fireInterval;
 
        fire(foc);
@@ -1147,8 +1122,7 @@ public class Boat {
       SoundManager.playSe("shot.wav");
       int foc = (fireSprCnt % 2) * 2 - 1;
       fireDeg = 0;//ship.degAmongBoats() + PI / 2;
-      firePos.x = _pos.x + cos(fireDeg + PI) * 0.2f * foc;
-      firePos.y = _pos.y - sin(fireDeg + PI) * 0.2f * foc;
+      firePos = _pos + vec2(cos(fireDeg + PI), -sin(fireDeg + PI)) * 0.2f * foc;
       Shot s = shots.getInstance();
       if (s)
         s.set(firePos, fireDeg, false , 2);
@@ -1170,8 +1144,7 @@ public class Boat {
         default:
           assert(0);
         }
-        firePos.x = ship.midstPos.x + cos(fd + PI) * 0.2f * foc;
-        firePos.y = ship.midstPos.y - sin(fd + PI) * 0.2f * foc;
+        firePos = ship.midstPos + vec2(cos(fd + PI), -sin(fd + PI)) * 0.2f * foc;
         s = shots.getInstance();
         if (s)
           s.set(firePos, fd, false, 2);
@@ -1191,8 +1164,7 @@ public class Boat {
    CircularTouchRegion boatRegion = new CircularTouchRegion(ship.boat[0]._pos, gameState.touchRadius());
    vec2 location = touchInput.getPrimaryTouch(boatRegion);
    location -= boatRegion.center();
-   vx = location.x;
-   vy = location.y;
+   veltmp = location;
 
    fireFromLocation(location);
   }
@@ -1214,8 +1186,7 @@ public class Boat {
         if (mouseInput.button & MouseState.Button.RIGHT)
           fstd += 0.5f;
         fireSprDeg += (fstd - fireSprDeg) * 0.16f;
-        firePos.x = _pos.x + cos(fireDeg + PI) * 0.2f * foc;
-        firePos.y = _pos.y - sin(fireDeg + PI) * 0.2f * foc;
+        firePos = _pos + vec2(cos(fireDeg + PI), -sin(fireDeg + PI)) * 0.2f * foc;
         fireCnt = cast(int) fireInterval;
 
         fire(foc);
@@ -1252,21 +1223,19 @@ public class Boat {
   public bool checkBulletHit(vec2 p, vec2 pp) {
     if (cnt <= 0)
       return false;
-    float bmvx, bmvy, inaa;
-    bmvx = pp.x;
-    bmvy = pp.y;
-    bmvx -= p.x;
-    bmvy -= p.y;
-    inaa = bmvx * bmvx + bmvy * bmvy;
+    vec2 bmv;
+    float inaa;
+    bmv = pp;
+    bmv -= p;
+    inaa = bmv * bmv;
     if (inaa > 0.00001) {
-      float sofsx, sofsy, inab, hd;
-      sofsx = _pos.x;
-      sofsy = _pos.y;
-      sofsx -= p.x;
-      sofsy -= p.y;
-      inab = bmvx * sofsx + bmvy * sofsy;
+      vec2 sofs;
+      float inab, hd;
+      sofs = _pos;
+      sofs -= p;
+      inab = bmv * sofs;
       if (inab >= 0 && inab <= inaa) {
-        hd = sofsx * sofsx + sofsy * sofsy - inab * inab / inaa;
+        hd = sofs * sofs - inab * inab / inaa;
         if (hd >= 0 && hd <= HIT_WIDTH) {
           destroyed();
           return true;

@@ -166,14 +166,14 @@ void init_by_array(uint init_key[], uint key_length)
 
 void next_state()
 {
-    uint *p=&state[0];
+    uint *p=state.ptr;
 
     /* if init_genrand() has not been called, */
     /* a default initial seed is used         */
     if (initf==0) init_genrand(5489U);
 
     left = N;
-    next = &state[0];
+    next = state.ptr;
 
     for (int j=N-M+1; --j; p++)
         *p = p[M] ^ TWIST(p[0], p[1]);

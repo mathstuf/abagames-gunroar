@@ -139,10 +139,8 @@ public class Spark: LuminousActor {
   }
 
   public void set(vec2 p, float vx, float vy, float r, float g, float b, int c) {
-    pos.x = p.x;
-    pos.y = p.y;
-    vel.x = vx;
-    vel.y = vy;
+    pos = p;
+    vel = vec2(vx, vy);
     this.r = r;
     this.g = g;
     this.b = b;
@@ -329,12 +327,8 @@ public class Smoke: LuminousActor {
   public void set(float x, float y, float mx, float my, float mz, int t, int c = 60, float sz = 2) {
     if (!field.checkInOuterField(x, y))
       return;
-    pos.x = x;
-    pos.y = y;
-    pos.z = 0;
-    vel.x = mx;
-    vel.y = my;
-    vel.z = mz;
+    pos = vec3(x, y, 0);
+    vel = vec3(mx, my, mz);
     type = t;
     startCnt = cnt = c;
     size = sz;
@@ -394,9 +388,7 @@ public class Smoke: LuminousActor {
       return;
     }
     if (type != SmokeType.WAKE) {
-      vel.x += (windVel.x - vel.x) * 0.01f;
-      vel.y += (windVel.y - vel.y) * 0.01f;
-      vel.z += (windVel.z - vel.z) * 0.01f;
+      vel += (windVel - vel) * 0.01f;
     }
     pos += vel;
     pos.y -= field.lastScrollY;
@@ -447,15 +439,13 @@ public class Smoke: LuminousActor {
         if (sp > 0.3f) {
           float d = atan2(vel.x, vel.y);
           assert(!d.isNaN);
-          wakePos.x = pos.x + sin(d + PI / 2) * size * 0.25f;
-          wakePos.y = pos.y + cos(d + PI / 2) * size * 0.25f;
+          wakePos = pos.xy + vec2(sin(d + PI / 2), cos(d + PI / 2)) * size * 0.25f;
           Wake w = wakes.getInstanceForced();
           assert(!wakePos.x.isNaN);
           assert(!wakePos.y.isNaN);
           w.set(wakePos, d + PI - 0.2f + rand.nextSignedFloat(0.1f), sp * 0.33f,
                 20 + rand.nextInt(12), size * (7.0f + rand.nextFloat(3)));
-          wakePos.x = pos.x + sin(d - PI / 2) * size * 0.25f;
-          wakePos.y = pos.y + cos(d - PI / 2) * size * 0.25f;
+          wakePos = pos.xy + vec2(sin(d - PI / 2), cos(d - PI / 2)) * size * 0.25f;
           w = wakes.getInstanceForced();
           assert(!wakePos.x.isNaN);
           assert(!wakePos.y.isNaN);
@@ -605,12 +595,8 @@ public class Fragment: Actor {
   public void set(vec2 p, float mx, float my, float mz, float sz = 1) {
     if (!field.checkInOuterField(p.x, p.y))
       return;
-    pos.x = p.x;
-    pos.y = p.y;
-    pos.z = 0;
-    vel.x = mx;
-    vel.y = my;
-    vel.z = mz;
+    pos = vec3(p, 0);
+    vel = vec3(mx, my, mz);
     size = sz;
     if (size > 5)
       size = 5;
@@ -624,8 +610,7 @@ public class Fragment: Actor {
       exists = false;
       return;
     }
-    vel.x *= 0.96f;
-    vel.y *= 0.96f;
+    vel.xy *= 0.96f;
     vel.z += (-0.04f - vel.z) * 0.01f;
     pos += vel;
     if (pos.z < 0) {
@@ -779,12 +764,8 @@ public class SparkFragment: LuminousActor {
   public void set(vec2 p, float mx, float my, float mz, float sz = 1) {
     if (!field.checkInOuterField(p.x, p.y))
       return;
-    pos.x = p.x;
-    pos.y = p.y;
-    pos.z = 0;
-    vel.x = mx;
-    vel.y = my;
-    vel.z = mz;
+    pos = vec3(p, 0);
+    vel = vec3(mx, my, mz);
     size = sz;
     if (size > 5)
       size = 5;
@@ -803,8 +784,7 @@ public class SparkFragment: LuminousActor {
       exists = false;
       return;
     }
-    vel.x *= 0.99f;
-    vel.y *= 0.99f;
+    vel.xy *= 0.99f;
     vel.z += (-0.08f - vel.z) * 0.01f;
     pos += vel;
     if (pos.z < 0) {
@@ -993,12 +973,10 @@ public class Wake: Actor {
   public void set(vec2 p, float deg, float speed, int c = 60, float sz = 1, bool rs = false) {
     if (!field.checkInOuterField(p.x, p.y))
       return;
-    pos.x = p.x;
-    pos.y = p.y;
+    pos = p;
     this.deg = deg;
     this.speed = speed;
-    vel.x = sin(deg) * speed;
-    vel.y = cos(deg) * speed;
+    vel = vec2(sin(deg), cos(deg)) * speed;
     cnt = c;
     size = sz;
     revShape = rs;

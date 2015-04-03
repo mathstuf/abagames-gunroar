@@ -95,12 +95,11 @@ public class AccelerometerState {
   }
 
   public void set(AccelerometerState s) {
-    tilt.x = s.tilt.x;
-    tilt.y = s.tilt.y;
+    tilt = s.tilt;
   }
 
   public void clear() {
-    tilt.x = tilt.y = 0;
+    tilt = vec2(0);
   }
 
   public void read(File fd) {
@@ -114,7 +113,7 @@ public class AccelerometerState {
   }
 
   public bool equals(AccelerometerState s) {
-    return (tilt.x == s.tilt.x && tilt.y == s.tilt.y);
+    return (tilt == s.tilt);
   }
 }
 

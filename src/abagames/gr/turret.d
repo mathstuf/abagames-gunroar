@@ -176,8 +176,7 @@ public class Turret {
   }
 
   public bool move(float x, float y, float d, float bulletFireSpeed = 0, float bulletFireDeg = -99999) {
-    pos.x = x;
-    pos.y = y;
+    pos = vec2(x, y);
     baseDeg = d;
     if (destroyedCnt >= 0) {
       destroyedCnt++;
@@ -192,18 +191,16 @@ public class Turret {
     float td = baseDeg + deg;
     vec2 shipPos = ship.nearPos(pos);
     vec2 shipVel = ship.nearVel(pos);
-    float ax = shipPos.x - pos.x;
-    float ay = shipPos.y - pos.y;
+    vec2 a = shipPos - pos;
     if (spec.lookAheadRatio != 0) {
       float rd = pos.fastdist(shipPos) / spec.speed * 1.2f;
-      ax += shipVel.x * spec.lookAheadRatio * rd;
-      ay += shipVel.y * spec.lookAheadRatio * rd;
+      a += shipVel * spec.lookAheadRatio * rd;
     }
     float ad;
-    if (fabs(ax) + fabs(ay) < 0.1f)
+    if (fabs(a.x) + fabs(a.y) < 0.1f)
       ad = 0;
     else
-      ad = atan2(ax, ay);
+      ad = atan2(a.x, a.y);
     assert(!ad.isNaN);
     float od = td - ad;
     Math.normalizeDeg(od);
@@ -730,8 +727,7 @@ public class TurretGroup {
 
   public bool move(vec2 p, float deg) {
     bool alive = false;
-    centerPos.x = p.x;
-    centerPos.y = p.y;
+    centerPos = p;
     float d, md, y, my;
     switch (spec.alignType) {
     case TurretGroupSpec.AlignType.ROUND:
@@ -838,7 +834,7 @@ public class TurretGroupSpec {
     num = 1;
     alignType = AlignType.ROUND;
     alignDeg = alignWidth = radius = distRatio = 0;
-    offset.x = offset.y = 0;
+    offset = vec2(0);
   }
 }
 
@@ -908,8 +904,7 @@ public class MovingTurretGroup {
   public void move(vec2 p, float ed) {
     if (spec.moveType == MovingTurretGroupSpec.MoveType.SWING_FIX)
       swingFixDeg = ed;
-    centerPos.x = p.x;
-    centerPos.y = p.y;
+    centerPos = p;
     if (spec.radiusAmp > 0) {
       radiusAmpCnt += spec.radiusAmpVel;
       float av = sin(radiusAmpCnt);
