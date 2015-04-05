@@ -21,18 +21,18 @@ public interface Drawable {
  */
 public interface Collidable {
   public vec2 collision();
-  public bool checkCollision(float ax, float ay, Collidable shape = null);
+  public bool checkCollision(vec2 p, Collidable shape = null);
 }
 
 public template CollidableImpl() {
-  public bool checkCollision(float ax, float ay, Collidable shape = null) {
+  public bool checkCollision(vec2 p, Collidable shape = null) {
     vec2 c;
     if (shape) {
       c = collision + shape.collision;
     } else {
       c = collision;
     }
-    if (ax <= c.x && ay <= c.y)
+    if (p.x <= c.x && p.y <= c.y)
       return true;
     else
       return false;

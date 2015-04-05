@@ -802,7 +802,7 @@ public class Boat {
       sp *= SPEED_BASE;
       _shape.addWake(wakes, _pos, deg, sp);
     }
-    Enemy he = enemies.checkHitShip(pos.x, pos.y);
+    Enemy he = enemies.checkHitShip(pos);
     if (he) {
       float rd;
       if (pos.fastdist(he.pos) < 0.1f)

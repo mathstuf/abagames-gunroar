@@ -501,9 +501,9 @@ public class BaseShape: Drawable {
     return _pointDeg;
   }
 
-  public bool checkShipCollision(float x, float y, float deg, float sr = 1) {
+  public bool checkShipCollision(vec2 p, float deg, float sr = 1) {
     float cs = size * (1 - distRatio) * 1.1f * sr;
-    if (dist(x, y, 0, 0) < cs)
+    if (dist(p.x, p.y, 0, 0) < cs)
       return true;
     float ofs = 0;
     for (;;) {
@@ -511,8 +511,8 @@ public class BaseShape: Drawable {
       cs *= distRatio;
       if (cs < 0.2f)
         return false;
-      if (dist(x, y, sin(deg) * ofs, cos(deg) * ofs) < cs ||
-          dist(x, y, -sin(deg) * ofs, -cos(deg) * ofs) < cs)
+      if (dist(p.x, p.y, sin(deg) * ofs, cos(deg) * ofs) < cs ||
+          dist(p.x, p.y, -sin(deg) * ofs, -cos(deg) * ofs) < cs)
         return true;
     }
     assert(0);
@@ -630,8 +630,8 @@ public class EnemyShape: ResizableDrawable {
     (cast(BaseShape) shape).addWake(wakes, pos, deg, sp, size);
   }
 
-  public bool checkShipCollision(float x, float y, float deg) {
-    return (cast(BaseShape) shape).checkShipCollision(x, y, deg, size);
+  public bool checkShipCollision(vec2 p, float deg) {
+    return (cast(BaseShape) shape).checkShipCollision(p, deg, size);
   }
 }
 

@@ -67,14 +67,14 @@ public class Enemy: Actor {
   public void checkShotHit(vec2 p, Collidable shape, Shot shot) {
     if (_state.destroyedCnt >= 0)
       return;
-    if (spec.checkCollision(_state, p.x, p.y, shape, shot)) {
+    if (spec.checkCollision(_state, p, shape, shot)) {
       if (shot)
         shot.removeHitToEnemy(spec.isSmallEnemy);
     }
   }
 
-  public bool checkHitShip(float x, float y, bool largeOnly = false) {
-    return spec.checkShipCollision(_state, x, y, largeOnly);
+  public bool checkHitShip(vec2 p, bool largeOnly = false) {
+    return spec.checkShipCollision(_state, p, largeOnly);
   }
 
   public void addDamage(int n) {
@@ -310,7 +310,7 @@ public class EnemyState {
       vec2 c = pos + vec2(sin(deg), cos(deg)) * i * spec.size;
       if (field.getBlock(c.x, c.y) >= 0)
         return false;
-      if (enemies.checkHitShip(c.x, c.y, enemy, true))
+      if (enemies.checkHitShip(c, enemy, true))
         return false;
     }
     return true;
@@ -344,14 +344,14 @@ public class EnemyState {
     return true;
   }
 
-  public bool checkCollision(float x, float y, Collidable c, Shot shot) {
-    float ox = fabs(pos.x - x), oy = fabs(pos.y - y);
+  public bool checkCollision(vec2 p, Collidable c, Shot shot) {
+    float ox = fabs(pos.x - p.x), oy = fabs(pos.y - p.y);
     if (ox + oy > spec.size * 2)
       return false;
     for (int i = 0; i < spec.turretGroupNum; i++)
-      if (turretGroup[i].checkCollision(x, y, c, shot))
+      if (turretGroup[i].checkCollision(p, c, shot))
         return true;
-    if (spec.bridgeShape.checkCollision(ox, oy, c)) {
+    if (spec.bridgeShape.checkCollision(vec2(ox, oy), c)) {
       addDamage(shot.damage, shot);
       return true;
     }
@@ -767,14 +767,14 @@ public class EnemySpec {
     }
   }
 
-  public bool checkCollision(EnemyState es, float x, float y, Collidable c, Shot shot) {
-    return es.checkCollision(x, y, c, shot);
+  public bool checkCollision(EnemyState es, vec2 p, Collidable c, Shot shot) {
+    return es.checkCollision(p, c, shot);
   }
 
-  public bool checkShipCollision(EnemyState es, float x, float y, bool largeOnly = false) {
+  public bool checkShipCollision(EnemyState es, vec2 p, bool largeOnly = false) {
     if (es.destroyedCnt >= 0 || (largeOnly && type != EnemyType.LARGE))
       return false;
-    return shape.checkShipCollision(x - es.pos.x, y - es.pos.y, es.deg);
+    return shape.checkShipCollision(p - es.pos, es.deg);
   }
 
   public bool move(EnemyState es) {
@@ -1438,10 +1438,10 @@ public class EnemyPool: ActorPool!(Enemy) {
         e.checkShotHit(pos, shape, shot);
   }
 
-  public Enemy checkHitShip(float x, float y, Enemy deselection = null, bool largeOnly = false) {
+  public Enemy checkHitShip(vec2 p, Enemy deselection = null, bool largeOnly = false) {
     foreach (Enemy e; actor)
       if (e.exists && e != deselection)
-        if (e.checkHitShip(x, y, largeOnly))
+        if (e.checkHitShip(p, largeOnly))
           return e;
     return null;
   }

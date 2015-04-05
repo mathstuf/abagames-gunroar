@@ -350,11 +350,11 @@ public class Turret {
     }
   }
 
-  public bool checkCollision(float x, float y, Collidable c, Shot shot) {
+  public bool checkCollision(vec2 p, Collidable c, Shot shot) {
     if (destroyedCnt >= 0 || spec.invisible)
       return false;
-    float ox = fabs(pos.x - x), oy = fabs(pos.y - y);
-    if (spec.shape.checkCollision(ox, oy, c)) {
+    float ox = fabs(pos.x - p.x), oy = fabs(pos.y - p.y);
+    if (spec.shape.checkCollision(vec2(ox, oy), c)) {
       addDamage(shot.damage);
       return true;
     }
@@ -789,10 +789,10 @@ public class TurretGroup {
       turret[i].remove();
   }
 
-  public bool checkCollision(float x, float y, Collidable c, Shot shot) {
+  public bool checkCollision(vec2 p, Collidable c, Shot shot) {
     bool col = false;
     for (int i = 0; i < spec.num; i++)
-      col |= turret[i].checkCollision(x, y, c, shot);
+      col |= turret[i].checkCollision(p, c, shot);
     return col;
   }
 }
