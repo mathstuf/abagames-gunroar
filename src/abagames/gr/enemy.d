@@ -307,7 +307,7 @@ public class EnemyState {
     if (checkCurrentPos)
       si = 0;
     for (int i = si; i < 5; i++) {
-      vec2 c = pos + vec2(sin(deg), cos(deg)) * i * spec.size;
+      vec2 c = pos + sincos(deg) * i * spec.size;
       if (field.getBlock(c) >= 0)
         return false;
       if (enemies.checkHitShip(c, enemy, true))
@@ -379,7 +379,7 @@ public class EnemyState {
   public bool destroyed(Shot shot = null) {
     float vz;
     if (shot) {
-      explodeVel = Shot.SPEED * vec2(sin(shot.deg), cos(shot.deg)) / 2;
+      explodeVel = Shot.SPEED * sincos(shot.deg) / 2;
       vz = 0;
     } else {
       explodeVel = vec2(0);
@@ -913,13 +913,13 @@ public class SmallShipEnemySpec: EnemySpec, HasAppearType {
       return false;
     switch (type) {
     case MoveType.STOPANDGO:
-      es.pos += vec2(sin(es.velDeg), cos(es.velDeg)) * es.speed;
+      es.pos += sincos(es.velDeg) * es.speed;
       es.pos.y -= field.lastScrollY;
       if  (es.pos.y <= -field.outerSize.y)
         return false;
       if (field.getBlock(es.pos) >= 0 || !field.checkInOuterHeightField(es.pos)) {
         es.velDeg += PI;
-        es.pos += vec2(sin(es.velDeg), cos(es.velDeg)) * es.speed * 2;
+        es.pos += sincos(es.velDeg) * es.speed * 2;
       }
       switch (es.state) {
       case MoveState.MOVING:
@@ -950,7 +950,7 @@ public class SmallShipEnemySpec: EnemySpec, HasAppearType {
         return false;
       if (field.getBlock(es.pos) >= 0 || !field.checkInOuterHeightField(es.pos)) {
         es.velDeg += PI;
-        es.pos += vec2(sin(es.velDeg), cos(es.velDeg)) * es.speed * 2;
+        es.pos += sincos(es.velDeg) * es.speed * 2;
       }
       float ad;
       vec2 shipPos = ship.nearPos(es.pos);
@@ -1232,8 +1232,7 @@ public class ShipEnemySpec: EnemySpec, HasAppearType {
       return false;
     if (!super.move(es))
       return false;
-    es.pos.x += sin(es.deg) * es.speed;
-    es.pos.y += cos(es.deg) * es.speed;
+    es.pos += sincos(es.deg) * es.speed;
     es.pos.y -= field.lastScrollY;
     if  (es.pos.x <= -field.outerSize.x - size || es.pos.x >= field.outerSize.x + size ||
          es.pos.y <= -field.outerSize.y - size)

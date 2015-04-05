@@ -174,7 +174,7 @@ public class Shot: Actor {
       else
         sp = LANCE_SPEED;
     }
-    pos += vec2(sin(_deg), cos(_deg)) * sp;
+    pos += sincos(_deg) * sp;
     pos.y -= field.lastScrollY;
     if (field.getBlock(pos) >= Field.ON_BLOCK_THRESHOLD ||
         !field.checkInOuterField(pos) || pos.y > field.size.y)
@@ -270,7 +270,7 @@ public class Shot: Actor {
 
           d += 60;
         }
-        p -= vec2(sin(deg), cos(deg)) * LANCE_SPEED * 2;
+        p -= sincos(deg) * LANCE_SPEED * 2;
       }
     } else {
       mat4 model = mat4.identity;

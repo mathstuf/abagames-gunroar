@@ -486,10 +486,10 @@ public class BaseShape: Drawable {
     float sz = size;
     if (sz > 10)
       sz = 10;
-    wakePos = pos + vec2(sin(deg + PI / 2 + 0.7f), cos(deg + PI / 2 + 0.7f)) * size * 0.5f * sr;
+    wakePos = pos + sincos(deg + PI / 2 + 0.7f) * size * 0.5f * sr;
     Wake w = wakes.getInstanceForced();
     w.set(wakePos, deg + PI - 0.2f + rand.nextSignedFloat(0.1f), sp, 40, sz * 32 * sr);
-    wakePos = pos + vec2(sin(deg - PI / 2 - 0.7f), cos(deg - PI / 2 + 0.7f)) * size * 0.5f * sr;
+    wakePos = pos + sincos(deg - PI / 2 - 0.7f) * size * 0.5f * sr;
     w = wakes.getInstanceForced();
     w.set(wakePos, deg + PI + 0.2f + rand.nextSignedFloat(0.1f), sp, 40, sz * 32 * sr);
   }
@@ -512,8 +512,8 @@ public class BaseShape: Drawable {
       cs *= distRatio;
       if (cs < 0.2f)
         return false;
-      if (fastdist(p, vec2(sin(deg), cos(deg)) * ofs) < cs ||
-          fastdist(p, -vec2(sin(deg), cos(deg)) * ofs) < cs)
+      if (fastdist(p, sincos(deg) * ofs) < cs ||
+          fastdist(p, -sincos(deg) * ofs) < cs)
         return true;
     }
     assert(0);

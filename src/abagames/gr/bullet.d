@@ -118,7 +118,7 @@ public class Bullet: Actor {
     }
     if (field.checkInOuterField(pos))
       gameManager.addSlowdownRatio(speed * 0.24f);
-    vec2 m = vec2(sin(deg), cos(deg)) * speed;
+    vec2 m = sincos(deg) * speed;
     pos += m;
     pos.y -= field.lastScrollY;
     if (ship.checkBulletHit(pos, ppos) || !field.checkInOuterFieldExceptTop(pos)) {

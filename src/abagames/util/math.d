@@ -49,3 +49,11 @@ bool contains(vec2 v1, vec2 v2, float r = 1) {
 vec2 absdiff(vec2 a, vec2 b) {
   return vec2(fabs(a.x - b.x), fabs(a.y - b.y));
 }
+
+vec2 sincos(float deg) {
+  return vec2(sin(deg), cos(deg));
+}
+
+vec2 cosnsin(float deg) {
+  return vec2(cos(deg), -sin(deg));
+}

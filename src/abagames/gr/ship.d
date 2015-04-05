@@ -811,7 +811,7 @@ public class Boat {
         rd = atan2(_pos.x - he.pos.x, _pos.y - he.pos.y);
       assert(!rd.isNaN);
       float sz = he.size;
-      refVel = vec2(sin(rd), cos(rd)) * sz * 0.1f;
+      refVel = sincos(rd) * sz * 0.1f;
       float rs = refVel.length;
       if (rs > 1) {
         refVel /= rs;
@@ -1037,7 +1037,7 @@ public class Boat {
       SoundManager.playSe("shot.wav");
       Shot s = shots.getInstance();
       int foc = (fireSprCnt % 2) * 2 - 1;
-      firePos = _pos + vec2(cos(fireDeg + PI), -sin(fireDeg + PI)) * 0.2f * foc;
+      firePos = _pos + cosnsin(fireDeg + PI) * 0.2f * foc;
       if (s)
         s.set(firePos, fireDeg);
       fireCnt = cast(int) fireInterval;
@@ -1094,7 +1094,7 @@ public class Boat {
        if (rsd > 1)
          rsd = 1;
        fireSprDeg = 1 - rsd + 0.05f;
-       firePos = _pos + vec2(cos(fireDeg + PI), -sin(fireDeg + PI)) * 0.2f * foc;
+       firePos = _pos + cosnsin(fireDeg + PI) * 0.2f * foc;
        fireCnt = cast(int) fireInterval;
 
        fire(foc);
@@ -1122,7 +1122,7 @@ public class Boat {
       SoundManager.playSe("shot.wav");
       int foc = (fireSprCnt % 2) * 2 - 1;
       fireDeg = 0;//ship.degAmongBoats() + PI / 2;
-      firePos = _pos + vec2(cos(fireDeg + PI), -sin(fireDeg + PI)) * 0.2f * foc;
+      firePos = _pos + cosnsin(fireDeg + PI) * 0.2f * foc;
       Shot s = shots.getInstance();
       if (s)
         s.set(firePos, fireDeg, false , 2);
@@ -1144,7 +1144,7 @@ public class Boat {
         default:
           assert(0);
         }
-        firePos = ship.midstPos + vec2(cos(fd + PI), -sin(fd + PI)) * 0.2f * foc;
+        firePos = ship.midstPos + cosnsin(fd + PI) * 0.2f * foc;
         s = shots.getInstance();
         if (s)
           s.set(firePos, fd, false, 2);
@@ -1186,7 +1186,7 @@ public class Boat {
         if (mouseInput.button & MouseState.Button.RIGHT)
           fstd += 0.5f;
         fireSprDeg += (fstd - fireSprDeg) * 0.16f;
-        firePos = _pos + vec2(cos(fireDeg + PI), -sin(fireDeg + PI)) * 0.2f * foc;
+        firePos = _pos + cosnsin(fireDeg + PI) * 0.2f * foc;
         fireCnt = cast(int) fireInterval;
 
         fire(foc);

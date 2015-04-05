@@ -439,13 +439,13 @@ public class Smoke: LuminousActor {
         if (sp > 0.3f) {
           float d = atan2(vel.x, vel.y);
           assert(!d.isNaN);
-          wakePos = pos.xy + vec2(sin(d + PI / 2), cos(d + PI / 2)) * size * 0.25f;
+          wakePos = pos.xy + sincos(d + PI / 2) * size * 0.25f;
           Wake w = wakes.getInstanceForced();
           assert(!wakePos.x.isNaN);
           assert(!wakePos.y.isNaN);
           w.set(wakePos, d + PI - 0.2f + rand.nextSignedFloat(0.1f), sp * 0.33f,
                 20 + rand.nextInt(12), size * (7.0f + rand.nextFloat(3)));
-          wakePos = pos.xy + vec2(sin(d - PI / 2), cos(d - PI / 2)) * size * 0.25f;
+          wakePos = pos.xy + sincos(d - PI / 2) * size * 0.25f;
           w = wakes.getInstanceForced();
           assert(!wakePos.x.isNaN);
           assert(!wakePos.y.isNaN);
@@ -976,7 +976,7 @@ public class Wake: Actor {
     pos = p;
     this.deg = deg;
     this.speed = speed;
-    vel = vec2(sin(deg), cos(deg)) * speed;
+    vel = sincos(deg) * speed;
     cnt = c;
     size = sz;
     revShape = rs;
