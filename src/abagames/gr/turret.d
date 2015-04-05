@@ -353,8 +353,8 @@ public class Turret {
   public bool checkCollision(vec2 p, Collidable c, Shot shot) {
     if (destroyedCnt >= 0 || spec.invisible)
       return false;
-    float ox = fabs(pos.x - p.x), oy = fabs(pos.y - p.y);
-    if (spec.shape.checkCollision(vec2(ox, oy), c)) {
+    vec2 o = pos.absdiff(p);
+    if (spec.shape.checkCollision(o, c)) {
       addDamage(shot.damage);
       return true;
     }

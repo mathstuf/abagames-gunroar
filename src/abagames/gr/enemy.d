@@ -345,13 +345,13 @@ public class EnemyState {
   }
 
   public bool checkCollision(vec2 p, Collidable c, Shot shot) {
-    float ox = fabs(pos.x - p.x), oy = fabs(pos.y - p.y);
-    if (ox + oy > spec.size * 2)
+    vec2 o = pos.absdiff(p);
+    if (o.x + o.y > spec.size * 2)
       return false;
     for (int i = 0; i < spec.turretGroupNum; i++)
       if (turretGroup[i].checkCollision(p, c, shot))
         return true;
-    if (spec.bridgeShape.checkCollision(vec2(ox, oy), c)) {
+    if (spec.bridgeShape.checkCollision(o, c)) {
       addDamage(shot.damage, shot);
       return true;
     }

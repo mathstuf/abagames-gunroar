@@ -173,9 +173,9 @@ public class Bullet: Actor {
   }
 
   public void checkShotHit(vec2 p, Collidable s, Shot shot) {
-    float ox = fabs(pos.x - p.x), oy = fabs(pos.y - p.y);
-    if (ox + oy < 0.5f) {
-    //if (shape.checkCollision(vec2(ox, oy), s)) {
+    vec2 o = pos.absdiff(p);
+    if (o.x + o.y < 0.5f) {
+    //if (shape.checkCollision(o, s)) {
       shot.removeHitToBullet();
       Smoke smoke = smokes.getInstance();
       if (smoke)

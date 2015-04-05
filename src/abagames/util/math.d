@@ -28,12 +28,11 @@ public class Math {
 }
 
 real fastdist(vec2 v1, vec2 v2 = vec2(0)) {
-  float ax = fabs(v1.x - v2.x);
-  float ay = fabs(v1.y - v2.y);
-  if (ax > ay)
-    return ax + ay / 2;
+  vec2 a = v1.absdiff(v2);
+  if (a.x > a.y)
+    return a.x + a.y / 2;
   else
-    return ay + ax / 2;
+    return a.y + a.x / 2;
 }
 
 bool contains(vec2 v1, float x, float y, float r = 1) {
@@ -45,4 +44,8 @@ bool contains(vec2 v1, float x, float y, float r = 1) {
 
 bool contains(vec2 v1, vec2 v2, float r = 1) {
   return contains(v1, v2.x, v2.y, r);
+}
+
+vec2 absdiff(vec2 a, vec2 b) {
+  return vec2(fabs(a.x - b.x), fabs(a.y - b.y));
 }

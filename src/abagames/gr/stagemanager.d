@@ -8,6 +8,7 @@ module abagames.gr.stagemanager;
 private import std.string;
 private import std.math;
 private import gl3n.linalg;
+private import abagames.util.math;
 private import abagames.util.rand;
 private import abagames.util.sdl.shape;
 private import abagames.gr.enemy;
@@ -262,8 +263,8 @@ public class StageManager {
       if (!platformEnemySpec.setFirstState(en.state, p, platformPos[ppi].deg))
         continue;
       for (int j = 0; j < platformPosNum; j++) {
-        if (fabs(platformPos[ppi].pos.x - platformPos[j].pos.x) <= 1 &&
-            fabs(platformPos[ppi].pos.y - platformPos[j].pos.y) <= 1 &&
+        vec2 pd = platformPos[ppi].pos.absdiff(platformPos[j].pos);
+        if (pd.x <= 1 && pd.y <= 1 &&
             !platformPos[j].used) {
           platformPos[j].used = true;
           ppn--;

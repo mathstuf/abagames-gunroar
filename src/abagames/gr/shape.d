@@ -7,6 +7,7 @@ module abagames.gr.shape;
 
 private import std.math;
 private import gl3n.linalg;
+private import abagames.util.math;
 private import abagames.util.rand;
 private import abagames.util.support.gl;
 private import abagames.util.sdl.shaderprogram;
@@ -503,7 +504,7 @@ public class BaseShape: Drawable {
 
   public bool checkShipCollision(vec2 p, float deg, float sr = 1) {
     float cs = size * (1 - distRatio) * 1.1f * sr;
-    if (dist(p.x, p.y, 0, 0) < cs)
+    if (fastdist(p, vec2(0)) < cs)
       return true;
     float ofs = 0;
     for (;;) {
@@ -511,20 +512,11 @@ public class BaseShape: Drawable {
       cs *= distRatio;
       if (cs < 0.2f)
         return false;
-      if (dist(p.x, p.y, sin(deg) * ofs, cos(deg) * ofs) < cs ||
-          dist(p.x, p.y, -sin(deg) * ofs, -cos(deg) * ofs) < cs)
+      if (fastdist(p, vec2(sin(deg), cos(deg)) * ofs) < cs ||
+          fastdist(p, -vec2(sin(deg), cos(deg)) * ofs) < cs)
         return true;
     }
     assert(0);
-  }
-
-  private float dist(float x, float y, float px, float py) {
-    float ax = fabs(x - px);
-    float ay = fabs(y - py);
-    if (ax > ay)
-      return ax + ay / 2;
-    else
-      return ay + ax / 2;
   }
 }
 
