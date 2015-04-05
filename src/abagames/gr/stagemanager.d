@@ -247,9 +247,7 @@ public class StageManager {
       for (int j = 0; j < platformPosNum; j++) {
         if (!platformPos[ppi].used)
           break;
-        ppi++;
-        if (ppi >= platformPosNum)
-          ppi = 0;
+        ppi = boundr(ppi + 1, platformPosNum);
       }
       if (platformPos[ppi].used)
         break;
@@ -258,8 +256,7 @@ public class StageManager {
         break;
       platformPos[ppi].used = true;
       ppn--;
-      vec2 p = field.convertToScreenPos
-        (cast(int) platformPos[ppi].pos.x, cast(int) platformPos[ppi].pos.y);
+      vec2 p = field.convertToScreenPos(platformPos[ppi].pos.toint);
       if (!platformEnemySpec.setFirstState(en.state, p, platformPos[ppi].deg))
         continue;
       for (int j = 0; j < platformPosNum; j++) {
@@ -280,8 +277,8 @@ public class StageManager {
   }
 
   public void draw(mat4 view) {
-    Letter.drawNum(view, cast(int) (rank * 1000), 620, 10, 10, 0, Letter.COLOR0, 33 /* x */, 3);
-    Letter.drawTime(view, bossAppTime, 120, 20, 7);
+    Letter.drawNum(view, cast(int) (rank * 1000), vec2(620, 10), 10, 0, Letter.COLOR0, 33 /* x */, 3);
+    Letter.drawTime(view, bossAppTime, vec2(120, 20), 7);
   }
 
   public float rankMultiplier() {

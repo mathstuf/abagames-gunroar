@@ -77,7 +77,7 @@ public class Ship {
     _lowerPos = vec2(0);
     _nearPos = vec2(0);
     _nearVel = vec2(0);
-    bridgeShape = new BaseShape(0.3f, 0.2f, 0.1f, BaseShape.ShapeType.BRIDGE, 0.3f, 0.7f, 0.7f);
+    bridgeShape = new BaseShape(0.3f, 0.2f, 0.1f, BaseShape.ShapeType.BRIDGE, vec3(0.3f, 0.7f, 0.7f));
 
     program = new ShaderProgram;
     program.setVertexShader(
@@ -584,12 +584,12 @@ public class Boat {
     refVel = vec2(0);
     switch (idx) {
     case 0:
-      _shape = new BaseShape(0.7f, 0.6f, 0.6f, BaseShape.ShapeType.SHIP_ROUNDTAIL, 0.5f, 0.7f, 0.5f);
-      bridgeShape = new BaseShape(0.3f, 0.6f, 0.6f, BaseShape.ShapeType.BRIDGE, 0.3f, 0.7f, 0.3f);
+      _shape = new BaseShape(0.7f, 0.6f, 0.6f, BaseShape.ShapeType.SHIP_ROUNDTAIL, vec3(0.5f, 0.7f, 0.5f));
+      bridgeShape = new BaseShape(0.3f, 0.6f, 0.6f, BaseShape.ShapeType.BRIDGE, vec3(0.3f, 0.7f, 0.3f));
       break;
     case 1:
-      _shape = new BaseShape(0.7f, 0.6f, 0.6f, BaseShape.ShapeType.SHIP_ROUNDTAIL, 0.4f, 0.3f, 0.8f);
-      bridgeShape = new BaseShape(0.3f, 0.6f, 0.6f, BaseShape.ShapeType.BRIDGE, 0.2f, 0.3f, 0.6f);
+      _shape = new BaseShape(0.7f, 0.6f, 0.6f, BaseShape.ShapeType.SHIP_ROUNDTAIL, vec3(0.4f, 0.3f, 0.8f));
+      bridgeShape = new BaseShape(0.3f, 0.6f, 0.6f, BaseShape.ShapeType.BRIDGE, vec3(0.2f, 0.3f, 0.6f));
       break;
     default:
       assert(0);
@@ -735,10 +735,10 @@ public class Boat {
     veltmp *= speed;
     veltmp += refVel;
     refVel *= 0.9f;
-    if (field.checkInField(_pos.x, _pos.y - field.lastScrollY))
+    if (field.checkInField(_pos - vec2(0, field.lastScrollY)))
       _pos.y -= field.lastScrollY;
-    if ((onBlock || field.getBlock(_pos.x + veltmp.x, _pos.y) < 0) &&
-        field.checkInField(_pos.x + veltmp.x, _pos.y)) {
+    if ((onBlock || field.getBlock(_pos + vec2(veltmp.x, 0)) < 0) &&
+        field.checkInField(_pos + vec2(veltmp.x, 0))) {
       _pos.x += veltmp.x;
       _vel.x = veltmp.x;
     } else {
@@ -746,8 +746,9 @@ public class Boat {
       refVel.x = 0;
     }
     bool srf = false;
-    if ((onBlock || field.getBlock(p.x, _pos.y + veltmp.y) < 0) &&
-        field.checkInField(_pos.x, _pos.y + veltmp.y)) {
+    // FIXME: typo?
+    if ((onBlock || field.getBlock(vec2(p.x, _pos.y + veltmp.y)) < 0) &&
+        field.checkInField(_pos + vec2(0, veltmp.y))) {
       _pos.y += veltmp.y;
       _vel.y = veltmp.y;
     } else {
@@ -759,7 +760,7 @@ public class Boat {
         if (cnt <= 0) {
           onBlock = true;
         } else {
-          if (field.checkInField(_pos.x, _pos.y - field.lastScrollY)) {
+          if (field.checkInField(_pos - vec2(0, field.lastScrollY))) {
             _pos = p;
           } else {
             destroyed();
@@ -1057,10 +1058,8 @@ public class Boat {
         for (int i = 0; i < 4; i++) {
           Smoke sm = smokes.getInstanceForced();
           float sd = fd + rand.nextSignedFloat(1);
-          sm.set(pos,
-                 sin(sd) * Shot.LANCE_SPEED * i * 0.2f,
-                 cos(sd) * Shot.LANCE_SPEED * i * 0.2f,
-                 0, Smoke.SmokeType.SPARK, 15, 0.5f);
+          sm.set(pos, sincos(sd) * Shot.LANCE_SPEED * i * 0.2f,
+                 Smoke.SmokeType.SPARK, 15, 0.5f);
         }
         fireLanceCnt = FIRE_LANCE_INTERVAL;
       }
@@ -1129,7 +1128,7 @@ public class Boat {
       fireCnt = cast(int) fireInterval;
       Smoke sm = smokes.getInstanceForced();
       float sd = fireDeg;
-      sm.set(firePos, sin(sd) * Shot.SPEED * 0.33f, cos(sd) * Shot.SPEED * 0.33f, 0,
+      sm.set(firePos, sincos(sd) * Shot.SPEED * 0.33f,
              Smoke.SmokeType.SPARK, 10, 0.33f);
       if (idx == 0) {
         float fd = ship.degAmongBoats() + PI / 2;
@@ -1152,7 +1151,7 @@ public class Boat {
         if (s)
           s.set(firePos, fd + td, false , 2);
         sm = smokes.getInstanceForced();
-        sm.set(firePos, sin(fd + td / 2) * Shot.SPEED * 0.33f, cos(fd + td / 2) * Shot.SPEED * 0.33f, 0,
+        sm.set(firePos, sincos(fd + td / 2) * Shot.SPEED * 0.33f,
                Smoke.SmokeType.SPARK, 10, 0.33f);
       }
       fireSprCnt++;
@@ -1170,13 +1169,12 @@ public class Boat {
   }
 
   private void fireMouse() {
-    float fox = mouseInput.x - _pos.x;
-    float foy = mouseInput.y - _pos.y;
-    if (fabs(fox) < 0.01f)
-      fox = 0.01f;
-    if (fabs(foy) < 0.01f)
-      foy = 0.01f;
-    fireDeg = atan2(fox, foy);
+    vec2 fo = mouseInput.pos - _pos;
+    if (fabs(fo.x) < 0.01f)
+      fo.x = 0.01f;
+    if (fabs(fo.y) < 0.01f)
+      fo.y = 0.01f;
+    fireDeg = atan2(fo.x, fo.y);
     assert(!fireDeg.isNaN);
     if (mouseInput.button & (MouseState.Button.LEFT | MouseState.Button.RIGHT)) {
       if (fireCnt <= 0) {
@@ -1216,7 +1214,7 @@ public class Boat {
       s.set(firePos, fireDeg + td, false, 2);
     Smoke sm = smokes.getInstanceForced();
     float sd = fireDeg + td / 2;
-    sm.set(firePos, sin(sd) * Shot.SPEED * 0.33f, cos(sd) * Shot.SPEED * 0.33f, 0,
+    sm.set(firePos, sincos(sd) * Shot.SPEED * 0.33f,
            Smoke.SmokeType.SPARK, 10, 0.33f);
   }
 
@@ -1259,8 +1257,8 @@ public class Boat {
   private void destroyedBoatShield() {
     for (int i = 0; i < 100; i++) {
       Spark sp = sparks.getInstanceForced();
-      sp.set(pos, rand.nextSignedFloat(1), rand.nextSignedFloat(1),
-             0.5f + rand.nextFloat(0.5f), 0.5f + rand.nextFloat(0.5f), 0,
+      sp.set(pos, randvec(rand, 1),
+             vec3(vec2(0.5f) + randvecp(rand, 0.5f), 0),
              40 + rand.nextInt(40));
     }
     SoundManager.playSe("ship_shield_lost.wav");
@@ -1272,15 +1270,14 @@ public class Boat {
   public void destroyedBoat() {
     for (int i = 0; i < 128; i++) {
       Spark sp = sparks.getInstanceForced();
-      sp.set(pos, rand.nextSignedFloat(1), rand.nextSignedFloat(1),
-             0.5f + rand.nextFloat(0.5f), 0.5f + rand.nextFloat(0.5f), 0,
+      sp.set(pos, randvec(rand, 1),
+             vec3(vec2(0.5f) + randvecp(rand, 0.5f), 0),
              40 + rand.nextInt(40));
     }
     SoundManager.playSe("ship_destroyed.wav");
     for (int i = 0; i < 64; i++) {
       Smoke s = smokes.getInstanceForced();
-      s.set(pos, rand.nextSignedFloat(0.2f), rand.nextSignedFloat(0.2f),
-            rand.nextFloat(0.1f),
+      s.set(pos, vec3(randvec(rand, 0.2f), rand.nextFloat(0.1f)),
             Smoke.SmokeType.EXPLOSION, 50 + rand.nextInt(30), 1);
     }
     screen.setScreenShake(60, 0.05f);
@@ -1343,19 +1340,19 @@ public class Boat {
       Screen.lineWidth(2);
 
       sightProgram.setUniform("color", 0.7f, 0.9f, 0.8f, 1);
-      drawSight(mouseInput.x, mouseInput.y, 0.3f);
+      drawSight(mouseInput.pos, 0.3f);
 
       float ss = 0.9f - 0.8f * ((cnt + 1024) % 32) / 32;
 
       sightProgram.setUniform("color", 0.5f, 0.9f, 0.7f, 0.8f);
-      drawSight(mouseInput.x, mouseInput.y, ss);
+      drawSight(mouseInput.pos, ss);
 
       Screen.lineWidth(1);
     }
   }
 
-  private void drawSight(float x, float y, float size) {
-    sightProgram.setUniform("pos", x, y);
+  private void drawSight(vec2 p, float size) {
+    sightProgram.setUniform("pos", p);
     sightProgram.setUniform("size", size);
 
     sightProgram.useVao(vao[0]);

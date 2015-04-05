@@ -42,7 +42,7 @@ public class BaseShape: Drawable {
   static vec2 wakePos;
   float size, distRatio, spinyRatio;
   int type;
-  float r, g, b;
+  vec3 color;
   static const int PILLAR_POINT_NUM = 8;
   vec2[] pillarPos;
   vec2[] _pointPos;
@@ -58,9 +58,9 @@ public class BaseShape: Drawable {
     assert(distRatio >= 0 && distRatio <= 1);
     assert(spinyRatio >= 0 && spinyRatio <= 1);
     assert(type >= 0);
-    assert(r >= 0 && r <= 1);
-    assert(g >= 0 && g <= 1);
-    assert(b >= 0 && b <= 1);
+    assert(color.r >= 0 && color.r <= 1);
+    assert(color.g >= 0 && color.g <= 1);
+    assert(color.b >= 0 && color.b <= 1);
     foreach (const(vec2) p; pillarPos) {
       assert(p.x < 20 && p.x > -20);
       assert(p.y < 20 && p.x > -20);
@@ -87,14 +87,12 @@ public class BaseShape: Drawable {
   }
 
   public this(float size, float distRatio, float spinyRatio,
-              int type, float r, float g, float b) {
+              int type, vec3 color) {
     this.size = size;
     this.distRatio = distRatio;
     this.spinyRatio = spinyRatio;
     this.type = type;
-    this.r = r;
-    this.g = g;
-    this.b = b;
+    this.color = color;
 
     if (type != ShapeType.BRIDGE) {
       for (int i = 0; i < POINT_NUM; i++) {
@@ -334,7 +332,7 @@ public class BaseShape: Drawable {
     float height = size * 0.5f;
     float z = 0;
     float sz = 1;
-    vec3 baseColor = vec3(r, g, b);
+    vec3 baseColor = color;
     if (type == ShapeType.BRIDGE)
       z += height;
     if (type != ShapeType.SHIP_DESTROYED)
@@ -526,9 +524,8 @@ public class CollidableBaseShape: BaseShape, Collidable {
   vec2 _collision;
 
   public this(float size, float distRatio, float spinyRatio,
-              int type,
-              float r, float g, float b) {
-    super(size, distRatio, spinyRatio, type, r, g, b);
+              int type, vec3 color) {
+    super(size, distRatio, spinyRatio, type, color);
     _collision = vec2(size / 2);
   }
 
@@ -547,9 +544,9 @@ public class TurretShape: ResizableDrawable {
   BaseShape baseShape;
 
   public static void init() {
-    shapes ~= new CollidableBaseShape(1, 0, 0, BaseShape.ShapeType.TURRET, 1, 0.8f, 0.8f);
-    shapes ~= new BaseShape(1, 0, 0, BaseShape.ShapeType.TURRET_DAMAGED, 0.9f, 0.9f, 1);
-    shapes ~= new BaseShape(1, 0, 0, BaseShape.ShapeType.TURRET_DESTROYED, 0.8f, 0.33f, 0.66f);
+    shapes ~= new CollidableBaseShape(1, 0, 0, BaseShape.ShapeType.TURRET, vec3(1, 0.8f, 0.8f));
+    shapes ~= new BaseShape(1, 0, 0, BaseShape.ShapeType.TURRET_DAMAGED, vec3(0.9f, 0.9f, 1));
+    shapes ~= new BaseShape(1, 0, 0, BaseShape.ShapeType.TURRET_DESTROYED, vec3(0.8f, 0.33f, 0.66f));
   }
 
   public static void close() {
@@ -574,34 +571,34 @@ public class EnemyShape: ResizableDrawable {
     MIDDLE, MIDDLE_DAMAGED, MIDDLE_DESTROYED, MIDDLE_BRIDGE,
     PLATFORM, PLATFORM_DAMAGED, PLATFORM_DESTROYED, PLATFORM_BRIDGE,
   };
-  static const float MIDDLE_COLOR_R = 1, MIDDLE_COLOR_G = 0.6f, MIDDLE_COLOR_B = 0.5f;
+  static const vec3 MIDDLE_COLOR = vec3(1, 0.6f, 0.5f);
  private:
   static BaseShape[] shapes;
   BaseShape baseShape;
 
   public static void init() {
     shapes ~= new BaseShape
-      (1, 0.5f, 0.1f, BaseShape.ShapeType.SHIP, 0.9f, 0.7f, 0.5f);
+      (1, 0.5f, 0.1f, BaseShape.ShapeType.SHIP, vec3(0.9f, 0.7f, 0.5f));
     shapes ~= new BaseShape
-      (1, 0.5f, 0.1f, BaseShape.ShapeType.SHIP_DAMAGED, 0.5f, 0.5f, 0.9f);
+      (1, 0.5f, 0.1f, BaseShape.ShapeType.SHIP_DAMAGED, vec3(0.5f, 0.5f, 0.9f));
     shapes ~= new CollidableBaseShape
-      (0.66f, 0, 0, BaseShape.ShapeType.BRIDGE, 1, 0.2f, 0.3f);
+      (0.66f, 0, 0, BaseShape.ShapeType.BRIDGE, vec3(1, 0.2f, 0.3f));
     shapes ~= new BaseShape
-      (1, 0.7f, 0.33f, BaseShape.ShapeType.SHIP, MIDDLE_COLOR_R, MIDDLE_COLOR_G, MIDDLE_COLOR_B);
+      (1, 0.7f, 0.33f, BaseShape.ShapeType.SHIP, MIDDLE_COLOR);
     shapes ~= new BaseShape
-      (1, 0.7f, 0.33f, BaseShape.ShapeType.SHIP_DAMAGED, 0.5f, 0.5f, 0.9f);
+      (1, 0.7f, 0.33f, BaseShape.ShapeType.SHIP_DAMAGED, vec3(0.5f, 0.5f, 0.9f));
     shapes ~= new BaseShape
-      (1, 0.7f, 0.33f, BaseShape.ShapeType.SHIP_DESTROYED, 0, 0, 0);
+      (1, 0.7f, 0.33f, BaseShape.ShapeType.SHIP_DESTROYED, vec3(0, 0, 0));
     shapes ~= new CollidableBaseShape
-      (0.66f, 0, 0, BaseShape.ShapeType.BRIDGE, 1, 0.2f, 0.3f);
+      (0.66f, 0, 0, BaseShape.ShapeType.BRIDGE, vec3(1, 0.2f, 0.3f));
     shapes ~= new BaseShape
-      (1, 0, 0, BaseShape.ShapeType.PLATFORM, 1, 0.6f, 0.7f);
+      (1, 0, 0, BaseShape.ShapeType.PLATFORM, vec3(1, 0.6f, 0.7f));
     shapes ~= new BaseShape
-      (1, 0, 0, BaseShape.ShapeType.PLATFORM_DAMAGED, 0.5f, 0.5f, 0.9f);
+      (1, 0, 0, BaseShape.ShapeType.PLATFORM_DAMAGED, vec3(0.5f, 0.5f, 0.9f));
     shapes ~= new BaseShape
-      (1, 0, 0, BaseShape.ShapeType.PLATFORM_DESTROYED, 1, 0.6f, 0.7f);
+      (1, 0, 0, BaseShape.ShapeType.PLATFORM_DESTROYED, vec3(1, 0.6f, 0.7f));
     shapes ~= new CollidableBaseShape
-      (0.5f, 0, 0, BaseShape.ShapeType.BRIDGE, 1, 0.2f, 0.3f);
+      (0.5f, 0, 0, BaseShape.ShapeType.BRIDGE, vec3(1, 0.2f, 0.3f));
   }
 
   public static void close() {

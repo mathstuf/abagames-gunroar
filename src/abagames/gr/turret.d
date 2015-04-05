@@ -175,8 +175,8 @@ public class Turret {
     burstCnt = 0;
   }
 
-  public bool move(float x, float y, float d, float bulletFireSpeed = 0, float bulletFireDeg = -99999) {
-    pos = vec2(x, y);
+  public bool move(vec2 p, float d, float bulletFireSpeed = 0, float bulletFireDeg = -99999) {
+    pos = p;
     baseDeg = d;
     if (destroyedCnt >= 0) {
       destroyedCnt++;
@@ -184,7 +184,7 @@ public class Turret {
       if (itv < 60 && destroyedCnt % itv == 0) {
         Smoke s = smokes.getInstance();
         if (s)
-          s.set(pos, 0, 0, 0.01f + rand.nextFloat(0.01f), Smoke.SmokeType.FIRE, 90 + rand.nextInt(30), spec.size);
+          s.set(pos, vec3(0, 0, 0.01f + rand.nextFloat(0.01f)), Smoke.SmokeType.FIRE, 90 + rand.nextInt(30), spec.size);
       }
       return false;
     }
@@ -240,7 +240,7 @@ public class Turret {
       float bd = baseDeg + deg;
       Smoke s = smokes.getInstance();
       if (s)
-        s.set(pos, sin(bd) * bulletSpeed, cos(bd) * bulletSpeed, 0,
+        s.set(pos, sincos(bd) * bulletSpeed,
               Smoke.SmokeType.SPARK, 20, spec.size * 2);
       int nw = spec.nway;
       if (spec.nwayChange && burstCnt % 2 == 1)
@@ -282,16 +282,17 @@ public class Turret {
     } else {
       model.translate(pos.x, pos.y, 0);
     }
+    TurretShape shape;
     if (destroyedCnt >= 0) {
-      spec.destroyedShape.setDefaultColor(storedColor);
-      spec.destroyedShape.draw(view, model);
+      shape = spec.destroyedShape;
     } else if (!damaged) {
-      spec.shape.setDefaultColor(storedColor);
-      spec.shape.draw(view, model);
+      shape = spec.shape;
     } else {
-      spec.damagedShape.setDefaultColor(storedColor);
-      spec.damagedShape.draw(view, model);
+      shape = spec.damagedShape;
     }
+
+    shape.setDefaultColor(storedColor);
+    shape.draw(view, model);
 
     if (destroyedCnt >= 0)
       return;
@@ -374,17 +375,17 @@ public class Turret {
     destroyedCnt = 0;
     for (int i = 0; i < 6; i++) {
       Smoke s = smokes.getInstanceForced();
-      s.set(pos, rand.nextSignedFloat(0.1f), rand.nextSignedFloat(0.1f), rand.nextFloat(0.04f),
+      s.set(pos, vec3(randvec(rand, 0.1f), rand.nextFloat(0.04f)),
             Smoke.SmokeType.EXPLOSION, 30 + rand.nextInt(20), spec.size * 1.5f);
     }
     for (int i = 0; i < 32; i++) {
       Spark sp = sparks.getInstanceForced();
-      sp.set(pos, rand.nextSignedFloat(0.5f), rand.nextSignedFloat(0.5f),
-             0.5f + rand.nextFloat(0.5f), 0.5f + rand.nextFloat(0.5f), 0, 30 + rand.nextInt(30));
+      sp.set(pos, randvec(rand, 0.5f),
+             vec3(vec2(0.5f) + randvecp(rand, 0.5f), 0), 30 + rand.nextInt(30));
     }
     for (int i = 0; i < 7; i++) {
       Fragment f = fragments.getInstanceForced();
-      f.set(pos, rand.nextSignedFloat(0.25f), rand.nextSignedFloat(0.25f), 0.05f + rand.nextFloat(0.05f),
+      f.set(pos, vec3(randvec(rand, 0.25f), 0.05f + rand.nextFloat(0.05f)),
             spec.size * (0.5f + rand.nextFloat(0.5f)));
     }
     switch (spec.type) {
@@ -747,26 +748,26 @@ public class TurretGroup {
       assert(0);
     }
     for (int i = 0; i < spec.num; i++) {
-      float tbx, tby;
+      vec2 tb;
       switch (spec.alignType) {
       case TurretGroupSpec.AlignType.ROUND:
-        tbx = sin(d) * spec.radius;
-        tby = cos(d) * spec.radius;
+        tb = sincos(d) * spec.radius;
         break;
       case TurretGroupSpec.AlignType.STRAIGHT:
         y += my;
-        tbx = spec.offset.x;
-        tby = y;
-        d = atan2(tbx, tby);
+        tb = vec2(spec.offset.x, y);
+        d = angle(tb);
         assert(!d.isNaN);
         break;
       default:
         assert(0);
       }
-      tbx *= (1 - spec.distRatio);
-      float bx = tbx * cos(-deg) - tby * sin(-deg);
-      float by = tbx * sin(-deg) + tby * cos(-deg);
-      alive |= turret[i].move(centerPos.x + bx, centerPos.y + by, d + deg);
+      tb.x *= (1 - spec.distRatio);
+      vec2 scv = sincos(-deg);
+      vec2 bcs = tb * scv.yx;
+      vec2 bsc = tb * scv;
+      vec2 b = vec2(bcs.x - bcs.y, bsc.x + bsc.y);
+      alive |= turret[i].move(centerPos + b, d + deg);
       if (spec.alignType == TurretGroupSpec.AlignType.ROUND)
         d += md;
     }
@@ -946,19 +947,18 @@ public class MovingTurretGroup {
     calcAlignDeg(d, ad, md);
     for (int i = 0; i < spec.num; i++) {
       d += md;
-      float bx = sin(d) * radius * spec.xReverse;
-      float by = cos(d) * radius * (1 - spec.distRatio);
+      vec2 b = sincos(d) * radius * vec2(spec.xReverse, 1 - spec.distRatio);
       float fs, fd;
-      if (fabs(bx) + fabs(by) < 0.1f) {
+      if (fabs(b.x) + fabs(b.y) < 0.1f) {
         fs = radius;
         fd = d;
       } else {
-        fs = sqrt(bx * bx + by * by);
-        fd = atan2(bx, by);
+        fs = sqrt(b * b);
+        fd = angle(b);
         assert(!fd.isNaN);
       }
       fs *= 0.06f;
-      turret[i].move(centerPos.x, centerPos.y, d, fs, fd);
+      turret[i].move(centerPos, d, fs, fd);
     }
     cnt++;
   }

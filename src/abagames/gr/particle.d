@@ -27,7 +27,7 @@ public class Spark: LuminousActor {
   static GLuint vbo;
   vec2 pos;
   vec2 vel;
-  float r, g, b;
+  vec3 color;
   int cnt;
 
   invariant() {
@@ -35,9 +35,9 @@ public class Spark: LuminousActor {
     assert(pos.y < 60 && pos.y > -60);
     assert(vel.x < 10 && vel.x > -10);
     assert(vel.y < 10 && vel.y > -10);
-    assert(r >= 0 && r <= 1);
-    assert(g >= 0 && g <= 1);
-    assert(b >= 0 && b <= 1);
+    assert(color.r >= 0 && color.r <= 1);
+    assert(color.g >= 0 && color.g <= 1);
+    assert(color.b >= 0 && color.b <= 1);
     assert(cnt >= 0);
   }
 
@@ -53,7 +53,7 @@ public class Spark: LuminousActor {
   public this() {
     pos = vec2(0);
     vel = vec2(0);
-    r = g = b = 0;
+    color = vec3(0);
     cnt = 0;
   }
 
@@ -138,12 +138,10 @@ public class Spark: LuminousActor {
     }
   }
 
-  public void set(vec2 p, float vx, float vy, float r, float g, float b, int c) {
+  public void set(vec2 p, vec2 v, vec3 color, int c) {
     pos = p;
-    vel = vec2(vx, vy);
-    this.r = r;
-    this.g = g;
-    this.b = b;
+    vel = v;
+    this.color = color;
     cnt = c;
     exists = true;
   }
@@ -171,7 +169,7 @@ public class Spark: LuminousActor {
 
     program.setUniform("projmat", view);
     program.setUniform("brightness", Screen.brightness);
-    program.setUniform("color", r, g, b);
+    program.setUniform("color", color);
     program.setUniform("pos", pos);
     program.setUniform("vel", vel);
 
@@ -208,7 +206,7 @@ public class Smoke: LuminousActor {
   int type;
   int cnt, startCnt;
   float size;
-  float r, g, b, a;
+  vec4 color;
 
   invariant() {
     assert(windVel.x < 1 && windVel.x > -1);
@@ -225,10 +223,10 @@ public class Smoke: LuminousActor {
     assert(cnt >= 0);
     assert(startCnt > 0);
     assert(size >= 0 && size < 10);
-    assert(r >= 0 && r <= 1);
-    assert(g >= 0 && g <= 1);
-    assert(b >= 0 && b <= 1);
-    assert(a >= 0 && a <= 1);
+    assert(color.r >= 0 && color.r <= 1);
+    assert(color.g >= 0 && color.g <= 1);
+    assert(color.b >= 0 && color.b <= 1);
+    assert(color.a >= 0 && color.a <= 1);
   }
 
   public static this() {
@@ -249,7 +247,7 @@ public class Smoke: LuminousActor {
     cnt = 0;
     startCnt = 1;
     size = 1;
-    r = g = b = a = 0;
+    color = vec4(0);
   }
 
   public override void init(Object[] args) {
@@ -315,65 +313,54 @@ public class Smoke: LuminousActor {
     }
   }
 
-  public void set(vec2 p, float mx, float my, float mz, int t, int c = 60, float sz = 2) {
-    set(p.x, p.y, mx, my, mz, t, c, sz);
+  public void set(vec2 p, vec2 m, int t, int c = 60, float sz = 2) {
+    set(vec3(p, 0), vec3(m, 0), t, c, sz);
   }
 
-  public void set(vec3 p, float mx, float my, float mz, int t, int c = 60, float sz = 2) {
-    set(p.x, p.y, mx, my, mz, t, c, sz);
-    pos.z = p.z;
+  public void set(vec2 p, vec3 m, int t, int c = 60, float sz = 2) {
+    set(vec3(p, 0), m, t, c, sz);
   }
 
-  public void set(float x, float y, float mx, float my, float mz, int t, int c = 60, float sz = 2) {
-    if (!field.checkInOuterField(x, y))
+  public void set(vec3 p, vec3 m, int t, int c = 60, float sz = 2) {
+    if (!field.checkInOuterField(p.xy))
       return;
-    pos = vec3(x, y, 0);
-    vel = vec3(mx, my, mz);
+    pos = p;
+    vel = m;
     type = t;
     startCnt = cnt = c;
     size = sz;
     switch (type) {
     case SmokeType.FIRE:
-      r = rand.nextFloat(0.1f) + 0.9f;
-      g = rand.nextFloat(0.2f) + 0.2f;
-      b = 0;
-      a = 1;
+      color = vec4(rand.nextFloat(0.1f) + 0.9f,
+                   rand.nextFloat(0.2f) + 0.2f,
+                   0, 1);
       break;
     case SmokeType.EXPLOSION:
-      r = rand.nextFloat(0.3f) + 0.7f;
-      g = rand.nextFloat(0.3f) + 0.3f;
-      b = 0;
-      a = 1;
+      color = vec4(rand.nextFloat(0.3f) + 0.7f,
+                   rand.nextFloat(0.3f) + 0.3f,
+                   0, 1);
       break;
     case SmokeType.SAND:
-      r = 0.8f;
-      g = 0.8f;
-      b = 0.6f;
-      a = 0.6f;
+      color = vec4(0.8f, 0.8f, 0.6f, 0.6f);
       break;
     case SmokeType.SPARK:
-      r = rand.nextFloat(0.3f) + 0.7f;
-      g = rand.nextFloat(0.5f) + 0.5f;
-      b = 0;
-      a = 1;
+      color = vec4(rand.nextFloat(0.3f) + 0.7f,
+                   rand.nextFloat(0.5f) + 0.5f,
+                   0, 1);
       break;
     case SmokeType.WAKE:
-      r = 0.6f;
-      g = 0.6f;
-      b = 0.8f;
-      a = 0.6f;
+      color = vec4(0.6f, 0.6f, 0.8f, 0.6f);
       break;
     case SmokeType.SMOKE:
-      r = rand.nextFloat(0.1f) + 0.1f;
-      g = rand.nextFloat(0.1f) + 0.1f;
-      b = 0.1f;
-      a = 0.5f;
+      color = vec4(rand.nextFloat(0.1f) + 0.1f,
+                   rand.nextFloat(0.1f) + 0.1f,
+                   0.1f, 0.5f);
       break;
     case SmokeType.LANCE_SPARK:
-      r = 0.4f;
-      g = rand.nextFloat(0.2f) + 0.7f;
-      b = rand.nextFloat(0.2f) + 0.7f;
-      a = 1;
+      color = vec4(0.4f,
+                   rand.nextFloat(0.2f) + 0.7f,
+                   rand.nextFloat(0.2f) + 0.7f,
+                   1);
       break;
     default:
       assert(0);
@@ -383,7 +370,7 @@ public class Smoke: LuminousActor {
 
   public override void move() {
     cnt--;
-    if (cnt <= 0 || !field.checkInOuterField(pos.x, pos.y)) {
+    if (cnt <= 0 || !field.checkInOuterField(pos.xy)) {
       exists = false;
       return;
     }
@@ -397,32 +384,26 @@ public class Smoke: LuminousActor {
     case SmokeType.EXPLOSION:
     case SmokeType.SMOKE:
       if (cnt < startCnt / 2) {
-        r *= 0.95f;
-        g *= 0.95f;
-        b *= 0.95f;
+        color.rgb *= 0.95f;
       } else {
-        a *= 0.97f;
+        color.a *= 0.97f;
       }
       size *= 1.01f;
       break;
     case SmokeType.SAND:
-      r *= 0.98f;
-      g *= 0.98f;
-      b *= 0.98f;
-      a *= 0.98f;
+      color *= 0.98f;
       break;
     case SmokeType.SPARK:
-      r *= 0.92f;
-      g *= 0.92f;
-      a *= 0.95f;
+      color.rg *= 0.92f;
+      color.a *= 0.95f;
       vel *= 0.9f;
       break;
     case SmokeType.WAKE:
-      a *= 0.98f;
+      color.a *= 0.98f;
       size *= 1.005f;
       break;
     case SmokeType.LANCE_SPARK:
-      a *= 0.95f;
+      color.a *= 0.95f;
       size *= 0.97f;
       break;
     default:
@@ -435,9 +416,9 @@ public class Smoke: LuminousActor {
       if (bl >= 1)
         vel *= 0.8f;
       if (cnt % 3 == 0 && bl < -1) {
-        float sp = sqrt(vel.x * vel.x + vel.y * vel.y);
+        float sp = sqrt(vel.xy * vel.xy);
         if (sp > 0.3f) {
-          float d = atan2(vel.x, vel.y);
+          float d = angle(vel.xy);
           assert(!d.isNaN);
           wakePos = pos.xy + sincos(d + PI / 2) * size * 0.25f;
           Wake w = wakes.getInstanceForced();
@@ -461,7 +442,7 @@ public class Smoke: LuminousActor {
   }
 
   public override void drawLuminous(mat4 view) {
-    if (r + g > 0.8f && b < 0.5f) {
+    if (color.r + color.g > 0.8f && color.b < 0.5f) {
       drawCommon(view);
     }
   }
@@ -471,7 +452,7 @@ public class Smoke: LuminousActor {
 
     program.setUniform("projmat", view);
     program.setUniform("brightness", Screen.brightness);
-    program.setUniform("color", r, g, b, a);
+    program.setUniform("color", color);
     program.setUniform("size", size);
     program.setUniform("pos", pos);
 
@@ -592,11 +573,11 @@ public class Fragment: Actor {
     smokes = cast(SmokePool) args[1];
   }
 
-  public void set(vec2 p, float mx, float my, float mz, float sz = 1) {
-    if (!field.checkInOuterField(p.x, p.y))
+  public void set(vec2 p, vec3 m, float sz = 1) {
+    if (!field.checkInOuterField(p))
       return;
     pos = vec3(p, 0);
-    vel = vec3(mx, my, mz);
+    vel = m;
     size = sz;
     if (size > 5)
       size = 5;
@@ -606,7 +587,7 @@ public class Fragment: Actor {
   }
 
   public override void move() {
-    if (!field.checkInOuterField(pos.x, pos.y)) {
+    if (!field.checkInOuterField(pos.xy)) {
       exists = false;
       return;
     }
@@ -616,9 +597,9 @@ public class Fragment: Actor {
     if (pos.z < 0) {
       Smoke s = smokes.getInstanceForced();
       if (field.getBlock(pos.xy) < 0)
-        s.set(pos.x, pos.y, 0, 0, 0, Smoke.SmokeType.WAKE, 60, size * 0.66f);
+        s.set(pos, vec3(0), Smoke.SmokeType.WAKE, 60, size * 0.66f);
       else
-        s.set(pos.x, pos.y, 0, 0, 0, Smoke.SmokeType.SAND, 60, size * 0.75f);
+        s.set(pos, vec3(0), Smoke.SmokeType.SAND, 60, size * 0.75f);
       exists = false;
       return;
     }
@@ -761,11 +742,11 @@ public class SparkFragment: LuminousActor {
     smokes = cast(SmokePool) args[1];
   }
 
-  public void set(vec2 p, float mx, float my, float mz, float sz = 1) {
-    if (!field.checkInOuterField(p.x, p.y))
+  public void set(vec2 p, vec3 m, float sz = 1) {
+    if (!field.checkInOuterField(p))
       return;
     pos = vec3(p, 0);
-    vel = vec3(mx, my, mz);
+    vel = m;
     size = sz;
     if (size > 5)
       size = 5;
@@ -780,7 +761,7 @@ public class SparkFragment: LuminousActor {
   }
 
   public override void move() {
-    if (!field.checkInOuterField(pos.x, pos.y)) {
+    if (!field.checkInOuterField(pos.xy)) {
       exists = false;
       return;
     }
@@ -790,9 +771,9 @@ public class SparkFragment: LuminousActor {
     if (pos.z < 0) {
       Smoke s = smokes.getInstanceForced();
       if (field.getBlock(pos.xy) < 0)
-        s.set(pos.x, pos.y, 0, 0, 0, Smoke.SmokeType.WAKE, 60, size * 0.66f);
+        s.set(pos, vec3(0), Smoke.SmokeType.WAKE, 60, size * 0.66f);
       else
-        s.set(pos.x, pos.y, 0, 0, 0, Smoke.SmokeType.SAND, 60, size * 0.75f);
+        s.set(pos, vec3(0), Smoke.SmokeType.SAND, 60, size * 0.75f);
       exists = false;
       return;
     }
@@ -802,7 +783,7 @@ public class SparkFragment: LuminousActor {
     if (hasSmoke && cnt % 5 == 0) {
       Smoke s = smokes.getInstance();
       if (s)
-        s.set(pos, 0, 0, 0, Smoke.SmokeType.SMOKE, 90 + rand.nextInt(60), size * 0.5f);
+        s.set(pos, vec3(0), Smoke.SmokeType.SMOKE, 90 + rand.nextInt(60), size * 0.5f);
     }
   }
 
@@ -971,7 +952,7 @@ public class Wake: Actor {
   }
 
   public void set(vec2 p, float deg, float speed, int c = 60, float sz = 1, bool rs = false) {
-    if (!field.checkInOuterField(p.x, p.y))
+    if (!field.checkInOuterField(p))
       return;
     pos = p;
     this.deg = deg;
@@ -985,7 +966,7 @@ public class Wake: Actor {
 
   public override void move() {
     cnt--;
-    if (cnt <= 0 || vel.fastdist() < 0.005f || !field.checkInOuterField(pos.x, pos.y)) {
+    if (cnt <= 0 || vel.fastdist() < 0.005f || !field.checkInOuterField(pos)) {
       exists = false;
       return;
     }

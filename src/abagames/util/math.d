@@ -7,6 +7,7 @@ module abagames.util.math;
 
 private import std.math;
 private import gl3n.linalg;
+private import abagames.util.rand;
 
 /**
  * Math utility methods.
@@ -56,4 +57,48 @@ vec2 sincos(float deg) {
 
 vec2 cosnsin(float deg) {
   return vec2(cos(deg), -sin(deg));
+}
+
+vec2 randvec(Rand rand, float f) {
+  return vec2(rand.nextSignedFloat(f), rand.nextSignedFloat(f));
+}
+
+vec3 randvec3(Rand rand, float f) {
+  return vec3(rand.nextSignedFloat(f), rand.nextSignedFloat(f), rand.nextSignedFloat(f));
+}
+
+vec2 randvecp(Rand rand, float f) {
+  return vec2(rand.nextFloat(f), rand.nextFloat(f));
+}
+
+float angle(vec2 v) {
+  return atan2(v.x, v.y);
+}
+
+vec2i toint(vec2 v) {
+  return vec2i(cast(int) v.x, cast(int) v.y);
+}
+
+T bound(T)(const(T) v, const(T) min, const(T) max = T.max) {
+  if (v < min)
+    return min;
+  if (v > max)
+    return max;
+  return v;
+}
+
+bool inbound(T)(const(T) v, const(T) min, const(T) max) {
+  if (v < min)
+    return false;
+  if (v > max)
+    return false;
+  return true;
+}
+
+T boundr(T)(const(T) v, const(T) size) {
+  if (v < 0)
+    return v + size;
+  if (v >= size)
+    return v - size;
+  return v;
 }

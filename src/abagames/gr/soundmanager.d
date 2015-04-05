@@ -91,7 +91,7 @@ public class SoundManager: abagames.util.sdl.sound.SoundManager {
     if (bgmIdx < RANDOM_BGM_START_INDEX)
       bgmIdx = bgm.length - 1;
     else if (bgmIdx >= bgm.length)
-        bgmIdx = RANDOM_BGM_START_INDEX;
+      bgmIdx = RANDOM_BGM_START_INDEX;
     prevBgmIdx = bgmIdx;
     playBgm(bgmFileName[bgmIdx]);
   }

@@ -9,6 +9,7 @@ private import std.math;
 private import std.string;
 private import gl3n.linalg;
 private import abagames.util.actor;
+private import abagames.util.math;
 private import abagames.util.rand;
 private import abagames.util.support.gl;
 private import abagames.util.sdl.shaderprogram;
@@ -214,23 +215,23 @@ public class Shot: Actor {
         Smoke s = smokes.getInstanceForced();
         float d = _deg + rand.nextSignedFloat(0.1f);
         float sp = rand.nextFloat(LANCE_SPEED);
-        s.set(pos, sin(d) * sp, cos(d) * sp, 0,
+        s.set(pos, sincos(d) * sp,
               Smoke.SmokeType.LANCE_SPARK, 30 + rand.nextInt(30), 1);
         s = smokes.getInstanceForced();
         d = _deg + rand.nextSignedFloat(0.1f);
         sp = rand.nextFloat(LANCE_SPEED);
-        s.set(pos, -sin(d) * sp, -cos(d) * sp, 0,
+        s.set(pos, -sincos(d) * sp,
               Smoke.SmokeType.LANCE_SPARK, 30 + rand.nextInt(30), 1);
       }
     } else {
       Spark s = sparks.getInstanceForced();
       float d = _deg + rand.nextSignedFloat(0.5f);
-      s.set(pos, sin(d) * SPEED, cos(d) * SPEED,
-            0.6f + rand.nextSignedFloat(0.4f), 0.6f + rand.nextSignedFloat(0.4f), 0.1f, 20);
+      s.set(pos, sincos(d) * SPEED,
+            vec3(vec2(0.6f) + randvecp(rand, 0.4f), 0.1f), 20);
       s = sparks.getInstanceForced();
       d = _deg + rand.nextSignedFloat(0.5f);
-      s.set(pos, -sin(d) * SPEED, -cos(d) * SPEED,
-            0.6f + rand.nextSignedFloat(0.4f), 0.6f + rand.nextSignedFloat(0.4f), 0.1f, 20);
+      s.set(pos, -sincos(d) * SPEED,
+            vec3(vec2(0.6f) + randvec(rand, 0.4f), 0.1f), 20);
     }
   }
 

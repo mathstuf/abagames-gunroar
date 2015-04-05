@@ -49,11 +49,10 @@ public class ScoreReel {
       numReel[i].move();
   }
 
-  public void draw(mat4 view, float x, float y, float s) {
-    float lx = x, ly = y;
+  public void draw(mat4 view, vec2 p, float s) {
     for (int i = 0; i < digit; i++) {
-      numReel[i].draw(view, lx, ly, s);
-      lx -= s * 2;
+      numReel[i].draw(view, p, s);
+      p.x -= s * 2;
     }
   }
 
@@ -129,7 +128,7 @@ public class NumReel {
       deg = _targetDeg;
   }
 
-  public void draw(mat4 view, float x, float y, float s) {
+  public void draw(mat4 view, vec2 p, float s) {
     int n = cast(int) ((deg * 10 / 360 + 0.99f) + 1) % 10;
     float d = deg % 360;
     float od = d - n * 360 / 10;
@@ -137,14 +136,15 @@ public class NumReel {
     Math.normalizeDeg360(od);
     od *= 1.5f;
     for (int i = 0; i < 3; i++) {
+      vec2 ip = p;
+
       mat4 model = mat4.identity;
       model.scale(s, -s, s);
       model.translate(0, 0, s * 2.4f);
       model.rotate(-od / 180 * PI, vec3(1, 0, 0));
       if (ofs > 0.005f)
-        model.translate(x + rand.nextSignedFloat(1) * ofs, y + rand.nextSignedFloat(1) * ofs, 0);
-      else
-        model.translate(x, y, 0);
+        ip += randvec(rand, 1) * ofs;
+      model.translate(ip.x, ip.y, 0);
 
       float a = 1 - fabs((od + 15) / (360 / 10 * 1.5f)) / 2;
       if (a < 0)
@@ -271,10 +271,6 @@ public class NumIndicator: Actor {
   }
 
   public void set(int n, IndicatorType type, float size, vec2 p) {
-    set(n, type, size, p.x, p.y);
-  }
-
-  public void set(int n, IndicatorType type, float size, float x, float y) {
     if (exists && this.type == IndicatorType.SCORE) {
       if (this.target[targetIdx].flyingTo == FlyingToType.RIGHT)
         decTargetY();
@@ -283,16 +279,16 @@ public class NumIndicator: Actor {
     this.n = n;
     this.type = type;
     this.size = size;
-    pos = vec2(x, y);
+    pos = p;
     targetIdx = -1;
     targetNum = 0;
     alpha = 0.1f;
     exists = true;
   }
 
-  public void addTarget(float x, float y, FlyingToType flyingTo, float initialVelRatio,
+  public void addTarget(vec2 p, FlyingToType flyingTo, float initialVelRatio,
                         float size, int n, int cnt) {
-    target[targetNum].pos = vec2(x, y);
+    target[targetNum].pos = p;
     target[targetNum].flyingTo = flyingTo;
     target[targetNum].initialVelRatio = initialVelRatio;
     target[targetNum].size = size;
@@ -381,10 +377,10 @@ public class NumIndicator: Actor {
     Letter.setColor(vec4(alpha, alpha, alpha, 1));
     switch (type) {
     case IndicatorType.SCORE:
-      Letter.drawNumSign(view, n, pos.x, pos.y, size, Letter.LINE_COLOR);
+      Letter.drawNumSign(view, n, pos, size, Letter.LINE_COLOR);
       break;
     case IndicatorType.MULTIPLIER:
-      Letter.drawNumSign(view, n, pos.x, pos.y, size, Letter.LINE_COLOR, 33 /* x */, Letter.POLY_COLOR);
+      Letter.drawNumSign(view, n, pos, size, Letter.LINE_COLOR, 33 /* x */, Letter.POLY_COLOR);
       break;
     default:
       assert(0);

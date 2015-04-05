@@ -7,6 +7,7 @@ module abagames.util.sdl.mouse;
 
 private import std.string;
 private import std.stream;
+private import gl3n.linalg;
 private import derelict.sdl2.sdl;
 private import abagames.util.sdl.input;
 private import abagames.util.sdl.recordableinput;
@@ -29,10 +30,10 @@ public class Mouse: Input {
   public void init(SizableScreen screen) {
     this.screen = screen;
     /*if (screen.windowMode) {
-      SDL_GetMouseState(&state.x, &state.y);
+      SDL_GetMouseState(&state.pos.x, &state.pos.y);
     } else {
-      state.x = screen.width / 2;
-      state.y = screen.height / 2;
+      state.pos.x = screen.width / 2;
+      state.pos.y = screen.height / 2;
     }*/
   }
 
@@ -42,20 +43,14 @@ public class Mouse: Input {
   public MouseState getState() {
     int mx, my;
     int btn = SDL_GetMouseState(&mx, &my);
-    state.x = mx;
-    state.y = my;
+    state.pos.x = mx;
+    state.pos.y = my;
     /*int mvx, mvy;
     int btn = SDL_GetRelativeMouseState(&mvx, &mvy);
-    state.x += mvx * accel;
-    state.y += mvy * accel;
-    if (state.x < 0)
-      state.x = 0;
-    else if (state.x >= screen.width)
-      state.x = screen.width - 1;
-    if (state.y < 0)
-      state.y = 0;
-    else if (state.y >= screen.height)
-      state.x = screen.height - 1;*/
+    state.pos.x += mvx * accel;
+    state.pos.y += mvy * accel;
+    state.pos.x = bound(state.pos.x, 0, screen.width - 1);
+    state.pos.y = bound(state.pos.y, 0, screen.height - 1);*/
     state.button = 0;
     if (btn & SDL_BUTTON(1))
       state.button |= MouseState.Button.LEFT;
@@ -78,7 +73,7 @@ public class MouseState {
   static enum Button {
     LEFT = 1, RIGHT = 2,
   };
-  float x, y;
+  vec2 pos;
   int button;
  private:
 
@@ -99,8 +94,7 @@ public class MouseState {
   }
 
   public void set(MouseState s) {
-    x = s.x;
-    y = s.y;
+    pos = s.pos;
     button = s.button;
   }
 
@@ -109,19 +103,19 @@ public class MouseState {
   }
 
   public void read(File fd) {
-    fd.read(x);
-    fd.read(y);
+    fd.read(pos.x);
+    fd.read(pos.y);
     fd.read(button);
   }
 
   public void write(File fd) {
-    fd.write(x);
-    fd.write(y);
+    fd.write(pos.x);
+    fd.write(pos.y);
     fd.write(button);
   }
 
   public bool equals(MouseState s) {
-    if (x == s.x && y == s.y && button == s.button)
+    if (pos == s.pos && button == s.button)
       return true;
     else
       return false;

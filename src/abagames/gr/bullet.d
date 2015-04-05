@@ -136,7 +136,7 @@ public class Bullet: Actor {
   public void startDisappear() {
     if (field.getBlock(pos) >= 0) {
       Smoke s = smokes.getInstanceForced();
-      s.set(pos, sin(deg) * speed * 0.2f, cos(deg) * speed * 0.2f, 0,
+      s.set(pos, sincos(deg) * speed * 0.2f,
             Smoke.SmokeType.SAND, 30, size * 0.5f);
     } else {
       Wake w = wakes.getInstanceForced();
@@ -179,7 +179,7 @@ public class Bullet: Actor {
       shot.removeHitToBullet();
       Smoke smoke = smokes.getInstance();
       if (smoke)
-        smoke.set(pos, sin(deg) * speed, cos(deg) * speed, 0,
+        smoke.set(pos, sincos(deg) * speed,
                   Smoke.SmokeType.SPARK, 30, size * 0.5f);
       remove();
     }

@@ -650,8 +650,7 @@ public class InGameState: GameState {
 
   public override void drawFront(mat4 view) {
     ship.drawFront(view);
-    scoreReel.draw(view, 11.5f + (SCORE_REEL_SIZE_DEFAULT - scoreReelSize) * 3,
-                   -8.2f - (SCORE_REEL_SIZE_DEFAULT - scoreReelSize) * 3,
+    scoreReel.draw(view, vec2(11.5f, -8.2f) + vec2(1, -1) * (SCORE_REEL_SIZE_DEFAULT - scoreReelSize) * 3,
                    scoreReelSize);
     float x = -12;
     for (int i = 0; i < left; i++) {
@@ -673,9 +672,9 @@ public class InGameState: GameState {
   public override void drawOrtho(mat4 view) {
     drawGameParams(view);
     if (isGameOver)
-      Letter.drawString(view, "GAME OVER", 190, 180, 15);
+      Letter.drawString(view, "GAME OVER", vec2(190, 180), 15);
     else if (pauseCnt > 0 && (pauseCnt % 64) < 32)
-      Letter.drawString(view, "PAUSE", 265, 210, 12);
+      Letter.drawString(view, "PAUSE", vec2(265, 210), 12);
     else if (_gameMode == GameMode.TOUCH) {
       // TODO: Draw the touch regions.
     }

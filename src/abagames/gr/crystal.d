@@ -63,9 +63,7 @@ public class Crystal: Actor {
 
   public override void move() {
     cnt--;
-    float dist = pos.fastdist(ship.midstPos);
-    if (dist < 0.1f)
-      dist = 0.1f;
+    float dist = max(0.1f, pos.fastdist(ship.midstPos));
     if (cnt < PULLIN_COUNT) {
       vel += (ship.midstPos - pos) / dist * 0.07f;
       if (cnt < 0 || dist < 2) {

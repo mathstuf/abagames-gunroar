@@ -45,9 +45,9 @@ public class Field {
   static const float BLOCK_WIDTH = 1;
   int[BLOCK_SIZE_Y][BLOCK_SIZE_X] block;
   struct Panel {
-    float x, y, z;
+    vec3 pos;
     int ci;
-    float or, og, ob;
+    vec3 color;
   };
   static const float PANEL_WIDTH = 1.8f;
   static const float PANEL_HEIGHT_BASE = 0.66f;
@@ -58,19 +58,19 @@ public class Field {
   vec2 screenPos;
   PlatformPos[SCREEN_BLOCK_SIZE_X * NEXT_BLOCK_AREA_SIZE] platformPos;
   int platformPosNum;
-  float[3][6][TIME_COLOR_INDEX] baseColorTime = [
-    [[0.15f, 0.15f, 0.3f], [0.25f, 0.25f, 0.5f], [0.35f, 0.35f, 0.45f],
-     [0.6f, 0.7f, 0.35f], [0.45f, 0.8f, 0.3f], [0.2f, 0.6f, 0.1f]],
-    [[0.1f, 0.1f, 0.3f], [0.2f, 0.2f, 0.5f], [0.3f, 0.3f, 0.4f],
-     [0.5f, 0.65f, 0.35f], [0.4f, 0.7f, 0.3f], [0.1f, 0.5f, 0.1f]],
-    [[0.1f, 0.1f, 0.3f], [0.2f, 0.2f, 0.5f], [0.3f, 0.3f, 0.4f],
-     [0.5f, 0.65f, 0.35f], [0.4f, 0.7f, 0.3f], [0.1f, 0.5f, 0.1f]],
-    [[0.2f, 0.15f, 0.25f], [0.35f, 0.2f, 0.4f], [0.5f, 0.35f, 0.45f],
-     [0.7f, 0.6f, 0.3f], [0.6f, 0.65f, 0.25f], [0.2f, 0.45f, 0.1f]],
-    [[0.0f, 0.0f, 0.1f], [0.1f, 0.1f, 0.3f], [0.2f, 0.2f, 0.3f],
-     [0.2f, 0.3f, 0.15f], [0.2f, 0.2f, 0.1f], [0.0f, 0.15f, 0.0f]],
+  vec3[6][TIME_COLOR_INDEX] baseColorTime = [
+    [vec3(0.15f, 0.15f, 0.3f),  vec3(0.25f, 0.25f, 0.5f),  vec3(0.35f, 0.35f, 0.45f),
+     vec3(0.6f,  0.7f,  0.35f), vec3(0.45f, 0.8f,  0.3f),  vec3(0.2f,  0.6f,  0.1f)],
+    [vec3(0.1f,  0.1f,  0.3f),  vec3(0.2f,  0.2f,  0.5f),  vec3(0.3f,  0.3f,  0.4f),
+     vec3(0.5f,  0.65f, 0.35f), vec3(0.4f,  0.7f,  0.3f),  vec3(0.1f,  0.5f,  0.1f)],
+    [vec3(0.1f,  0.1f,  0.3f),  vec3(0.2f,  0.2f,  0.5f),  vec3(0.3f,  0.3f,  0.4f),
+     vec3(0.5f,  0.65f, 0.35f), vec3(0.4f,  0.7f,  0.3f),  vec3(0.1f,  0.5f,  0.1f)],
+    [vec3(0.2f,  0.15f, 0.25f), vec3(0.35f, 0.2f,  0.4f),  vec3(0.5f,  0.35f, 0.45f),
+     vec3(0.7f,  0.6f,  0.3f),  vec3(0.6f,  0.65f, 0.25f), vec3(0.2f,  0.45f, 0.1f)],
+    [vec3(0.0f,  0.0f,  0.1f),  vec3(0.1f,  0.1f,  0.3f),  vec3(0.2f,  0.2f,  0.3f),
+     vec3(0.2f,  0.3f,  0.15f), vec3(0.2f,  0.2f,  0.1f),  vec3(0.0f,  0.15f, 0.0f)],
     ];
-  float[3][6] baseColor;
+  vec3[6] baseColor;
   float time;
   ShaderProgram sideProgram;
   GLuint vaoSide;
@@ -138,16 +138,9 @@ public class Field {
 
   private void createPanel(int x, int y) {
     Panel* p = &(panel[x][y]);
-    p.x = rand.nextFloat(1) - 0.75f;
-    p.y = rand.nextFloat(1) - 0.75f;
-    p.z = block[x][y] * PANEL_HEIGHT_BASE + rand.nextFloat(PANEL_HEIGHT_BASE);
+    p.pos = vec3(randvecp(rand, 1) - vec2(0.75f), block[x][y] * PANEL_HEIGHT_BASE + rand.nextFloat(PANEL_HEIGHT_BASE));
     p.ci = block[x][y] + 3;
-    p.or = 1 + rand.nextSignedFloat(0.1f);
-    p.og = 1 + rand.nextSignedFloat(0.1f);
-    p.ob = 1 + rand.nextSignedFloat(0.1f);
-    p.or *= 0.33f;
-    p.og *= 0.33f;
-    p.ob *= 0.33f;
+    p.color = (vec3(1) + randvec3(rand, 0.1f)) * 0.33f;
   }
 
   public void scroll(float my, bool isDemo = false) {
@@ -191,18 +184,21 @@ public class Field {
     for (int y = nextBlockY; y < nextBlockY + NEXT_BLOCK_AREA_SIZE; y++) {
       int by = y % BLOCK_SIZE_Y;
       for (int bx = 0; bx < BLOCK_SIZE_X - 1; bx++) {
+        vec2i b = vec2i(bx, by);
         if (block[bx][by] == 0)
-          if (countAroundBlock(bx, by) <= 1)
+          if (countAroundBlock(b) <= 1)
             block[bx][by] = -2;
       }
       for (int bx = BLOCK_SIZE_X - 1; bx >= 0; bx--) {
+        vec2i b = vec2i(bx, by);
         if (block[bx][by] == 0)
-          if (countAroundBlock(bx, by) <= 1)
+          if (countAroundBlock(b) <= 1)
             block[bx][by] = -2;
       }
       for (int bx = 0; bx < BLOCK_SIZE_X; bx++) {
+        vec2 bv = vec2(bx, by);
         int b;
-        int c = countAroundBlock(bx, by);
+        int c = countAroundBlock(bv.toint);
         if (block[bx][by] >= 0) {
           switch (c) {
           case 0:
@@ -236,10 +232,9 @@ public class Field {
         }
         block[bx][by] = b;
         if (b == -1 && bx >= 2 && bx < BLOCK_SIZE_X - 2) {
-          float pd = calcPlatformDeg(bx, by);
+          float pd = calcPlatformDeg(bv.toint);
           if (pd >= -PI * 2) {
-            platformPos[platformPosNum].pos.x = bx;
-            platformPos[platformPosNum].pos.y = by;
+            platformPos[platformPosNum].pos = bv;
             platformPos[platformPosNum].deg = pd;
             platformPos[platformPosNum].used = false;
             platformPosNum++;
@@ -250,11 +245,12 @@ public class Field {
     for (int y = nextBlockY; y < nextBlockY + NEXT_BLOCK_AREA_SIZE; y++) {
       int by = y % BLOCK_SIZE_Y;
       for (int bx = 0; bx < BLOCK_SIZE_X; bx++) {
+        vec2i b = vec2i(bx, by);
         if (block[bx][by] == -3) {
-          if (countAroundBlock(bx, by, -1) > 0)
+          if (countAroundBlock(b + vec2i(0, -1)) > 0)
             block[bx][by] = -2;
         } else if (block[bx][by] == 2) {
-          if (countAroundBlock(bx, by, 1) < 4)
+          if (countAroundBlock(b, 1) < 4)
             block[bx][by] = 1;
         }
         createPanel(bx, by);
@@ -325,39 +321,31 @@ public class Field {
   }
 
   public int getBlock(vec2 p) {
-    return getBlock(p.x, p.y);
-  }
-
-  public int getBlock(float x, float y) {
-    y -= screenY - cast(int) screenY;
+    p.y -= screenY - cast(int) screenY;
     int bx, by;
-    bx = cast(int) ((x + BLOCK_WIDTH * SCREEN_BLOCK_SIZE_X / 2) / BLOCK_WIDTH);
-    by = cast(int)screenY + cast(int) ((-y + BLOCK_WIDTH * SCREEN_BLOCK_SIZE_Y / 2) / BLOCK_WIDTH);
+    bx = cast(int) ((p.x + BLOCK_WIDTH * SCREEN_BLOCK_SIZE_X / 2) / BLOCK_WIDTH);
+    by = cast(int)screenY + cast(int) ((-p.y + BLOCK_WIDTH * SCREEN_BLOCK_SIZE_Y / 2) / BLOCK_WIDTH);
     if (bx < 0 || bx >= BLOCK_SIZE_X)
       return -1;
-    if (by < 0)
-      by += BLOCK_SIZE_Y;
-    else if (by >= BLOCK_SIZE_Y)
-      by -= BLOCK_SIZE_Y;
+    by = boundr(by, BLOCK_SIZE_Y);
     return block[bx][by];
   }
 
-  public vec2 convertToScreenPos(int bx, int y) {
+  public vec2 convertToScreenPos(vec2i p) {
     float oy = screenY - cast(int) screenY;
-    int by = y - cast(int) screenY;
-    if (by <= -BLOCK_SIZE_Y)
-      by += BLOCK_SIZE_Y;
-    if (by > 0)
-      by -= BLOCK_SIZE_Y;
-    screenPos.x = bx * BLOCK_WIDTH - BLOCK_WIDTH * SCREEN_BLOCK_SIZE_X / 2 + BLOCK_WIDTH / 2;
-    screenPos.y = by * -BLOCK_WIDTH + BLOCK_WIDTH * SCREEN_BLOCK_SIZE_Y / 2 + oy - BLOCK_WIDTH / 2;
+    p.y = p.y - cast(int) screenY;
+    if (p.y <= -BLOCK_SIZE_Y)
+      p.y += BLOCK_SIZE_Y;
+    if (p.y > 0)
+      p.y -= BLOCK_SIZE_Y;
+    screenPos.x = p.x * BLOCK_WIDTH - BLOCK_WIDTH * SCREEN_BLOCK_SIZE_X / 2 + BLOCK_WIDTH / 2;
+    screenPos.y = p.y * -BLOCK_WIDTH + BLOCK_WIDTH * SCREEN_BLOCK_SIZE_Y / 2 + oy - BLOCK_WIDTH / 2;
     return screenPos;
   }
 
   public void move() {
     time += TIME_CHANGE_RATIO;
-    if (time >= TIME_COLOR_INDEX)
-      time -= TIME_COLOR_INDEX;
+    time = boundr(cast(uint) time, TIME_COLOR_INDEX);
   }
 
   private void setupSideWalls() {
@@ -469,20 +457,16 @@ public class Field {
 
   private void drawPanel(mat4 view) {
     int ci = cast(int) time;
-    int nci = ci + 1;
-    if (nci >= TIME_COLOR_INDEX)
-      nci = 0;
+    int nci = boundr!int(ci + 1, TIME_COLOR_INDEX);
     float co = time - ci;
     for (int i = 0; i < 6; i++)
-      for (int j = 0; j < 3; j++)
-        baseColor[i][j] = baseColorTime[ci][i][j] * (1 - co) + baseColorTime[nci][i][j] * co;
+      baseColor[i] = baseColorTime[ci][i] * (1 - co) + baseColorTime[nci][i] * co;
     int by = cast(int) screenY;
     float oy = screenY - by;
     float sx;
     float sy = BLOCK_WIDTH * SCREEN_BLOCK_SIZE_Y / 2 + oy;
     by--;
-    if (by < 0)
-      by += BLOCK_SIZE_Y;
+    by = boundr(by, BLOCK_SIZE_Y);
     sy += BLOCK_WIDTH;
 
     panelProgram.use();
@@ -493,8 +477,7 @@ public class Field {
     panelProgram.useVao(vaoPanel);
 
     for (int y = -1; y < SCREEN_BLOCK_SIZE_Y + NEXT_BLOCK_AREA_SIZE; y++) {
-      if (by >= BLOCK_SIZE_Y)
-        by -= BLOCK_SIZE_Y;
+      by = boundr(by, BLOCK_SIZE_Y);
       sx = -BLOCK_WIDTH * SCREEN_BLOCK_SIZE_X / 2;
 
       for (int bx = 0; bx < SCREEN_BLOCK_SIZE_X; bx++) {
@@ -502,18 +485,14 @@ public class Field {
 
         panelProgram.setUniform("s", sx, sy);
 
-        panelProgram.setUniform("color", baseColor[p.ci][0] * p.or * 0.66f,
-                                         baseColor[p.ci][1] * p.og * 0.66f,
-                                         baseColor[p.ci][2] * p.ob * 0.66f);
-        panelProgram.setUniform("pos", p.x, -p.y, p.z);
+        panelProgram.setUniform("color", baseColor[p.ci] * p.color * 0.66f);
+        panelProgram.setUniform("pos", p.pos * vec3(1, -1, 1));
         panelProgram.setUniform("diffFactor", PANEL_WIDTH);
 
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-        panelProgram.setUniform("color", baseColor[p.ci][0] * 0.33f,
-                                         baseColor[p.ci][1] * 0.33f,
-                                         baseColor[p.ci][2] * 0.33f);
-        panelProgram.setUniform("pos", p.x, -p.y, 0f);
+        panelProgram.setUniform("color", baseColor[p.ci] * 0.33f);
+        panelProgram.setUniform("pos", p.pos * vec3(1, -1, 0));
         panelProgram.setUniform("diffFactor", BLOCK_WIDTH);
 
         glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -525,25 +504,21 @@ public class Field {
     }
   }
 
-  private static int[2][4] degBlockOfs = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+  private static vec2i[4] degBlockOfs = [vec2i(0, -1), vec2i(1, 0), vec2i(0, 1), vec2i(-1, 0)];
 
-  private float calcPlatformDeg(int x, int y) {
+  private float calcPlatformDeg(vec2i p) {
     int d = rand.nextInt(4);
     for (int i = 0; i < 4; i++) {
-      if (!checkBlock(x + degBlockOfs[d][0], y + degBlockOfs[d][1], -1, true)) {
+      if (!checkBlock(p + degBlockOfs[d], -1, true)) {
         float pd = d * PI / 2;
-        int ox = x + degBlockOfs[d][0];
-        int oy = y + degBlockOfs[d][1];
+        vec2i o = p + degBlockOfs[d];
         int td = d;
         td--;
         if (td < 0)
           td = 3;
-        bool b1 = checkBlock(ox +  degBlockOfs[td][0], oy +  degBlockOfs[td][1], -1, true);
-        td = d;
-        td++;
-        if (td >= 4)
-          td = 0;
-        bool b2 = checkBlock(ox +  degBlockOfs[td][0], oy +  degBlockOfs[td][1], -1, true);
+        bool b1 = checkBlock(o +  degBlockOfs[td], -1, true);
+        td = boundr(d + 1, 4);
+        bool b2 = checkBlock(o +  degBlockOfs[td], -1, true);
         if (!b1 && b2)
           pd -= PI / 4;
         if (b1 && !b2)
@@ -551,51 +526,33 @@ public class Field {
         Math.normalizeDeg(pd);
         return pd;
       }
-      d++;
-      if (d >= 4)
-        d = 0;
+      d = boundr(d + 1, 4);
     }
     return -99999;
   }
 
-  public int countAroundBlock(int x, int y, int th = 0) {
+  public int countAroundBlock(vec2i p, int th = 0) {
     int c = 0;
-    if (checkBlock(x, y - 1, th))
-      c++;
-    if (checkBlock(x + 1, y, th))
-      c++;
-    if (checkBlock(x, y + 1, th))
-      c++;
-    if (checkBlock(x - 1, y, th))
-      c++;
+    for (int i = 0; i < 4; i++) {
+      if (checkBlock(p + degBlockOfs[i], th))
+        c++;
+    }
     return c;
   }
 
-  private bool checkBlock(int x, int y, int th = 0, bool outScreen = false) {
-    if (x < 0 || x >= BLOCK_SIZE_X)
+  private bool checkBlock(vec2i p, int th = 0, bool outScreen = false) {
+    if (p.x < 0 || p.x >= BLOCK_SIZE_X)
       return outScreen;
-    int by = y;
-    if (by < 0)
-      by += BLOCK_SIZE_Y;
-    if (by >= BLOCK_SIZE_Y)
-      by -= BLOCK_SIZE_Y;
-    return (block[x][by] >= th);
+    p.y = boundr(p.y, BLOCK_SIZE_Y);
+    return (block[p.x][p.y] >= th);
   }
 
   public bool checkInField(vec2 p) {
     return _size.contains(p);
   }
 
-  public bool checkInField(float x, float y) {
-    return _size.contains(x, y);
-  }
-
   public bool checkInOuterField(vec2 p) {
     return _outerSize.contains(p);
-  }
-
-  public bool checkInOuterField(float x, float y) {
-    return _outerSize.contains(x, y);
   }
 
   public bool checkInOuterHeightField(vec2 p) {

@@ -318,9 +318,7 @@ public class EnemyState {
 
   public bool move() {
     ppos = pos;
-    multiplier -= MULTIPLIER_DECREASE_RATIO;
-    if (multiplier < 1)
-      multiplier = 1;
+    multiplier = bound!float(multiplier - MULTIPLIER_DECREASE_RATIO, 1);
     if (destroyedCnt >= 0) {
       destroyedCnt++;
       explodeCnt--;
@@ -398,19 +396,17 @@ public class EnemyState {
       sn = 3;
     for (int i = 0; i < sn * 8; i++) {
       Smoke s = smokes.getInstanceForced();
-      s.set(pos, rand.nextSignedFloat(0.1f) + explodeVel.x, rand.nextSignedFloat(0.1f) + explodeVel.y,
-            rand.nextFloat(vz),
+      s.set(pos, vec3(randvec(rand, 0.1f) + explodeVel, rand.nextFloat(vz)),
             Smoke.SmokeType.EXPLOSION, 32 + rand.nextInt(30), ss);
     }
     for (int i = 0; i < sn * 36; i++) {
       Spark sp = sparks.getInstanceForced();
-      sp.set(pos, rand.nextSignedFloat(0.8f) + explodeVel.x, rand.nextSignedFloat(0.8f) + explodeVel.y,
-             0.5f + rand.nextFloat(0.5f), 0.5f + rand.nextFloat(0.5f), 0, 30 + rand.nextInt(30));
+      sp.set(pos, randvec(rand, 0.8f) + explodeVel,
+             vec3(vec2(0.5f) + randvecp(rand, 0.5f), 0), 30 + rand.nextInt(30));
     }
     for (int i = 0; i < sn * 12; i++) {
       Fragment f = fragments.getInstanceForced();
-      f.set(pos, rand.nextSignedFloat(0.33f) + explodeVel.x, rand.nextSignedFloat(0.33f) + explodeVel.y,
-            0.05f + rand.nextFloat(0.1f),
+      f.set(pos, vec3(randvec(rand, 0.33f) + explodeVel, 0.05f + rand.nextFloat(0.1f)),
             0.2f + rand.nextFloat(0.33f));
     }
     removeTurrets();
@@ -439,38 +435,38 @@ public class EnemyState {
     if (mp > 1) {
       NumIndicator ni = numIndicators.getInstanceForced();
       ni.set(sc, NumIndicator.IndicatorType.SCORE, 0.5f, pos);
-      ni.addTarget(8, ty, NumIndicator.FlyingToType.RIGHT, 1, 0.5f, sc, 40);
-      ni.addTarget(11, ty, NumIndicator.FlyingToType.RIGHT, 0.5f, 0.75f,
+      ni.addTarget(vec2(8, ty), NumIndicator.FlyingToType.RIGHT, 1, 0.5f, sc, 40);
+      ni.addTarget(vec2(11, ty), NumIndicator.FlyingToType.RIGHT, 0.5f, 0.75f,
                    cast(int) (sc * mp), 30);
-      ni.addTarget(13, ty, NumIndicator.FlyingToType.RIGHT, 0.25f, 1,
+      ni.addTarget(vec2(13, ty), NumIndicator.FlyingToType.RIGHT, 0.25f, 1,
                    cast(int) (sc * mp * stageManager.rankMultiplier), 20);
-      ni.addTarget(12, -8, NumIndicator.FlyingToType.BOTTOM, 0.5f, 0.1f,
+      ni.addTarget(vec2(12, -8), NumIndicator.FlyingToType.BOTTOM, 0.5f, 0.1f,
                    cast(int) (sc * mp * stageManager.rankMultiplier), 40);
       ni.gotoNextTarget();
       ni = numIndicators.getInstanceForced();
       int mn = cast(int) (mp * 1000);
       ni.set(mn, NumIndicator.IndicatorType.MULTIPLIER, 0.7f, pos);
-      ni.addTarget(10.5f, ty, NumIndicator.FlyingToType.RIGHT, 0.5f, 0.2f, mn, 70);
+      ni.addTarget(vec2(10.5f, ty), NumIndicator.FlyingToType.RIGHT, 0.5f, 0.2f, mn, 70);
       ni.gotoNextTarget();
       ni = numIndicators.getInstanceForced();
       int rn = cast(int) (stageManager.rankMultiplier * 1000);
-      ni.set(rn, NumIndicator.IndicatorType.MULTIPLIER, 0.4f, 11, 8);
-      ni.addTarget(13, ty, NumIndicator.FlyingToType.RIGHT, 0.5f, 0.2f, rn, 40);
+      ni.set(rn, NumIndicator.IndicatorType.MULTIPLIER, 0.4f, vec2(11, 8));
+      ni.addTarget(vec2(13, ty), NumIndicator.FlyingToType.RIGHT, 0.5f, 0.2f, rn, 40);
       ni.gotoNextTarget();
       scoreReel.addActualScore(cast(int) (sc * mp * stageManager.rankMultiplier));
     } else {
       NumIndicator ni = numIndicators.getInstanceForced();
       ni.set(sc, NumIndicator.IndicatorType.SCORE, 0.3f, pos);
-      ni.addTarget(11, ty, NumIndicator.FlyingToType.RIGHT, 1.5f, 0.2f, sc, 40);
-      ni.addTarget(13, ty, NumIndicator.FlyingToType.RIGHT, 0.25f, 0.25f,
+      ni.addTarget(vec2(11, ty), NumIndicator.FlyingToType.RIGHT, 1.5f, 0.2f, sc, 40);
+      ni.addTarget(vec2(13, ty), NumIndicator.FlyingToType.RIGHT, 0.25f, 0.25f,
                    cast(int) (sc * stageManager.rankMultiplier), 20);
-      ni.addTarget(12, -8, NumIndicator.FlyingToType.BOTTOM, 0.5f, 0.1f,
+      ni.addTarget(vec2(12, -8), NumIndicator.FlyingToType.BOTTOM, 0.5f, 0.1f,
                    cast(int) (sc * stageManager.rankMultiplier), 40);
       ni.gotoNextTarget();
       ni = numIndicators.getInstanceForced();
       int rn = cast(int) (stageManager.rankMultiplier * 1000);
-      ni.set(rn, NumIndicator.IndicatorType.MULTIPLIER, 0.4f, 11, 8);
-      ni.addTarget(13, ty, NumIndicator.FlyingToType.RIGHT, 0.5f, 0.2f, rn, 40);
+      ni.set(rn, NumIndicator.IndicatorType.MULTIPLIER, 0.4f, vec2(11, 8));
+      ni.addTarget(vec2(13, ty), NumIndicator.FlyingToType.RIGHT, 0.5f, 0.2f, rn, 40);
       ni.gotoNextTarget();
       scoreReel.addActualScore(cast(int) (sc * stageManager.rankMultiplier));
     }
@@ -493,16 +489,16 @@ public class EnemyState {
       float sr = rand.nextFloat(0.5f);
       float sd = spd[si] + rand.nextSignedFloat(0.2f);
       assert(!sd.isNaN);
-      s.set(edgePos, sin(sd) * sr, cos(sd) * sr, -0.004f,
+      s.set(edgePos, vec3(sincos(sd) * sr, -0.004f),
             Smoke.SmokeType.EXPLOSION, 75 + rand.nextInt(25), ss);
       for (int j = 0; j < 2; j++) {
         Spark sp = sparks.getInstanceForced();
-        sp.set(edgePos, sin(sd) * sr * 2, cos(sd) * sr * 2,
-               0.5f + rand.nextFloat(0.5f), 0.5f + rand.nextFloat(0.5f), 0, 30 + rand.nextInt(30));
+        sp.set(edgePos, sincos(sd) * sr * 2,
+               vec3(vec2(0.5f) + randvecp(rand, 0.5f), 0), 30 + rand.nextInt(30));
       }
       if (i % 2 == 0) {
         SparkFragment sf = sparkFragments.getInstanceForced();
-        sf.set(edgePos, sin(sd) * sr * 0.5f, cos(sd) * sr * 0.5f, 0.06f + rand.nextFloat(0.07f),
+        sf.set(edgePos, vec3(sincos(sd) * sr * 0.5f, 0.06f + rand.nextFloat(0.07f)),
                (0.2f + rand.nextFloat(0.1f)));
       }
     }
@@ -523,22 +519,23 @@ public class EnemyState {
     mat4 model = mat4.identity;
     model.rotate(deg, vec3(0, 0, 1));
     if (destroyedCnt < 0 && damagedCnt > 0) {
-      damagedPos.x = pos.x + rand.nextSignedFloat(damagedCnt * 0.01f);
-      damagedPos.y = pos.y + rand.nextSignedFloat(damagedCnt * 0.01f);
+      damagedPos = pos + randvec(rand, damagedCnt * 0.01f);
       model.translate(damagedPos.x, damagedPos.y, 0);
     } else {
       model.translate(pos.x, pos.y, 0);
     }
+    EnemyShape shape;
     if (destroyedCnt >= 0) {
-      spec.destroyedShape.setDefaultColor(storedColor);
-      spec.destroyedShape.draw(view, model);
+      shape = spec.destroyedShape;
     } else if (!damaged) {
-      spec.shape.setDefaultColor(storedColor);
-      spec.shape.draw(view, model);
+      shape = spec.shape;
     } else {
-      spec.damagedShape.setDefaultColor(storedColor);
-      spec.damagedShape.draw(view, model);
+      shape = spec.damagedShape;
     }
+
+    shape.setDefaultColor(storedColor);
+    shape.draw(view, model);
+
     if (destroyedCnt < 0) {
       spec.bridgeShape.setDefaultColor(storedColor);
       spec.bridgeShape.draw(view, model);
@@ -551,18 +548,18 @@ public class EnemyState {
       turretGroup[i].draw(view);
     }
     if (multiplier > 1) {
-      float ox, oy;
+      vec2 o;
       if (multiplier < 10)
-        ox = 2.1f;
+        o.x = 2.1f;
       else
-        ox = 1.4f;
-      oy = 1.25f;
+        o.x = 1.4f;
+      o.y = 1.25f;
       if(spec.isBoss) {
-        ox += 4;
-        oy -= 1.25f;
+        o.x += 4;
+        o.y -= 1.25f;
       }
       Letter.drawNumSign(view, cast(int) (multiplier * 1000),
-                         pos.x + ox, pos.y + oy, 0.33f, Letter.COLOR1, 33 /* x */, 3);
+                         pos + o, 0.33f, Letter.COLOR1, 33 /* x */, 3);
     }
   }
 }
@@ -915,7 +912,7 @@ public class SmallShipEnemySpec: EnemySpec, HasAppearType {
     case MoveType.STOPANDGO:
       es.pos += sincos(es.velDeg) * es.speed;
       es.pos.y -= field.lastScrollY;
-      if  (es.pos.y <= -field.outerSize.y)
+      if (es.pos.y <= -field.outerSize.y)
         return false;
       if (field.getBlock(es.pos) >= 0 || !field.checkInOuterHeightField(es.pos)) {
         es.velDeg += PI;
@@ -946,7 +943,7 @@ public class SmallShipEnemySpec: EnemySpec, HasAppearType {
     case MoveType.CHASE:
       es.pos += vec2(sin(es.velDeg), es.velDeg) * speed;
       es.pos.y -= field.lastScrollY;
-      if  (es.pos.y <= -field.outerSize.y)
+      if (es.pos.y <= -field.outerSize.y)
         return false;
       if (field.getBlock(es.pos) >= 0 || !field.checkInOuterHeightField(es.pos)) {
         es.velDeg += PI;
@@ -957,7 +954,7 @@ public class SmallShipEnemySpec: EnemySpec, HasAppearType {
       if (shipPos.fastdist(es.pos) < 0.1f)
         ad = 0;
       else
-        ad = atan2(shipPos.x - es.pos.x, shipPos.y - es.pos.y);
+        ad = angle(shipPos - es.pos);
       assert(!ad.isNaN);
       float od = ad - es.velDeg;
       Math.normalizeDeg(od);
@@ -1176,7 +1173,7 @@ public class ShipEnemySpec: EnemySpec, HasAppearType {
           tn[1] = (subTurretNum - tn[0] * 2) / 4;
           tn[2] = (subTurretNum - tn[0] * 2 - tn[1] * 2) / 2;
           static const float[] ad = [PI / 4, -PI / 4, PI / 2, -PI / 2, PI / 4 * 3, -PI / 4 * 3];
-          for (int i = 0; i < 6; i++) {
+          for (int i = 0; i < ad.length; i++) {
             int idx = i / 2;
             if (tn[idx] <= 0)
               continue;
@@ -1234,8 +1231,8 @@ public class ShipEnemySpec: EnemySpec, HasAppearType {
       return false;
     es.pos += sincos(es.deg) * es.speed;
     es.pos.y -= field.lastScrollY;
-    if  (es.pos.x <= -field.outerSize.x - size || es.pos.x >= field.outerSize.x + size ||
-         es.pos.y <= -field.outerSize.y - size)
+    if (es.pos.x <= -field.outerSize.x - size || es.pos.x >= field.outerSize.x + size ||
+        es.pos.y <= -field.outerSize.y - size)
       return false;
     if (es.pos.y > field.outerSize.y * 2.2f + size)
       es.pos.y = field.outerSize.y * 2.2f + size;
@@ -1271,10 +1268,7 @@ public class ShipEnemySpec: EnemySpec, HasAppearType {
 
   public override void draw(mat4 view, EnemyState es) {
     if (es.destroyedCnt >= 0)
-      es.setDefaultColor(vec3(
-        EnemyShape.MIDDLE_COLOR_R * (1 - cast(float) es.destroyedCnt / SINK_INTERVAL) * 0.5f,
-        EnemyShape.MIDDLE_COLOR_G * (1 - cast(float) es.destroyedCnt / SINK_INTERVAL) * 0.5f,
-        EnemyShape.MIDDLE_COLOR_B * (1 - cast(float) es.destroyedCnt / SINK_INTERVAL) * 0.5f));
+      es.setDefaultColor(EnemyShape.MIDDLE_COLOR * (1 - cast(float) es.destroyedCnt / SINK_INTERVAL) * 0.5f);
     super.draw(view, es);
   }
 
@@ -1402,7 +1396,7 @@ public class PlatformEnemySpec: EnemySpec {
     if (!super.move(es))
       return false;
     es.pos.y -= field.lastScrollY;
-    if  (es.pos.y <= -field.outerSize.y)
+    if (es.pos.y <= -field.outerSize.y)
       return false;
     return true;
   }
