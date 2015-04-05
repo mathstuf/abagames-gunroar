@@ -308,7 +308,7 @@ public class EnemyState {
       si = 0;
     for (int i = si; i < 5; i++) {
       vec2 c = pos + vec2(sin(deg), cos(deg)) * i * spec.size;
-      if (field.getBlock(c.x, c.y) >= 0)
+      if (field.getBlock(c) >= 0)
         return false;
       if (enemies.checkHitShip(c, enemy, true))
         return false;

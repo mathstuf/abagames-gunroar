@@ -754,7 +754,7 @@ public class Boat {
       _vel.y = 0;
       refVel.y = 0;
     }
-    if (field.getBlock(_pos.x, _pos.y) >= 0) {
+    if (field.getBlock(_pos) >= 0) {
       if (!onBlock) {
         if (cnt <= 0) {
           onBlock = true;

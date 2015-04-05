@@ -431,7 +431,7 @@ public class Smoke: LuminousActor {
     if (size > 5)
       size = 5;
     if (type == SmokeType.EXPLOSION && pos.z < 0.01f) {
-      int bl = field.getBlock(pos.x, pos.y);
+      int bl = field.getBlock(pos.xy);
       if (bl >= 1)
         vel *= 0.8f;
       if (cnt % 3 == 0 && bl < -1) {
@@ -615,7 +615,7 @@ public class Fragment: Actor {
     pos += vel;
     if (pos.z < 0) {
       Smoke s = smokes.getInstanceForced();
-      if (field.getBlock(pos.x, pos.y) < 0)
+      if (field.getBlock(pos.xy) < 0)
         s.set(pos.x, pos.y, 0, 0, 0, Smoke.SmokeType.WAKE, 60, size * 0.66f);
       else
         s.set(pos.x, pos.y, 0, 0, 0, Smoke.SmokeType.SAND, 60, size * 0.75f);
@@ -789,7 +789,7 @@ public class SparkFragment: LuminousActor {
     pos += vel;
     if (pos.z < 0) {
       Smoke s = smokes.getInstanceForced();
-      if (field.getBlock(pos.x, pos.y) < 0)
+      if (field.getBlock(pos.xy) < 0)
         s.set(pos.x, pos.y, 0, 0, 0, Smoke.SmokeType.WAKE, 60, size * 0.66f);
       else
         s.set(pos.x, pos.y, 0, 0, 0, Smoke.SmokeType.SAND, 60, size * 0.75f);
