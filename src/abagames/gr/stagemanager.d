@@ -259,7 +259,7 @@ public class StageManager {
       ppn--;
       vec2 p = field.convertToScreenPos
         (cast(int) platformPos[ppi].pos.x, cast(int) platformPos[ppi].pos.y);
-      if (!platformEnemySpec.setFirstState(en.state, p.x, p.y, platformPos[ppi].deg))
+      if (!platformEnemySpec.setFirstState(en.state, p, platformPos[ppi].deg))
         continue;
       for (int j = 0; j < platformPosNum; j++) {
         if (fabs(platformPos[ppi].pos.x - platformPos[j].pos.x) <= 1 &&

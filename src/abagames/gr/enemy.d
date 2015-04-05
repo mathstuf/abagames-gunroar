@@ -1389,10 +1389,9 @@ public class PlatformEnemySpec: EnemySpec {
     }
   }
 
-  public bool setFirstState(EnemyState es, float x, float y, float d) {
+  public bool setFirstState(EnemyState es, vec2 p, float d) {
     es.setSpec(this);
-    es.pos.x = x;
-    es.pos.y = y;
+    es.pos = p;
     es.deg = d;
     es.speed = 0;
     if (!es.checkFrontClear(true))
