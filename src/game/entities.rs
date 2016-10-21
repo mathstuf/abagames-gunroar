@@ -3,11 +3,13 @@
 
 extern crate gfx;
 
+use super::letter::Letter;
 use super::render::RenderContext;
 
 pub struct Entities<R>
     where R: gfx::Resources,
 {
+    letter: Letter<R>,
 }
 
 impl<R> Entities<R>
@@ -17,6 +19,7 @@ impl<R> Entities<R>
         where F: gfx::Factory<R>,
     {
         Entities {
+            letter: Letter::new(factory, view.clone()),
         }
     }
 

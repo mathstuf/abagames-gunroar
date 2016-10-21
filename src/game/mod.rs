@@ -2,6 +2,7 @@
 // See accompanying file LICENSE for details.
 
 mod entities;
+mod letter;
 mod render;
 
 mod gunroar;
