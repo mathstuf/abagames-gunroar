@@ -1,11 +1,17 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
+extern crate abagames_util;
+use abagames_util::SdlBuilder;
+
 extern crate clap;
 use clap::{App, Arg};
 
 extern crate log;
 use self::log::{Log, LogLevel, LogLevelFilter, LogMetadata, LogRecord, set_logger};
+
+mod game;
+use game::Gunroar;
 
 use std::error::Error;
 
@@ -72,6 +78,18 @@ fn try_main() -> Result<(), Box<Error>> {
         .get_matches();
 
     setup_logging();
+
+    let brightness = matches.value_of("BRIGHTNESS")
+        .map(|s| s.parse().unwrap())
+        .unwrap_or(100.);
+
+    let mut builder = try!(SdlBuilder::new("gunroar", env!("CARGO_MANIFEST_DIR")));
+    let (mut info, mainloop) = try!(builder
+        .with_audio(!matches.is_present("NO_SOUND"))
+        .windowed_mode(matches.is_present("WINDOWED"))
+        .build());
+    let game = try!(Gunroar::new(&mut info, brightness));
+    try!(mainloop.run(game));
 
     Ok(())
 }

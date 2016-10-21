@@ -6,5 +6,10 @@ readme = "README.md"
 license = "BSD-2-Clause"
 
 [dependencies]
+#abagames-util = "~0.1"
 clap = "~2.14"
+gfx = "~0.12"
 log = "~0.3"
+
+[dependencies.abagames-util]
+path = "../../rust-abagames-util/src"
