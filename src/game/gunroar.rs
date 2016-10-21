@@ -6,6 +6,9 @@ use self::abagames_util::{Event, Game, Resources, SdlInfo};
 
 extern crate gfx;
 
+extern crate sdl2;
+use self::sdl2::event::WindowEventId;
+
 use std::error::Error;
 
 use super::entities::Entities;
@@ -16,6 +19,8 @@ pub struct Gunroar<'a, 'b: 'a> {
 
     info: &'a mut SdlInfo<'b>,
     brightness: f32,
+
+    backgrounded: bool,
 }
 
 impl<'a, 'b> Gunroar<'a, 'b> {
@@ -30,6 +35,8 @@ impl<'a, 'b> Gunroar<'a, 'b> {
 
             info: info,
             brightness: brightness,
+
+            backgrounded: false,
         })
     }
 }
@@ -40,8 +47,29 @@ impl<'a, 'b> Game for Gunroar<'a, 'b> {
     }
 
     fn handle_event(&mut self, event: &Event) -> Result<bool, Box<Error>> {
-        //unimplemented!()
-        Ok(false)
+        Ok(match *event {
+            Event::AppTerminating { .. } => {
+                true
+            },
+            Event::AppWillEnterBackground { .. } |
+            Event::AppDidEnterBackground { .. } => {
+                self.backgrounded = true;
+                false
+            },
+            Event::AppDidEnterForeground { .. } => {
+                self.backgrounded = false;
+                false
+            },
+            Event::AppWillEnterForeground { .. } => {
+                // Ready...
+                false
+            },
+            Event::Window { win_event_id: WindowEventId::Resized, data1: width, data2: height, .. } => {
+                self.info.video.resize(width as u32, height as u32);
+                false
+            },
+            _ => false,
+        })
     }
 
     fn step_frame(&mut self) -> Result<f32, Box<Error>> {
@@ -50,6 +78,10 @@ impl<'a, 'b> Game for Gunroar<'a, 'b> {
     }
 
     fn draw(&mut self) -> Result<(), Box<Error>> {
+        if self.backgrounded {
+            return Ok(());
+        }
+
         let mut draw_context = self.info.video.context();
         let mut context = RenderContext::new(&mut draw_context.context, self.brightness);
 

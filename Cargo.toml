@@ -12,6 +12,7 @@ clap = "~2.14"
 gfx = "~0.12"
 itertools = "~0.5"
 log = "~0.3"
+sdl2 = "~0.18"
 
 [dependencies.abagames-util]
 path = "../../rust-abagames-util/src"
