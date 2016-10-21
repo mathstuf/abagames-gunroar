@@ -4,3 +4,6 @@ version = "0.1.0"
 authors = ["Ben Boeckel <mathstuf@gmail.com>"]
 readme = "README.md"
 license = "BSD-2-Clause"
+
+[dependencies]
+clap = "~2.14"
