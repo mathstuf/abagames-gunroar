@@ -8,14 +8,26 @@ extern crate gfx;
 
 use std::error::Error;
 
+use super::entities::Entities;
+use super::render::RenderContext;
+
 pub struct Gunroar<'a, 'b: 'a> {
+    entities: Entities<Resources>,
+
     info: &'a mut SdlInfo<'b>,
     brightness: f32,
 }
 
 impl<'a, 'b> Gunroar<'a, 'b> {
     pub fn new(info: &'a mut SdlInfo<'b>, brightness: f32) -> Result<Self, Box<Error>> {
+        let entities = {
+            let (factory, view) = info.video.factory();
+            Entities::new(factory, view.clone())
+        };
+
         Ok(Gunroar {
+            entities: entities,
+
             info: info,
             brightness: brightness,
         })
@@ -38,7 +50,11 @@ impl<'a, 'b> Game for Gunroar<'a, 'b> {
     }
 
     fn draw(&mut self) -> Result<(), Box<Error>> {
-        //unimplemented!()
+        let mut draw_context = self.info.video.context();
+        let mut context = RenderContext::new(&mut draw_context.context, self.brightness);
+
+        self.entities.draw(&mut context);
+
         Ok(())
     }
 
