@@ -4,7 +4,32 @@
 extern crate clap;
 use clap::{App, Arg};
 
+extern crate log;
+use self::log::{Log, LogLevel, LogLevelFilter, LogMetadata, LogRecord, set_logger};
+
 use std::error::Error;
+
+fn setup_logging() {
+    struct SimpleLogger;
+
+    impl Log for SimpleLogger {
+        fn enabled(&self, metadata: &LogMetadata) -> bool {
+            metadata.level() <= LogLevel::Debug
+        }
+
+        fn log(&self, record: &LogRecord) {
+            if self.enabled(record.metadata()) {
+                println!("[{}] {}", record.level(), record.args());
+            }
+        }
+    }
+
+    // Since the tests run in parallel, this may get called multiple times. Just ignore errors.
+    let _ = set_logger(|max_level| {
+        max_level.set(LogLevelFilter::Debug);
+        Box::new(SimpleLogger)
+    });
+}
 
 fn try_main() -> Result<(), Box<Error>> {
     let matches = App::with_defaults("gunroar")
@@ -45,6 +70,8 @@ fn try_main() -> Result<(), Box<Error>> {
             .long("fire-rear")
             .help("Fire from the rear of the ship"))
         .get_matches();
+
+    setup_logging();
 
     Ok(())
 }

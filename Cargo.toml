@@ -7,3 +7,4 @@ license = "BSD-2-Clause"
 
 [dependencies]
 clap = "~2.14"
+log = "~0.3"
