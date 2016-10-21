@@ -44,10 +44,7 @@ gfx_defines! {
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
         letter: gfx::ConstantBuffer<LetterTransforms> = "LetterTransforms",
         segment: gfx::ConstantBuffer<LetterSegments> = "LetterSegments",
-        out_color: gfx::BlendTarget<gfx::format::Srgba8> =
-            ("Target0", gfx::state::MASK_ALL, gfx::state::Blend::new(gfx::state::Equation::Add,
-                                                                     gfx::state::Factor::One,
-                                                                     gfx::state::Factor::Zero)),
+        out_color: gfx::RenderTarget<gfx::format::Srgba8> = "Target0",
     }
 }
 
