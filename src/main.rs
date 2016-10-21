@@ -7,6 +7,9 @@ use abagames_util::SdlBuilder;
 extern crate clap;
 use clap::{App, Arg};
 
+#[macro_use]
+extern crate gfx;
+
 extern crate log;
 use self::log::{Log, LogLevel, LogLevelFilter, LogMetadata, LogRecord, set_logger};
 
