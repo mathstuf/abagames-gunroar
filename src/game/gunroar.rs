@@ -2,7 +2,7 @@
 // See accompanying file LICENSE for details.
 
 extern crate abagames_util;
-use self::abagames_util::{Event, Game, Resources, SdlInfo};
+use self::abagames_util::{Event, Input, Game, Resources, SdlInfo};
 
 extern crate gfx;
 
@@ -72,7 +72,7 @@ impl<'a, 'b> Game for Gunroar<'a, 'b> {
         })
     }
 
-    fn step_frame(&mut self) -> Result<f32, Box<Error>> {
+    fn step(&mut self, input: &Input) -> Result<f32, Box<Error>> {
         //unimplemented!()
         Ok(0.)
     }
