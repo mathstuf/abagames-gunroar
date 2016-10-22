@@ -13,9 +13,11 @@ use std::error::Error;
 
 use super::entities::Entities;
 use super::render::RenderContext;
+use super::state::{GameState, GameStateContext};
 
 pub struct Gunroar<'a, 'b: 'a> {
     entities: Entities<Resources>,
+    state: GameState,
 
     info: &'a mut SdlInfo<'b>,
     brightness: f32,
@@ -32,6 +34,7 @@ impl<'a, 'b> Gunroar<'a, 'b> {
 
         Ok(Gunroar {
             entities: entities,
+            state: GameState::TitleState,
 
             info: info,
             brightness: brightness,
@@ -43,6 +46,14 @@ impl<'a, 'b> Gunroar<'a, 'b> {
 
 impl<'a, 'b> Game for Gunroar<'a, 'b> {
     fn init(&mut self) -> Result<(), Box<Error>> {
+        let mut context = GameStateContext {
+            audio: self.info.audio.as_mut(),
+
+            entities: &mut self.entities,
+        };
+
+        self.state.init(&mut context);
+
         Ok(())
     }
 
@@ -73,7 +84,14 @@ impl<'a, 'b> Game for Gunroar<'a, 'b> {
     }
 
     fn step(&mut self, input: &Input) -> Result<f32, Box<Error>> {
-        //unimplemented!()
+        let mut context = GameStateContext {
+            audio: self.info.audio.as_mut(),
+
+            entities: &mut self.entities,
+        };
+
+        self.state.step(&mut context, input);
+
         Ok(0.)
     }
 

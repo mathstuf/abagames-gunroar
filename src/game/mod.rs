@@ -4,6 +4,7 @@
 mod entities;
 mod letter;
 mod render;
+mod state;
 
 mod gunroar;
 pub use self::gunroar::Gunroar;
