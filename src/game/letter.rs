@@ -499,7 +499,7 @@ impl<R> Letter<R>
             .unwrap();
         let fan_pso = factory.create_pipeline_from_program(
             &program,
-            gfx::Primitive::TriangleStrip,
+            gfx::Primitive::TriangleList,
             gfx::state::Rasterizer::new_fill(),
             pipe::new())
             .unwrap();
