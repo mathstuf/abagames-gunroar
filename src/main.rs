@@ -4,6 +4,7 @@
 extern crate abagames_util;
 use abagames_util::SdlBuilder;
 
+#[macro_use]
 extern crate clap;
 use clap::{App, Arg};
 
@@ -41,8 +42,10 @@ fn setup_logging() {
 }
 
 fn try_main() -> Result<(), Box<Error>> {
-    let matches = App::with_defaults("gunroar")
+    let matches = App::new("gunroar")
+        .version(crate_version!())
         .about("360-degree gunboat shooter")
+        .author("Ben Boeckel <mathstuf@gmail.com>")
         .arg(Arg::with_name("BRIGHTNESS")
             .short("b")
             .long("brightness")
