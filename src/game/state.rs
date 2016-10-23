@@ -6,9 +6,10 @@ use self::abagames_util::{Audio, Input, Scancode, StepResult};
 
 extern crate gfx;
 
-use super::entities::Entities;
-use super::field::FieldMode;
 use super::render::{EncoderContext, RenderContext};
+use super::entities::Entities;
+use super::entities::field::FieldMode;
+use super::entities::letter::{LetterDirection, LetterStyle};
 
 pub enum GameMode {
     Normal,

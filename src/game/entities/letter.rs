@@ -13,8 +13,8 @@ extern crate itertools;
 use self::itertools::FoldWhile::{Continue, Done};
 use self::itertools::Itertools;
 
-use super::render::{EncoderContext, RenderContext};
-pub use super::render::{Brightness, OrthographicScreen};
+use super::super::render::{EncoderContext, RenderContext};
+pub use super::super::render::{Brightness, OrthographicScreen};
 
 use std::borrow::Cow;
 use std::iter;
@@ -527,7 +527,7 @@ impl<R> Letter<R>
     }
 
     pub fn draw_letter<C>(&self, context: &mut EncoderContext<R, C>, letter: char,
-                              style: &LetterStyle)
+                          style: &LetterStyle)
         where C: gfx::CommandBuffer<R>,
     {
         self.draw_letter_at(context, letter, style, 0., 0., 1., Rad(0.))
