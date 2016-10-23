@@ -4,7 +4,7 @@
 extern crate abagames_util;
 
 extern crate cgmath;
-use self::cgmath::{Deg, Matrix4, Rad, vec3};
+use self::cgmath::{Deg, Matrix4, Rad};
 
 extern crate gfx;
 use self::gfx::traits::FactoryExt;
@@ -110,8 +110,8 @@ impl LetterSegmentData {
         let deg = Deg(self.deg % 180.);
 
         let boxmat =
-            Matrix4::from_translation(vec3(x - width / 2., y - height / 2., 0.)) *
-            Matrix4::from_axis_angle(vec3(0., 0., 1.), -deg);
+            Matrix4::from_translation((x - width / 2., y - height / 2., 0.).into()) *
+            Matrix4::from_axis_angle((0., 0., 1.).into(), -deg);
         LetterSegments {
             boxmat: boxmat.into(),
             size: [width, height],
@@ -699,9 +699,9 @@ impl<R> Letter<R>
               A: Into<Rad<f32>>,
     {
         let drawmat =
-            Matrix4::from_translation(vec3(x, y, 0.)) *
+            Matrix4::from_translation((x, y, 0.).into()) *
             Matrix4::from_nonuniform_scale(scale, scale * flip, scale) *
-            Matrix4::from_axis_angle(vec3(0., 0., 1.), -rotate.into());
+            Matrix4::from_axis_angle((0., 0., 1.).into(), -rotate.into());
         let letter_trans = LetterTransforms {
             drawmat: drawmat.into(),
         };
