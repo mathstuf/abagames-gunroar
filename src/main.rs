@@ -92,7 +92,8 @@ fn try_main() -> Result<(), Box<Error>> {
     let mut builder = try!(SdlBuilder::new("gunroar", env!("CARGO_MANIFEST_DIR")));
     let (mut info, mainloop) = try!(builder
         .with_audio(!matches.is_present("NO_SOUND"))
-        .windowed_mode(matches.is_present("WINDOWED"))
+        //.windowed_mode(matches.is_present("WINDOWED"))
+        .windowed_mode(true)
         .build());
     let game = try!(Gunroar::new(&mut info, brightness));
     try!(mainloop.run(game));
