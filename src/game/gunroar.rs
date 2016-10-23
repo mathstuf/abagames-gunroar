@@ -101,6 +101,8 @@ impl<'a, 'b> Game for Gunroar<'a, 'b> {
             return Ok(());
         }
 
+        self.state.prep_draw(&mut self.entities);
+
         let mut draw_context = self.info.video.context();
         let mut context = &mut draw_context.context;
         self.global_render.update(&mut context);

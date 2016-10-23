@@ -87,6 +87,11 @@ impl GameState {
         StepResult::Slowdown(0.)
     }
 
+    pub fn prep_draw<R>(&self, entities: &mut Entities<R>)
+        where R: gfx::Resources,
+    {
+    }
+
     pub fn step_game<R>(&self, context: &mut GameStateContext<R>, input: &Input)
         where R: gfx::Resources,
     {
