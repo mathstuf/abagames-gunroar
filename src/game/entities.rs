@@ -4,7 +4,7 @@
 extern crate gfx;
 
 use super::letter::Letter;
-use super::render::{EncoderContext, RenderContext};
+use super::render::RenderContext;
 
 pub struct Entities<R>
     where R: gfx::Resources,
@@ -22,10 +22,5 @@ impl<R> Entities<R>
         Entities {
             letter: Letter::new(factory, view.clone(), context),
         }
-    }
-
-    pub fn draw<C>(&self, context: &mut EncoderContext<R, C>)
-        where C: gfx::CommandBuffer<R>,
-    {
     }
 }

@@ -105,7 +105,7 @@ impl<'a, 'b> Game for Gunroar<'a, 'b> {
         let mut context = &mut draw_context.context;
         self.global_render.update(&mut context);
 
-        self.entities.draw(&mut context);
+        self.state.draw(&self.entities, &mut context);
 
         Ok(())
     }
