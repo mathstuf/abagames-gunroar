@@ -2,7 +2,7 @@
 // See accompanying file LICENSE for details.
 
 extern crate abagames_util;
-use self::abagames_util::{Audio, Input};
+use self::abagames_util::{Audio, Input, Scancode, StepResult};
 
 extern crate gfx;
 
@@ -57,7 +57,7 @@ impl GameState {
     {
     }
 
-    pub fn step<R>(&self, context: &mut GameStateContext<R>, input: &Input)
+    pub fn step<R>(&mut self, context: &mut GameStateContext<R>, input: &Input) -> StepResult
         where R: gfx::Resources,
     {
         match *self {
@@ -66,9 +66,25 @@ impl GameState {
         }
     }
 
-    pub fn step_title<R>(&self, context: &mut GameStateContext<R>, input: &Input)
+    pub fn step_title<R>(&mut self, context: &mut GameStateContext<R>, input: &Input) -> StepResult
         where R: gfx::Resources,
     {
+        if input.keyboard.is_scancode_pressed(Scancode::Escape) {
+            *self = GameState::PlayingState;
+            StepResult::Done
+        } else {
+            StepResult::Slowdown(0.)
+        }
+    }
+
+    pub fn step_game<R>(&mut self, context: &mut GameStateContext<R>, input: &Input) -> StepResult
+        where R: gfx::Resources,
+    {
+        if input.keyboard.is_scancode_pressed(Scancode::Escape) {
+            *self = GameState::TitleState;
+        }
+
+        StepResult::Slowdown(0.)
     }
 
     pub fn step_game<R>(&self, context: &mut GameStateContext<R>, input: &Input)

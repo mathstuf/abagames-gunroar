@@ -2,7 +2,7 @@
 // See accompanying file LICENSE for details.
 
 extern crate abagames_util;
-use self::abagames_util::{Event, Input, Game, Resources, SdlInfo};
+use self::abagames_util::{Event, Input, Game, Resources, SdlInfo, StepResult};
 
 extern crate gfx;
 
@@ -86,16 +86,14 @@ impl<'a, 'b> Game for Gunroar<'a, 'b> {
         })
     }
 
-    fn step(&mut self, input: &Input) -> Result<f32, Box<Error>> {
+    fn step(&mut self, input: &Input) -> Result<StepResult, Box<Error>> {
         let mut context = GameStateContext {
             audio: self.info.audio.as_mut(),
 
             entities: &mut self.entities,
         };
 
-        self.state.step(&mut context, input);
-
-        Ok(0.)
+        Ok(self.state.step(&mut context, input))
     }
 
     fn draw(&mut self) -> Result<(), Box<Error>> {
