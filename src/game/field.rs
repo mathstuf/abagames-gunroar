@@ -51,7 +51,9 @@ gfx_defines! {
         screen: gfx::ConstantBuffer<PerspectiveScreen> = "Screen",
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
         out_color: gfx::BlendTarget<gfx::format::Srgba8> =
-            ("Target0", gfx::state::MASK_ALL, gfx::preset::blend::ADD),
+            ("Target0", gfx::state::MASK_ALL, gfx::state::Blend::new(gfx::state::Equation::Add,
+                                                                     gfx::state::Factor::ZeroPlus(gfx::state::BlendValue::SourceAlpha),
+                                                                     gfx::state::Factor::One)),
     }
 }
 
