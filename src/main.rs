@@ -95,7 +95,7 @@ fn try_main() -> Result<(), Box<Error>> {
         //.windowed_mode(matches.is_present("WINDOWED"))
         .windowed_mode(true)
         .build());
-    let game = try!(Gunroar::new(&mut info, brightness));
+    let game = try!(Gunroar::new(&mut info, brightness / 100.));
     try!(mainloop.run(game));
 
     Ok(())
