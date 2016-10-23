@@ -7,7 +7,7 @@ use self::abagames_util::{Audio, Input};
 extern crate gfx;
 
 use super::entities::Entities;
-use super::render::RenderContext;
+use super::render::{EncoderContext, RenderContext};
 
 pub enum GameMode {
     Normal,
@@ -76,25 +76,25 @@ impl GameState {
     {
     }
 
-    pub fn draw<R, C>(&self, context: &mut RenderContext<R, C>)
+    pub fn draw<R, C>(&self, entities: &Entities<R>, context: &mut EncoderContext<R, C>)
         where R: gfx::Resources,
               C: gfx::CommandBuffer<R>,
     {
     }
 
-    pub fn draw_luminous<R, C>(&self, context: &mut RenderContext<R, C>)
+    pub fn draw_luminous<R, C>(&self, entities: &Entities<R>, context: &mut EncoderContext<R, C>)
         where R: gfx::Resources,
               C: gfx::CommandBuffer<R>,
     {
     }
 
-    pub fn draw_front<R, C>(&self, context: &mut RenderContext<R, C>)
+    pub fn draw_front<R, C>(&self, entities: &Entities<R>, context: &mut EncoderContext<R, C>)
         where R: gfx::Resources,
               C: gfx::CommandBuffer<R>,
     {
     }
 
-    pub fn draw_ortho<R, C>(&self, context: &mut RenderContext<R, C>)
+    pub fn draw_ortho<R, C>(&self, entities: &Entities<R>, context: &mut EncoderContext<R, C>)
         where R: gfx::Resources,
               C: gfx::CommandBuffer<R>,
     {

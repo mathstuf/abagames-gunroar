@@ -13,8 +13,8 @@ extern crate itertools;
 use self::itertools::FoldWhile::{Continue, Done};
 use self::itertools::Itertools;
 
-use super::render::RenderContext;
-pub use super::render::{Brightness, Screen};
+use super::render::{EncoderContext, RenderContext};
+pub use super::render::{Brightness, OrthographicScreen};
 
 use std::borrow::Cow;
 use std::iter;
@@ -40,7 +40,7 @@ gfx_defines! {
     pipeline pipe {
         vbuf: gfx::VertexBuffer<Vertex> = (),
         color: gfx::ConstantBuffer<Color> = "Color",
-        screen: gfx::ConstantBuffer<Screen> = "Screen",
+        screen: gfx::ConstantBuffer<OrthographicScreen> = "Screen",
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
         letter: gfx::ConstantBuffer<LetterTransforms> = "LetterTransforms",
         segment: gfx::ConstantBuffer<LetterSegments> = "LetterSegments",
@@ -471,7 +471,8 @@ pub struct Letter<R>
 impl<R> Letter<R>
     where R: gfx::Resources,
 {
-    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, gfx::format::Srgba8>) -> Self
+    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, gfx::format::Srgba8>,
+                  context: &RenderContext<R>) -> Self
         where F: gfx::Factory<R>,
     {
         let vertex_data = [
@@ -507,8 +508,8 @@ impl<R> Letter<R>
         let data = pipe::Data {
             vbuf: vbuf,
             color: factory.create_constant_buffer(1),
-            screen: factory.create_constant_buffer(1),
-            brightness: factory.create_constant_buffer(1),
+            screen: context.orthographic_screen_buffer.clone(),
+            brightness: context.brightness_buffer.clone(),
             letter: factory.create_constant_buffer(1),
             segment: factory.create_constant_buffer(1),
             out_color: view,
@@ -525,14 +526,14 @@ impl<R> Letter<R>
         }
     }
 
-    pub fn draw_letter<C>(&self, context: &mut RenderContext<R, C>, letter: char,
+    pub fn draw_letter<C>(&self, context: &mut EncoderContext<R, C>, letter: char,
                               style: &LetterStyle)
         where C: gfx::CommandBuffer<R>,
     {
         self.draw_letter_at(context, letter, style, 0., 0., 1., Rad(0.))
     }
 
-    pub fn draw_letter_at<C, A>(&self, context: &mut RenderContext<R, C>,
+    pub fn draw_letter_at<C, A>(&self, context: &mut EncoderContext<R, C>,
                                        letter: char, style: &LetterStyle, x: f32, y: f32,
                                        scale: f32, rotate: A)
         where C: gfx::CommandBuffer<R>,
@@ -541,7 +542,7 @@ impl<R> Letter<R>
         self.draw_letter_internal(context, letter, style, x, y, scale, rotate, 1.)
     }
 
-    pub fn draw_letter_at_reverse<C, A>(&self, context: &mut RenderContext<R, C>, letter: char,
+    pub fn draw_letter_at_reverse<C, A>(&self, context: &mut EncoderContext<R, C>, letter: char,
                                         style: &LetterStyle, x: f32, y: f32, scale: f32, rotate: A)
         where C: gfx::CommandBuffer<R>,
               A: Into<Rad<f32>>,
@@ -549,7 +550,7 @@ impl<R> Letter<R>
         self.draw_letter_internal(context, letter, style, x, y, scale, rotate, -1.)
     }
 
-    pub fn draw_string<C>(&self, context: &mut RenderContext<R, C>, string: &str, x: f32, y: f32,
+    pub fn draw_string<C>(&self, context: &mut EncoderContext<R, C>, string: &str, x: f32, y: f32,
                       scale: f32, direction: LetterDirection, style: &LetterStyle, reverse: bool)
         where C: gfx::CommandBuffer<R>,
     {
@@ -571,7 +572,7 @@ impl<R> Letter<R>
             });
     }
 
-    pub fn draw_number<C>(&self, context: &mut RenderContext<R, C>, num: u32, x: f32, y: f32,
+    pub fn draw_number<C>(&self, context: &mut EncoderContext<R, C>, num: u32, x: f32, y: f32,
                           scale: f32, style: &LetterStyle, pad_to: Option<u8>,
                           prefix_char: Option<char>, floating_digits: Option<u8>)
         where C: gfx::CommandBuffer<R>,
@@ -580,7 +581,7 @@ impl<R> Letter<R>
                                   floating_digits, false)
     }
 
-    pub fn draw_number_sign<C>(&self, context: &mut RenderContext<R, C>, num: u32, x: f32, y: f32,
+    pub fn draw_number_sign<C>(&self, context: &mut EncoderContext<R, C>, num: u32, x: f32, y: f32,
                                scale: f32, style: &LetterStyle, prefix_char: Option<char>,
                                floating_digits: Option<u8>)
         where C: gfx::CommandBuffer<R>,
@@ -589,7 +590,7 @@ impl<R> Letter<R>
                                   floating_digits, true)
     }
 
-    pub fn draw_time<C>(&self, context: &mut RenderContext<R, C>, time: u32, x: f32, y: f32,
+    pub fn draw_time<C>(&self, context: &mut EncoderContext<R, C>, time: u32, x: f32, y: f32,
                         scale: f32, style: &LetterStyle)
         where C: gfx::CommandBuffer<R>,
     {
@@ -630,7 +631,7 @@ impl<R> Letter<R>
             });
     }
 
-    fn draw_number_internal<C>(&self, context: &mut RenderContext<R, C>, num: u32, x: f32,
+    fn draw_number_internal<C>(&self, context: &mut EncoderContext<R, C>, num: u32, x: f32,
                                    y: f32, scale: f32, style: &LetterStyle, pad_to: Option<u8>,
                                    prefix_char: Option<char>, floating_digits: Option<u8>,
                                    reverse: bool)
@@ -691,7 +692,7 @@ impl<R> Letter<R>
         }
     }
 
-    fn draw_letter_internal<C, A>(&self, context: &mut RenderContext<R, C>, letter: char,
+    fn draw_letter_internal<C, A>(&self, context: &mut EncoderContext<R, C>, letter: char,
                                   style: &LetterStyle, x: f32, y: f32, scale: f32, rotate: A,
                                   flip: f32)
         where C: gfx::CommandBuffer<R>,
@@ -704,22 +705,12 @@ impl<R> Letter<R>
         let letter_trans = LetterTransforms {
             drawmat: drawmat.into(),
         };
-        context.encoder().update_constant_buffer(&self.data.letter, &letter_trans);
-
-        let screen = Screen {
-            projmat: context.orthographic_matrix().clone().into(),
-        };
-        context.encoder().update_constant_buffer(&self.data.screen, &screen);
-
-        let brightness = Brightness {
-            brightness: context.brightness(),
-        };
-        context.encoder().update_constant_buffer(&self.data.brightness, &brightness);
+        context.encoder.update_constant_buffer(&self.data.letter, &letter_trans);
 
         self.draw_letter_segments(context, letter, style)
     }
 
-    fn draw_letter_segments<C>(&self, context: &mut RenderContext<R, C>, letter: char,
+    fn draw_letter_segments<C>(&self, context: &mut EncoderContext<R, C>, letter: char,
                                style: &LetterStyle)
         where C: gfx::CommandBuffer<R>,
     {
@@ -727,25 +718,25 @@ impl<R> Letter<R>
             // Get the constant buffer for the segment.
             .map(LetterSegmentData::constant_buffer)
             .map(|data| {
-                context.encoder().update_constant_buffer(&self.data.segment, &data);
+                context.encoder.update_constant_buffer(&self.data.segment, &data);
 
                 // TODO: Factor color setting out for custom colors.
                 if style.is_fill() {
                     let color = Color {
                         color: style.color(0.5).into_owned(),
                     };
-                    context.encoder().update_constant_buffer(&self.data.color, &color);
+                    context.encoder.update_constant_buffer(&self.data.color, &color);
 
-                    context.encoder().draw(&self.fan_slice, &self.fan_pso, &self.data);
+                    context.encoder.draw(&self.fan_slice, &self.fan_pso, &self.data);
                 }
 
                 if style.is_outline() {
                     let color = Color {
                         color: style.color(1.).into_owned(),
                     };
-                    context.encoder().update_constant_buffer(&self.data.color, &color);
+                    context.encoder.update_constant_buffer(&self.data.color, &color);
 
-                    context.encoder().draw(&self.outline_slice, &self.outline_pso, &self.data);
+                    context.encoder.draw(&self.outline_slice, &self.outline_pso, &self.data);
                 }
             })
             .count();

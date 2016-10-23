@@ -1,7 +1,7 @@
 #version 150
 
 uniform Screen {
-    mat4 projmat;
+    mat4 orthomat;
 };
 
 uniform LetterTransforms {
@@ -16,5 +16,5 @@ uniform LetterSegments {
 attribute vec2 pos;
 
 void main() {
-    gl_Position = projmat * drawmat * boxmat * vec4(pos * size, 0., 1.);
+    gl_Position = orthomat * drawmat * boxmat * vec4(pos * size, 0., 1.);
 }

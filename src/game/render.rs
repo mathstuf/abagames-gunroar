@@ -2,16 +2,21 @@
 // See accompanying file LICENSE for details.
 
 extern crate abagames_util;
-use self::abagames_util::EncoderContext;
+pub use self::abagames_util::EncoderContext;
 
 extern crate cgmath;
 use self::cgmath::{Matrix4, Point3};
 
 extern crate gfx;
+use self::gfx::traits::FactoryExt;
 
 gfx_defines! {
-    constant Screen {
+    constant PerspectiveScreen {
         projmat: [[f32; 4]; 4] = "projmat",
+    }
+
+    constant OrthographicScreen {
+        orthomat: [[f32; 4]; 4] = "orthomat",
     }
 
     constant Brightness {
@@ -19,50 +24,51 @@ gfx_defines! {
     }
 }
 
-pub struct RenderContext<'a: 'b, 'b, R, C: 'a>
+pub struct RenderContext<R>
     where R: gfx::Resources,
-          C: gfx::CommandBuffer<R>,
 {
-    context: &'b mut EncoderContext<'a, R, C>,
     brightness: f32,
-    perspective_matrix: Matrix4<f32>,
-    orthographic_matrix: Matrix4<f32>,
+
+    pub perspective_screen_buffer: gfx::handle::Buffer<R, PerspectiveScreen>,
+    pub orthographic_screen_buffer: gfx::handle::Buffer<R, OrthographicScreen>,
+    pub brightness_buffer: gfx::handle::Buffer<R, Brightness>,
 }
 
-impl<'a, 'b, R, C> RenderContext<'a, 'b, R, C>
+impl<R> RenderContext<R>
     where R: gfx::Resources,
-          C: gfx::CommandBuffer<R>,
 {
-    pub fn new(context: &'b mut EncoderContext<'a, R, C>, brightness: f32) -> Self {
+    pub fn new<F>(factory: &mut F, brightness: f32) -> Self
+        where F: gfx::Factory<R>,
+    {
+        RenderContext {
+            brightness: brightness,
+
+            perspective_screen_buffer: factory.create_constant_buffer(1),
+            orthographic_screen_buffer: factory.create_constant_buffer(1),
+            brightness_buffer: factory.create_constant_buffer(1),
+        }
+    }
+
+    pub fn update<C>(&self, context: &mut EncoderContext<R, C>)
+        where C: gfx::CommandBuffer<R>,
+    {
         let eye = Point3::new(0., 0., 13.);
         let center = Point3::new(0., 0., 0.);
         let up = cgmath::vec3(0., 1., 0.);
 
-        RenderContext {
-            perspective_matrix: context.perspective_matrix * Matrix4::look_at(eye, center, up),
-            orthographic_matrix: context.orthographic_matrix,
-            context: context,
-            brightness: brightness,
-        }
-    }
+        let perspective_screen = PerspectiveScreen {
+            projmat: (context.perspective_matrix * Matrix4::look_at(eye, center, up)).into(),
+        };
+        context.encoder.update_constant_buffer(&self.perspective_screen_buffer, &perspective_screen);
 
-    pub fn brightness(&self) -> f32 {
-        self.brightness
-    }
+        let orthographic_screen = OrthographicScreen {
+            orthomat: context.orthographic_matrix.clone().into(),
+        };
+        context.encoder.update_constant_buffer(&self.orthographic_screen_buffer, &orthographic_screen);
 
-    pub fn perspective_matrix(&self) -> &Matrix4<f32> {
-        &self.perspective_matrix
-    }
-
-    pub fn orthographic_matrix(&self) -> &Matrix4<f32> {
-        &self.orthographic_matrix
-    }
-
-    pub fn context(&mut self) -> &mut EncoderContext<'a, R, C> {
-        &mut self.context
-    }
-
-    pub fn encoder(&mut self) -> &mut gfx::Encoder<R, C> {
-        &mut self.context.encoder
+        let brightness = Brightness {
+            brightness: self.brightness,
+        };
+        context.encoder.update_constant_buffer(&self.brightness_buffer, &brightness);
     }
 }

@@ -16,28 +16,31 @@ use super::render::RenderContext;
 use super::state::{GameState, GameStateContext};
 
 pub struct Gunroar<'a, 'b: 'a> {
+    global_render: RenderContext<Resources>,
     entities: Entities<Resources>,
     state: GameState,
 
     info: &'a mut SdlInfo<'b>,
-    brightness: f32,
 
     backgrounded: bool,
 }
 
 impl<'a, 'b> Gunroar<'a, 'b> {
     pub fn new(info: &'a mut SdlInfo<'b>, brightness: f32) -> Result<Self, Box<Error>> {
-        let entities = {
+        let (render, entities) = {
             let (factory, view) = info.video.factory();
-            Entities::new(factory, view.clone())
+            let render = RenderContext::new(factory, brightness);
+            let entities = Entities::new(factory, view.clone(), &render);
+
+            (render, entities)
         };
 
         Ok(Gunroar {
+            global_render: render,
             entities: entities,
             state: GameState::TitleState,
 
             info: info,
-            brightness: brightness,
 
             backgrounded: false,
         })
@@ -101,7 +104,8 @@ impl<'a, 'b> Game for Gunroar<'a, 'b> {
         }
 
         let mut draw_context = self.info.video.context();
-        let mut context = RenderContext::new(&mut draw_context.context, self.brightness);
+        let mut context = &mut draw_context.context;
+        self.global_render.update(&mut context);
 
         self.entities.draw(&mut context);
 
