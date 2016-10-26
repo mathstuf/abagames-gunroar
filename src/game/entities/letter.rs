@@ -632,20 +632,20 @@ impl<R> Letter<R>
                     time / 6
                 };
 
-                if new_time != 0 {
-                    let next_offset = if idx == 0 || (idx & 1) == 1 {
-                        let ch = if idx == 3 {
-                            '\"'
-                        } else {
-                            '\''
-                        };
-                        self.draw_letter_at(context, ch, style, pos + offset_quotes, scale, angle, LetterOrientation::Normal);
-
-                        offset
+                let next_offset = if idx == 0 || (idx & 1) == 1 {
+                    let ch = if idx == 3 {
+                        '\"'
                     } else {
-                        offset_wide
+                        '\''
                     };
+                    self.draw_letter_at(context, ch, style, pos + offset_quotes, scale, angle, LetterOrientation::Normal);
 
+                    offset
+                } else {
+                    offset_wide
+                };
+
+                if new_time != 0 {
                     Continue((pos - next_offset, new_time))
                 } else {
                     Done((pos, new_time))
