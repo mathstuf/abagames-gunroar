@@ -284,14 +284,9 @@ impl<R> Field<R>
 
         let sidebar_instance_buffer = factory.create_vertex_buffer(&sidebar_instance_data);
 
-        let sidebar_program = factory.link_program(
+        let sidebar_pso = factory.create_pipeline_simple(
             include_bytes!("shader/field_sidebar.glslv"),
-            include_bytes!("shader/field_sidebar.glslf"))
-            .unwrap();
-        let sidebar_pso = factory.create_pipeline_from_program(
-            &sidebar_program,
-            gfx::Primitive::TriangleList,
-            gfx::state::Rasterizer::new_fill(),
+            include_bytes!("shader/field_sidebar.glslf"),
             sidebar_pipe::new())
             .unwrap();
 
@@ -318,14 +313,9 @@ impl<R> Field<R>
                                                                                        gfx::buffer::Role::Vertex,
                                                                                        gfx::Bind::empty());
 
-        let panel_program = factory.link_program(
+        let panel_pso = factory.create_pipeline_simple(
             include_bytes!("shader/field_panel.glslv"),
-            include_bytes!("shader/field_panel.glslf"))
-            .unwrap();
-        let panel_pso = factory.create_pipeline_from_program(
-            &panel_program,
-            gfx::Primitive::TriangleList,
-            gfx::state::Rasterizer::new_fill(),
+            include_bytes!("shader/field_panel.glslf"),
             panel_pipe::new())
             .unwrap();
 
