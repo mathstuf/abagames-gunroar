@@ -479,7 +479,7 @@ impl<R> Field<R>
         (0..4).into_iter()
             .map(|i| abagames_util::wrap_inc_by(i, 4, d))
             .map(|i| (i, (x as i32) + ANGLE_BLOCK_OFFSET[i][0], (y as i32) + ANGLE_BLOCK_OFFSET[i][1]))
-            .filter(|&(i, ox, oy)| {
+            .filter(|&(_, ox, oy)| {
                 !self.check_block(ox, oy, Block::Shore).unwrap_or(true)
             })
             .map(|(i, ox, oy)| {
