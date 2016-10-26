@@ -111,7 +111,7 @@ impl LetterSegmentData {
 
         let boxmat =
             Matrix4::from_translation((x - width / 2., y - height / 2., 0.).into()) *
-            Matrix4::from_axis_angle((0., 0., 1.).into(), -deg);
+            Matrix4::from_axis_angle((0., 0., 1.).into(), deg);
         LetterSegments {
             boxmat: boxmat.into(),
             size: [width, height],
