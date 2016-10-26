@@ -456,6 +456,21 @@ impl LetterDirection {
     }
 }
 
+#[derive(Clone, Copy)]
+pub enum LetterOrientation {
+    Normal,
+    Reverse,
+}
+
+impl LetterOrientation {
+    fn y_flip(self) -> f32 {
+        match self {
+            LetterOrientation::Normal => 1.,
+            LetterOrientation::Reverse => -1.,
+        }
+    }
+}
+
 pub struct Letter<R>
     where R: gfx::Resources,
 {
@@ -545,7 +560,7 @@ impl<R> Letter<R>
         where C: gfx::CommandBuffer<R>,
               A: Into<Rad<f32>>,
     {
-        self.draw_letter_internal(context, letter, style, x, y, scale, rotate, 1.)
+        self.draw_letter_internal(context, letter, style, x, y, scale, rotate, LetterOrientation::Normal)
     }
 
     pub fn draw_letter_at_reverse<C, A>(&self, context: &mut EncoderContext<R, C>, letter: char,
@@ -553,26 +568,22 @@ impl<R> Letter<R>
         where C: gfx::CommandBuffer<R>,
               A: Into<Rad<f32>>,
     {
-        self.draw_letter_internal(context, letter, style, x, y, scale, rotate, -1.)
+        self.draw_letter_internal(context, letter, style, x, y, scale, rotate, LetterOrientation::Reverse)
     }
 
     pub fn draw_string<C>(&self, context: &mut EncoderContext<R, C>, string: &str, x: f32, y: f32,
-                      scale: f32, direction: LetterDirection, style: &LetterStyle, reverse: bool)
+                          scale: f32, direction: LetterDirection, style: &LetterStyle,
+                          orientation: LetterOrientation)
         where C: gfx::CommandBuffer<R>,
     {
         let x = x + LETTER_WIDTH * scale / 2.;
         let y = y + LETTER_HEIGHT * scale / 2.;
         let angle = direction.angle();
-        let method = if reverse {
-            Self::draw_letter_at_reverse
-        } else {
-            Self::draw_letter_at
-        };
         let offset = (scale * LETTER_WIDTH, scale * LETTER_HEIGHT);
 
         string.chars()
             .fold((x, y), |pos, ch| {
-                method(self, context, ch, style, pos.0, pos.1, scale, angle);
+                self.draw_letter_internal(context, ch, style, pos.0, pos.1, scale, angle, orientation);
 
                 direction.change(pos, offset)
             });
@@ -584,7 +595,7 @@ impl<R> Letter<R>
         where C: gfx::CommandBuffer<R>,
     {
         self.draw_number_internal(context, num, x, y, scale, style, pad_to, prefix_char,
-                                  floating_digits, false)
+                                  floating_digits, LetterOrientation::Normal)
     }
 
     pub fn draw_number_sign<C>(&self, context: &mut EncoderContext<R, C>, num: u32, x: f32, y: f32,
@@ -593,7 +604,7 @@ impl<R> Letter<R>
         where C: gfx::CommandBuffer<R>,
     {
         self.draw_number_internal(context, num, x, y, scale, style, None, prefix_char,
-                                  floating_digits, true)
+                                  floating_digits, LetterOrientation::Reverse)
     }
 
     pub fn draw_time<C>(&self, context: &mut EncoderContext<R, C>, time: u32, x: f32, y: f32,
@@ -640,7 +651,7 @@ impl<R> Letter<R>
     fn draw_number_internal<C>(&self, context: &mut EncoderContext<R, C>, num: u32, x: f32,
                                    y: f32, scale: f32, style: &LetterStyle, pad_to: Option<u8>,
                                    prefix_char: Option<char>, floating_digits: Option<u8>,
-                                   reverse: bool)
+                                   orientation: LetterOrientation)
         where C: gfx::CommandBuffer<R>,
     {
         let x = x + LETTER_WIDTH * scale / 2.;
@@ -649,11 +660,6 @@ impl<R> Letter<R>
         let dir = LetterDirection::Right;
         let angle = dir.angle();
         let fp_offset = (offset.0 * 0.5, offset.1 * 0.25);
-        let method = if reverse {
-            Self::draw_letter_at_reverse
-        } else {
-            Self::draw_letter_at
-        };
 
         let (x, y, _, _, _) = iter::repeat(())
             .fold_while((x, y, num, pad_to, floating_digits), |(x, y, num, pad, fd), _| {
@@ -661,16 +667,16 @@ impl<R> Letter<R>
                 let next_num = num / 10;
 
                 let (x_offset, fd) = if let Some(fd) = fd {
-                    method(self, context, digit, style, x, y + fp_offset.1, scale, angle);
+                    self.draw_letter_internal(context, digit, style, x, y + fp_offset.1, scale, angle, orientation);
                     let new_fp = fd - 1;
                     if new_fp == 0 {
-                        method(self, context, '.', style, x, y + fp_offset.1, scale, angle);
+                        self.draw_letter_internal(context, '.', style, x, y + fp_offset.1, scale, angle, orientation);
                         (2. * fp_offset.0, None)
                     } else {
                         (fp_offset.0, Some(new_fp))
                     }
                 } else {
-                    method(self, context, digit, style, x, y, scale, angle);
+                    self.draw_letter_internal(context, digit, style, x, y, scale, angle, orientation);
                     (offset.0, None)
                 };
 
@@ -693,20 +699,20 @@ impl<R> Letter<R>
 
         if let Some(prefix) = prefix_char {
             let prefix_offset = scale * LETTER_WIDTH * 0.2;
-            method(self, context, prefix, style, x + prefix_offset, y + prefix_offset, scale * 0.6,
-                   angle);
+            self.draw_letter_internal(context, prefix, style, x + prefix_offset, y + prefix_offset,
+                                      scale * 0.6, angle, orientation);
         }
     }
 
     fn draw_letter_internal<C, A>(&self, context: &mut EncoderContext<R, C>, letter: char,
                                   style: &LetterStyle, x: f32, y: f32, scale: f32, rotate: A,
-                                  flip: f32)
+                                  orientation: LetterOrientation)
         where C: gfx::CommandBuffer<R>,
               A: Into<Rad<f32>>,
     {
         let drawmat =
             Matrix4::from_translation((x, y, 0.).into()) *
-            Matrix4::from_nonuniform_scale(scale, scale * flip, scale) *
+            Matrix4::from_nonuniform_scale(scale, scale * orientation.y_flip(), scale) *
             Matrix4::from_axis_angle((0., 0., 1.).into(), -rotate.into());
         let letter_trans = LetterTransforms {
             drawmat: drawmat.into(),
