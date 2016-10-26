@@ -138,8 +138,8 @@ struct Panel {
 impl Panel {
     fn new() -> Self {
         Panel {
-            position: (0., 0., 0.).into(),
-            color: (0., 0., 0.).into(),
+            position: Vector3::new(0., 0., 0.),
+            color: Vector3::new(0., 0., 0.),
             color_index: 0,
         }
     }
@@ -364,12 +364,12 @@ impl<R> Field<R>
         let block = self.blocks[x][y];
         let panel = &mut self.panels[x][y];
 
-        panel.position = (
+        panel.position = Vector3::new(
             self.rand.next_float(1.) - 0.75,
             self.rand.next_float(1.) - 0.75,
             block.factor() * PANEL_HEIGHT_BASE + self.rand.next_float(PANEL_HEIGHT_BASE),
-        ).into();
-        panel.color = cgmath::vec3(
+        );
+        panel.color = Vector3::new(
             1. + self.rand.next_float_signed(0.1),
             1. + self.rand.next_float_signed(0.1),
             1. + self.rand.next_float_signed(0.1),
@@ -447,7 +447,7 @@ impl<R> Field<R>
                     if new_block == Block::Shore && between(2, x, BLOCK_SIZE_X - 2) {
                         if let Some(angle) = self.platform_angle(x, y) {
                             Some(Platform {
-                                position: [x, y].into(),
+                                position: Vector2::new(x, y),
                                 angle: angle,
                             })
                         } else {

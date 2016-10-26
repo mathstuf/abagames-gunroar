@@ -4,7 +4,7 @@
 extern crate abagames_util;
 
 extern crate cgmath;
-use self::cgmath::{Deg, ElementWise, Matrix4, Rad, Vector2};
+use self::cgmath::{Deg, ElementWise, Matrix4, Rad, Vector2, Vector3};
 
 extern crate gfx;
 use self::gfx::traits::FactoryExt;
@@ -115,7 +115,7 @@ impl LetterSegmentData {
 
         let boxmat =
             Matrix4::from_translation((x - width / 2., y - height / 2., 0.).into()) *
-            Matrix4::from_axis_angle((0., 0., 1.).into(), deg);
+            Matrix4::from_axis_angle(Vector3::unit_z(), deg);
         LetterSegments {
             boxmat: boxmat.into(),
             size: [width, height],
@@ -448,8 +448,8 @@ impl LetterDirection {
     }
 
     fn change(&self, pos: Vector2<f32>, delta: Vector2<f32>) -> Vector2<f32> {
-        let dx = Vector2::new(delta.x, 0.);
-        let dy = Vector2::new(0., delta.y);
+        let dx = delta.x * Vector2::unit_x();
+        let dy = delta.y * Vector2::unit_y();
 
         match *self {
             LetterDirection::Right => pos + dx,
@@ -567,7 +567,7 @@ impl<R> Letter<R>
         let drawmat =
             Matrix4::from_translation(pos.extend(0.)) *
             Matrix4::from_nonuniform_scale(scale, scale * orientation.y_flip(), scale) *
-            Matrix4::from_axis_angle((0., 0., 1.).into(), -rotate.into());
+            Matrix4::from_axis_angle(Vector3::unit_z(), -rotate.into());
         let letter_trans = LetterTransforms {
             drawmat: drawmat.into(),
         };
@@ -615,9 +615,9 @@ impl<R> Letter<R>
                         scale: f32, style: &LetterStyle)
         where C: gfx::CommandBuffer<R>,
     {
-        let offset = Vector2::new(scale * LETTER_WIDTH, 0.);
+        let offset = scale * LETTER_WIDTH * Vector2::unit_x();
         let offset_wide = offset * 1.3;
-        let offset_quotes = Vector2::new(scale * 1.16, 0.);
+        let offset_quotes = scale * 1.16 * Vector2::unit_x();
         let angle = LetterDirection::Right.angle();
 
         (0..)
@@ -663,9 +663,9 @@ impl<R> Letter<R>
         let pos = pos + offset / 2.;
         let dir = LetterDirection::Right;
         let angle = dir.angle();
-        let norm_digit_offset = Vector2::new(offset.x, 0.);
+        let norm_digit_offset = offset.x * Vector2::unit_x();
         let fp_offset_x = norm_digit_offset * 0.5;
-        let fp_offset_y = Vector2::new(0., offset.y * 0.25);
+        let fp_offset_y = offset.y * 0.25 * Vector2::unit_y();
 
         let (pos, _, _, _) = iter::repeat(())
             .fold_while((pos, num, pad_to, floating_digits), |(pos, num, pad, fd), _| {

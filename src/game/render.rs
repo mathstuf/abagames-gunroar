@@ -5,7 +5,7 @@ extern crate abagames_util;
 pub use self::abagames_util::EncoderContext;
 
 extern crate cgmath;
-use self::cgmath::{Matrix4, Point3};
+use self::cgmath::{Matrix4, Point3, Vector3};
 
 extern crate gfx;
 use self::gfx::traits::FactoryExt;
@@ -54,7 +54,7 @@ impl<R> RenderContext<R>
     {
         let eye = Point3::new(0., 0., 13.);
         let center = Point3::new(0., 0., 0.);
-        let up = cgmath::vec3(0., 1., 0.);
+        let up = Vector3::unit_y();
 
         let perspective_screen = PerspectiveScreen {
             projmat: (context.perspective_matrix * Matrix4::look_at(eye, center, up)).into(),
