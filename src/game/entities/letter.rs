@@ -4,7 +4,7 @@
 extern crate abagames_util;
 
 extern crate cgmath;
-use self::cgmath::{Deg, Matrix4, Rad};
+use self::cgmath::{Deg, ElementWise, Matrix4, Rad, Vector2};
 
 extern crate gfx;
 use self::gfx::traits::FactoryExt;
@@ -51,8 +51,12 @@ gfx_defines! {
     }
 }
 
-static LETTER_WIDTH: f32 = 2.1;
-static LETTER_HEIGHT: f32 = 3.;
+const LETTER_WIDTH: f32 = 2.1;
+const LETTER_HEIGHT: f32 = 3.;
+const LETTER_OFFSET: Vector2<f32> = Vector2 {
+    x: LETTER_WIDTH,
+    y: LETTER_HEIGHT,
+};
 
 #[derive(Clone)]
 pub enum LetterStyle<'a> {
@@ -443,15 +447,15 @@ impl LetterDirection {
         }).into()
     }
 
-    fn change(&self, pos: (f32, f32), delta: (f32, f32)) -> (f32, f32) {
-        let (x, y) = pos;
-        let (dx, dy) = delta;
+    fn change(&self, pos: Vector2<f32>, delta: Vector2<f32>) -> Vector2<f32> {
+        let dx = Vector2::new(delta.x, 0.);
+        let dy = Vector2::new(0., delta.y);
 
         match *self {
-            LetterDirection::Right => (x + dx, y),
-            LetterDirection::Down => (x, y + dy),
-            LetterDirection::Left => (x - dx, y),
-            LetterDirection::Up => (x, y - dy),
+            LetterDirection::Right => pos + dx,
+            LetterDirection::Down => pos + dy,
+            LetterDirection::Left => pos - dx,
+            LetterDirection::Up => pos - dy,
         }
     }
 }
@@ -551,17 +555,17 @@ impl<R> Letter<R>
                           style: &LetterStyle)
         where C: gfx::CommandBuffer<R>,
     {
-        self.draw_letter_at(context, letter, style, 0., 0., 1., Rad(0.), LetterOrientation::Normal)
+        self.draw_letter_at(context, letter, style, Vector2::new(0., 0.), 1., Rad(0.), LetterOrientation::Normal)
     }
 
     pub fn draw_letter_at<C, A>(&self, context: &mut EncoderContext<R, C>, letter: char,
-                                style: &LetterStyle, x: f32, y: f32, scale: f32, rotate: A,
+                                style: &LetterStyle, pos: Vector2<f32>, scale: f32, rotate: A,
                                 orientation: LetterOrientation)
         where C: gfx::CommandBuffer<R>,
               A: Into<Rad<f32>>,
     {
         let drawmat =
-            Matrix4::from_translation((x, y, 0.).into()) *
+            Matrix4::from_translation(pos.extend(0.)) *
             Matrix4::from_nonuniform_scale(scale, scale * orientation.y_flip(), scale) *
             Matrix4::from_axis_angle((0., 0., 1.).into(), -rotate.into());
         let letter_trans = LetterTransforms {
@@ -572,114 +576,115 @@ impl<R> Letter<R>
         self.draw_letter_segments(context, letter, style)
     }
 
-    pub fn draw_string<C>(&self, context: &mut EncoderContext<R, C>, string: &str, x: f32, y: f32,
+    pub fn draw_string<C>(&self, context: &mut EncoderContext<R, C>, string: &str, pos: Vector2<f32>,
                           scale: f32, direction: LetterDirection, style: &LetterStyle,
                           orientation: LetterOrientation)
         where C: gfx::CommandBuffer<R>,
     {
-        let x = x + LETTER_WIDTH * scale / 2.;
-        let y = y + LETTER_HEIGHT * scale / 2.;
+        let offset = LETTER_OFFSET * scale;
+        let pos = pos + offset / 2.;
         let angle = direction.angle();
-        let offset = (scale * LETTER_WIDTH, scale * LETTER_HEIGHT);
 
         string.chars()
-            .fold((x, y), |pos, ch| {
-                self.draw_letter_at(context, ch, style, pos.0, pos.1, scale, angle, orientation);
+            .fold(pos, |pos, ch| {
+                self.draw_letter_at(context, ch, style, pos, scale, angle, orientation);
 
                 direction.change(pos, offset)
             });
     }
 
-    pub fn draw_number<C>(&self, context: &mut EncoderContext<R, C>, num: u32, x: f32, y: f32,
+    pub fn draw_number<C>(&self, context: &mut EncoderContext<R, C>, num: u32, pos: Vector2<f32>,
                           scale: f32, style: &LetterStyle, pad_to: Option<u8>,
                           prefix_char: Option<char>, floating_digits: Option<u8>)
         where C: gfx::CommandBuffer<R>,
     {
-        self.draw_number_internal(context, num, x, y, scale, style, pad_to, prefix_char,
+        self.draw_number_internal(context, num, pos, scale, style, pad_to, prefix_char,
                                   floating_digits, LetterOrientation::Normal)
     }
 
-    pub fn draw_number_sign<C>(&self, context: &mut EncoderContext<R, C>, num: u32, x: f32, y: f32,
+    pub fn draw_number_sign<C>(&self, context: &mut EncoderContext<R, C>, num: u32, pos: Vector2<f32>,
                                scale: f32, style: &LetterStyle, prefix_char: Option<char>,
                                floating_digits: Option<u8>)
         where C: gfx::CommandBuffer<R>,
     {
-        self.draw_number_internal(context, num, x, y, scale, style, None, prefix_char,
+        self.draw_number_internal(context, num, pos, scale, style, None, prefix_char,
                                   floating_digits, LetterOrientation::Reverse)
     }
 
-    pub fn draw_time<C>(&self, context: &mut EncoderContext<R, C>, time: u32, x: f32, y: f32,
+    pub fn draw_time<C>(&self, context: &mut EncoderContext<R, C>, time: u32, pos: Vector2<f32>,
                         scale: f32, style: &LetterStyle)
         where C: gfx::CommandBuffer<R>,
     {
-        let x_offset = scale * LETTER_WIDTH;
-        let x_offset_wide = x_offset * 1.3;
-        let x_offset_quotes = scale * 1.16;
+        let offset = Vector2::new(scale * LETTER_WIDTH, 0.);
+        let offset_wide = offset * 1.3;
+        let offset_quotes = Vector2::new(scale * 1.16, 0.);
         let angle = LetterDirection::Right.angle();
 
         (0..)
-            .fold_while((x, y, time), |(x, y, time), idx| {
+            .fold_while((pos, time), |(pos, time), idx| {
                 let new_time = if idx != 4 {
                     let letter = Self::for_digit(time % 10);
-                    self.draw_letter_at(context, letter, style, x, y, scale, angle, LetterOrientation::Normal);
+                    self.draw_letter_at(context, letter, style, pos, scale, angle, LetterOrientation::Normal);
                     time / 10
                 } else {
                     let letter = Self::for_digit(time % 6);
-                    self.draw_letter_at(context, letter, style, x, y, scale, angle, LetterOrientation::Normal);
+                    self.draw_letter_at(context, letter, style, pos, scale, angle, LetterOrientation::Normal);
                     time / 6
                 };
 
                 if new_time != 0 {
-                    let x_offset = if idx == 0 || (idx & 1) == 1 {
+                    let next_offset = if idx == 0 || (idx & 1) == 1 {
                         let ch = if idx == 3 {
                             '\"'
                         } else {
                             '\''
                         };
-                        self.draw_letter_at(context, ch, style, x + x_offset_quotes, y, scale, angle, LetterOrientation::Normal);
+                        self.draw_letter_at(context, ch, style, pos + offset_quotes, scale, angle, LetterOrientation::Normal);
 
-                        x_offset
+                        offset
                     } else {
-                        x_offset_wide
+                        offset_wide
                     };
 
-                    Continue((x - x_offset, y, new_time))
+                    Continue((pos - next_offset, new_time))
                 } else {
-                    Done((x, y, new_time))
+                    Done((pos, new_time))
                 }
             });
     }
 
-    fn draw_number_internal<C>(&self, context: &mut EncoderContext<R, C>, num: u32, x: f32,
-                                   y: f32, scale: f32, style: &LetterStyle, pad_to: Option<u8>,
-                                   prefix_char: Option<char>, floating_digits: Option<u8>,
-                                   orientation: LetterOrientation)
+    fn draw_number_internal<C>(&self, context: &mut EncoderContext<R, C>, num: u32,
+                               pos: Vector2<f32>, scale: f32, style: &LetterStyle,
+                               pad_to: Option<u8>, prefix_char: Option<char>,
+                               floating_digits: Option<u8>, orientation: LetterOrientation)
         where C: gfx::CommandBuffer<R>,
     {
-        let x = x + LETTER_WIDTH * scale / 2.;
-        let y = y + LETTER_HEIGHT * scale / 2.;
-        let offset = (scale * LETTER_WIDTH, scale * LETTER_HEIGHT);
+        let offset = LETTER_OFFSET * scale;
+        let pos = pos + offset / 2.;
         let dir = LetterDirection::Right;
         let angle = dir.angle();
-        let fp_offset = (offset.0 * 0.5, offset.1 * 0.25);
+        let norm_digit_offset = Vector2::new(offset.x, 0.);
+        let fp_offset_x = norm_digit_offset * 0.5;
+        let fp_offset_y = Vector2::new(0., offset.y * 0.25);
 
-        let (x, y, _, _, _) = iter::repeat(())
-            .fold_while((x, y, num, pad_to, floating_digits), |(x, y, num, pad, fd), _| {
+        let (pos, _, _, _) = iter::repeat(())
+            .fold_while((pos, num, pad_to, floating_digits), |(pos, num, pad, fd), _| {
                 let digit = Self::for_digit(num % 10);
                 let next_num = num / 10;
 
-                let (x_offset, fd) = if let Some(fd) = fd {
-                    self.draw_letter_at(context, digit, style, x, y + fp_offset.1, scale, angle, orientation);
+                let (digit_offset, fd) = if let Some(fd) = fd {
+                    let fp_pos = pos + fp_offset_y;
+                    self.draw_letter_at(context, digit, style, fp_pos, scale, angle, orientation);
                     let new_fp = fd - 1;
                     if new_fp == 0 {
-                        self.draw_letter_at(context, '.', style, x, y + fp_offset.1, scale, angle, orientation);
-                        (2. * fp_offset.0, None)
+                        self.draw_letter_at(context, '.', style, fp_pos, scale, angle, orientation);
+                        (2. * fp_offset_x, None)
                     } else {
-                        (fp_offset.0, Some(new_fp))
+                        (fp_offset_x, Some(new_fp))
                     }
                 } else {
-                    self.draw_letter_at(context, digit, style, x, y, scale, angle, orientation);
-                    (offset.0, None)
+                    self.draw_letter_at(context, digit, style, pos, scale, angle, orientation);
+                    (norm_digit_offset, None)
                 };
 
                 let pad = pad.and_then(|pad| {
@@ -691,18 +696,19 @@ impl<R> Letter<R>
                     }
                 });
 
-                let new_x = x - x_offset;
+                let new_pos = pos - digit_offset;
                 if next_num != 0 || pad.is_some() || fd.is_some() {
-                    Continue((new_x, y, next_num, pad, fd))
+                    Continue((new_pos, next_num, pad, fd))
                 } else {
-                    Done((new_x, y, next_num, pad, fd))
+                    Done((new_pos, next_num, pad, fd))
                 }
             });
 
         if let Some(prefix) = prefix_char {
             let prefix_offset = scale * LETTER_WIDTH * 0.2;
-            self.draw_letter_at(context, prefix, style, x + prefix_offset, y + prefix_offset,
-                                scale * 0.6, angle, orientation);
+            let prefix_offset = Vector2::new(prefix_offset, prefix_offset);
+            self.draw_letter_at(context, prefix, style, pos + prefix_offset, scale * 0.6, angle,
+                                orientation);
         }
     }
 
