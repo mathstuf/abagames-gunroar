@@ -408,7 +408,7 @@ impl LetterSegmentData {
     fn segment_data_for(ch: char) -> &'static [LetterSegmentData] {
         let ch_u8 = ch as u8;
         let idx = match ch {
-            '0'...'9' => ch_u8 - 10,
+            '0'...'9' => ch_u8 - ('0' as u8),
             'A'...'Z' => ch_u8 - ('A' as u8) + 10,
             'a'...'z' => ch_u8 - ('a' as u8) + 10,
             '.' => 36,
