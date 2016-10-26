@@ -60,7 +60,6 @@ gfx_defines! {
 const BLOCK_SIZE_X: usize = 20;
 const BLOCK_SIZE_Y: usize = 64;
 const BLOCK_SIZE_X_F32: f32 = BLOCK_SIZE_X as f32;
-const ON_BLOCK_THRESHOLD: i32 = 1;
 const NEXT_BLOCK_AREA_SIZE: usize = 16;
 const NEXT_BLOCK_AREA_SIZE_F32: f32 = NEXT_BLOCK_AREA_SIZE as f32;
 
