@@ -629,19 +629,19 @@ impl<R> Letter<R>
                     time / 6
                 };
 
-                let x_offset = if idx == 0 || (idx & 1) == 1 {
-                    if idx == 3 {
-                        self.draw_letter_at(context, '\"', style, x + x_offset_quotes, y, scale, angle, LetterOrientation::Normal)
-                    } else if idx == 5 {
-                        self.draw_letter_at(context, '\'', style, x + x_offset_quotes, y, scale, angle, LetterOrientation::Normal)
+                if new_time != 0 {
+                    let x_offset = if idx == 0 || (idx & 1) == 1 {
+                        if idx == 3 {
+                            self.draw_letter_at(context, '\"', style, x + x_offset_quotes, y, scale, angle, LetterOrientation::Normal)
+                        } else if idx == 5 {
+                            self.draw_letter_at(context, '\'', style, x + x_offset_quotes, y, scale, angle, LetterOrientation::Normal)
+                        };
+
+                        x_offset
+                    } else {
+                        x_offset_wide
                     };
 
-                    x_offset
-                } else {
-                    x_offset_wide
-                };
-
-                if new_time != 0 {
                     Continue((x - x_offset, y, new_time))
                 } else {
                     Done((x, y, new_time))
