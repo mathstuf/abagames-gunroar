@@ -495,7 +495,13 @@ impl<R> Letter<R>
         let outline_pso = factory.create_pipeline_from_program(
             &program,
             gfx::Primitive::LineStrip,
-            gfx::state::Rasterizer::new_fill(),
+            gfx::state::Rasterizer {
+                front_face: gfx::state::FrontFace::CounterClockwise,
+                cull_face: gfx::state::CullFace::Nothing,
+                method: gfx::state::RasterMethod::Line(1),
+                offset: None,
+                samples: None,
+            },
             pipe::new())
             .unwrap();
         let fan_pso = factory.create_pipeline_from_program(
