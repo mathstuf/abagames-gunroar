@@ -551,24 +551,25 @@ impl<R> Letter<R>
                           style: &LetterStyle)
         where C: gfx::CommandBuffer<R>,
     {
-        self.draw_letter_at(context, letter, style, 0., 0., 1., Rad(0.))
+        self.draw_letter_at(context, letter, style, 0., 0., 1., Rad(0.), LetterOrientation::Normal)
     }
 
-    pub fn draw_letter_at<C, A>(&self, context: &mut EncoderContext<R, C>,
-                                       letter: char, style: &LetterStyle, x: f32, y: f32,
-                                       scale: f32, rotate: A)
+    pub fn draw_letter_at<C, A>(&self, context: &mut EncoderContext<R, C>, letter: char,
+                                style: &LetterStyle, x: f32, y: f32, scale: f32, rotate: A,
+                                orientation: LetterOrientation)
         where C: gfx::CommandBuffer<R>,
               A: Into<Rad<f32>>,
     {
-        self.draw_letter_internal(context, letter, style, x, y, scale, rotate, LetterOrientation::Normal)
-    }
+        let drawmat =
+            Matrix4::from_translation((x, y, 0.).into()) *
+            Matrix4::from_nonuniform_scale(scale, scale * orientation.y_flip(), scale) *
+            Matrix4::from_axis_angle((0., 0., 1.).into(), -rotate.into());
+        let letter_trans = LetterTransforms {
+            drawmat: drawmat.into(),
+        };
+        context.encoder.update_constant_buffer(&self.data.letter, &letter_trans);
 
-    pub fn draw_letter_at_reverse<C, A>(&self, context: &mut EncoderContext<R, C>, letter: char,
-                                        style: &LetterStyle, x: f32, y: f32, scale: f32, rotate: A)
-        where C: gfx::CommandBuffer<R>,
-              A: Into<Rad<f32>>,
-    {
-        self.draw_letter_internal(context, letter, style, x, y, scale, rotate, LetterOrientation::Reverse)
+        self.draw_letter_segments(context, letter, style)
     }
 
     pub fn draw_string<C>(&self, context: &mut EncoderContext<R, C>, string: &str, x: f32, y: f32,
@@ -583,7 +584,7 @@ impl<R> Letter<R>
 
         string.chars()
             .fold((x, y), |pos, ch| {
-                self.draw_letter_internal(context, ch, style, pos.0, pos.1, scale, angle, orientation);
+                self.draw_letter_at(context, ch, style, pos.0, pos.1, scale, angle, orientation);
 
                 direction.change(pos, offset)
             });
@@ -620,19 +621,19 @@ impl<R> Letter<R>
             .fold_while((x, y, time), |(x, y, time), idx| {
                 let new_time = if idx != 4 {
                     let letter = Self::for_digit(time % 10);
-                    self.draw_letter_at(context, letter, style, x, y, scale, angle);
+                    self.draw_letter_at(context, letter, style, x, y, scale, angle, LetterOrientation::Normal);
                     time / 10
                 } else {
                     let letter = Self::for_digit(time % 6);
-                    self.draw_letter_at(context, letter, style, x, y, scale, angle);
+                    self.draw_letter_at(context, letter, style, x, y, scale, angle, LetterOrientation::Normal);
                     time / 6
                 };
 
                 let x_offset = if idx == 0 || (idx & 1) == 1 {
                     if idx == 3 {
-                        self.draw_letter_at(context, '\"', style, x + x_offset_quotes, y, scale, angle)
+                        self.draw_letter_at(context, '\"', style, x + x_offset_quotes, y, scale, angle, LetterOrientation::Normal)
                     } else if idx == 5 {
-                        self.draw_letter_at(context, '\'', style, x + x_offset_quotes, y, scale, angle)
+                        self.draw_letter_at(context, '\'', style, x + x_offset_quotes, y, scale, angle, LetterOrientation::Normal)
                     };
 
                     x_offset
@@ -667,16 +668,16 @@ impl<R> Letter<R>
                 let next_num = num / 10;
 
                 let (x_offset, fd) = if let Some(fd) = fd {
-                    self.draw_letter_internal(context, digit, style, x, y + fp_offset.1, scale, angle, orientation);
+                    self.draw_letter_at(context, digit, style, x, y + fp_offset.1, scale, angle, orientation);
                     let new_fp = fd - 1;
                     if new_fp == 0 {
-                        self.draw_letter_internal(context, '.', style, x, y + fp_offset.1, scale, angle, orientation);
+                        self.draw_letter_at(context, '.', style, x, y + fp_offset.1, scale, angle, orientation);
                         (2. * fp_offset.0, None)
                     } else {
                         (fp_offset.0, Some(new_fp))
                     }
                 } else {
-                    self.draw_letter_internal(context, digit, style, x, y, scale, angle, orientation);
+                    self.draw_letter_at(context, digit, style, x, y, scale, angle, orientation);
                     (offset.0, None)
                 };
 
@@ -699,27 +700,9 @@ impl<R> Letter<R>
 
         if let Some(prefix) = prefix_char {
             let prefix_offset = scale * LETTER_WIDTH * 0.2;
-            self.draw_letter_internal(context, prefix, style, x + prefix_offset, y + prefix_offset,
-                                      scale * 0.6, angle, orientation);
+            self.draw_letter_at(context, prefix, style, x + prefix_offset, y + prefix_offset,
+                                scale * 0.6, angle, orientation);
         }
-    }
-
-    fn draw_letter_internal<C, A>(&self, context: &mut EncoderContext<R, C>, letter: char,
-                                  style: &LetterStyle, x: f32, y: f32, scale: f32, rotate: A,
-                                  orientation: LetterOrientation)
-        where C: gfx::CommandBuffer<R>,
-              A: Into<Rad<f32>>,
-    {
-        let drawmat =
-            Matrix4::from_translation((x, y, 0.).into()) *
-            Matrix4::from_nonuniform_scale(scale, scale * orientation.y_flip(), scale) *
-            Matrix4::from_axis_angle((0., 0., 1.).into(), -rotate.into());
-        let letter_trans = LetterTransforms {
-            drawmat: drawmat.into(),
-        };
-        context.encoder.update_constant_buffer(&self.data.letter, &letter_trans);
-
-        self.draw_letter_segments(context, letter, style)
     }
 
     fn draw_letter_segments<C>(&self, context: &mut EncoderContext<R, C>, letter: char,
