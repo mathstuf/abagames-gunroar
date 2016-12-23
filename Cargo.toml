@@ -9,6 +9,7 @@ license = "BSD-2-Clause"
 #abagames-util = "~0.1"
 cgmath = "~0.12"
 clap = "~2.19"
+error-chain = "~0.7"
 gfx = { git = "https://github.com/gfx-rs/gfx" }
 image = { version = "~0.10", default-features = false, features = ["bmp"] }
 itertools = "~0.5"

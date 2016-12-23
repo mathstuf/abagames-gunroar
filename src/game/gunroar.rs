@@ -9,11 +9,11 @@ extern crate gfx;
 extern crate sdl2;
 use self::sdl2::event::WindowEvent;
 
-use std::error::Error;
-
 use super::entities::Entities;
 use super::render::RenderContext;
 use super::state::{GameState, GameStateContext};
+
+error_chain! {}
 
 pub struct Gunroar<'a, 'b: 'a> {
     global_render: RenderContext<Resources>,
@@ -26,7 +26,7 @@ pub struct Gunroar<'a, 'b: 'a> {
 }
 
 impl<'a, 'b> Gunroar<'a, 'b> {
-    pub fn new(info: &'a mut SdlInfo<'b>, brightness: f32) -> Result<Self, Box<Error>> {
+    pub fn new(info: &'a mut SdlInfo<'b>, brightness: f32) -> Result<Self> {
         let (render, entities) = {
             let (factory, view) = info.video.factory_view();
             let render = RenderContext::new(factory, brightness);
@@ -48,7 +48,9 @@ impl<'a, 'b> Gunroar<'a, 'b> {
 }
 
 impl<'a, 'b> Game for Gunroar<'a, 'b> {
-    fn init(&mut self) -> Result<(), Box<Error>> {
+    type Error = Error;
+
+    fn init(&mut self) -> Result<()> {
         let mut context = GameStateContext {
             audio: self.info.audio.as_mut(),
 
@@ -60,7 +62,7 @@ impl<'a, 'b> Game for Gunroar<'a, 'b> {
         Ok(())
     }
 
-    fn handle_event(&mut self, event: &Event) -> Result<bool, Box<Error>> {
+    fn handle_event(&mut self, event: &Event) -> Result<bool> {
         Ok(match *event {
             Event::AppTerminating { .. } => true,
             Event::AppWillEnterBackground { .. } |
@@ -84,7 +86,7 @@ impl<'a, 'b> Game for Gunroar<'a, 'b> {
         })
     }
 
-    fn step(&mut self, input: &Input) -> Result<StepResult, Box<Error>> {
+    fn step(&mut self, input: &Input) -> Result<StepResult> {
         let mut context = GameStateContext {
             audio: self.info.audio.as_mut(),
 
@@ -94,7 +96,7 @@ impl<'a, 'b> Game for Gunroar<'a, 'b> {
         Ok(self.state.step(&mut context, input))
     }
 
-    fn draw(&mut self) -> Result<(), Box<Error>> {
+    fn draw(&mut self) -> Result<()> {
         if self.backgrounded {
             return Ok(());
         }
@@ -114,7 +116,7 @@ impl<'a, 'b> Game for Gunroar<'a, 'b> {
         Ok(())
     }
 
-    fn quit(&mut self) -> Result<(), Box<Error>> {
+    fn quit(&mut self) -> Result<()> {
         Ok(())
     }
 }
