@@ -97,25 +97,28 @@ impl GameState {
         StepResult::Slowdown(0.)
     }
 
-    pub fn prep_draw<R>(&self, entities: &mut Entities<R>)
+    pub fn prep_draw<R, F>(&self, entities: &mut Entities<R>, factory: &mut F)
         where R: gfx::Resources,
+              F: gfx::Factory<R>,
     {
         match *self {
-            GameState::TitleState => self.prep_draw_title(entities),
-            GameState::PlayingState => self.prep_draw_game(entities),
+            GameState::TitleState => self.prep_draw_title(entities, factory),
+            GameState::PlayingState => self.prep_draw_game(entities, factory),
         }
     }
 
-    pub fn prep_draw_title<R>(&self, entities: &mut Entities<R>)
+    pub fn prep_draw_title<R, F>(&self, entities: &mut Entities<R>, factory: &mut F)
         where R: gfx::Resources,
+              F: gfx::Factory<R>,
     {
-        entities.field.prep_draw();
+        entities.field.prep_draw(factory);
     }
 
-    pub fn prep_draw_game<R>(&self, entities: &mut Entities<R>)
+    pub fn prep_draw_game<R, F>(&self, entities: &mut Entities<R>, factory: &mut F)
         where R: gfx::Resources,
+              F: gfx::Factory<R>,
     {
-        entities.field.prep_draw();
+        entities.field.prep_draw(factory);
     }
 
     pub fn draw<R, C>(&self, entities: &Entities<R>, context: &mut EncoderContext<R, C>)

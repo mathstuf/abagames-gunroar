@@ -255,7 +255,7 @@ pub struct Field<R>
 
     sidebar_bundle: gfx::Bundle<R, sidebar_pipe::Data<R>>,
     panel_bundle: gfx::Bundle<R, panel_pipe::Data<R>>,
-    panel_instances: gfx::mapping::Writable<R, PerPanel>,
+    panel_instances: gfx::mapping::WritableOnly<R, PerPanel>,
 }
 
 impl<R> Field<R>
@@ -308,9 +308,9 @@ impl<R> Field<R>
         let num_panel_instances = BLOCK_SIZE_Y * BLOCK_SIZE_X * 2;
         panel_slice.instances = Some((num_panel_instances as gfx::InstanceCount, 0));
 
-        let (panel_inst_vbuf, panel_write) = factory.create_buffer_persistent_writable(num_panel_instances,
-                                                                                       gfx::buffer::Role::Vertex,
-                                                                                       gfx::Bind::empty());
+        let (panel_inst_vbuf, panel_write) = factory.create_mapped_buffer_writable(num_panel_instances,
+                                                                                   gfx::buffer::Role::Vertex,
+                                                                                   gfx::Bind::empty());
 
         let panel_pso = factory.create_pipeline_simple(
             include_bytes!("shader/field_panel.glslv"),
@@ -607,7 +607,9 @@ impl<R> Field<R>
         self.next_block_y -= NEXT_BLOCK_AREA_SIZE;
     }
 
-    pub fn prep_draw(&mut self) {
+    pub fn prep_draw<F>(&mut self, factory: &mut F)
+        where F: gfx::Factory<R>,
+    {
         let color_index = self.color_step as usize;
         let next_color_index = abagames_util::wrap_inc(color_index, TIME_COLOR_SIZE);
         let blend = self.color_step.fract();
@@ -646,7 +648,7 @@ impl<R> Field<R>
                 let base_pos = &panel.position;
                 let base_idx = 2 * (block_y * BLOCK_SIZE_X + block_x);
 
-                let mut writer = self.panel_instances.write();
+                let mut writer = factory.write_mapping(&mut self.panel_instances);
                 writer.set(base_idx, PerPanel {
                     pos: [base_pos.x, -base_pos.y, base_pos.z],
                     diff_factor: PANEL_WIDTH,

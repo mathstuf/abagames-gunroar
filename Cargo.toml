@@ -8,11 +8,11 @@ license = "BSD-2-Clause"
 [dependencies]
 #abagames-util = "~0.1"
 cgmath = "~0.12"
-clap = "~2.14"
+clap = "~2.19"
 gfx = { git = "https://github.com/gfx-rs/gfx" }
 itertools = "~0.5"
 log = "~0.3"
-sdl2 = "~0.23"
+sdl2 = "~0.27"
 
 [dependencies.abagames-util]
 path = "../../rust-abagames-util/src"

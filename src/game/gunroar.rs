@@ -7,7 +7,7 @@ use self::abagames_util::{Event, Input, Game, Resources, SdlInfo, StepResult};
 extern crate gfx;
 
 extern crate sdl2;
-use self::sdl2::event::WindowEventId;
+use self::sdl2::event::WindowEvent;
 
 use std::error::Error;
 
@@ -28,7 +28,7 @@ pub struct Gunroar<'a, 'b: 'a> {
 impl<'a, 'b> Gunroar<'a, 'b> {
     pub fn new(info: &'a mut SdlInfo<'b>, brightness: f32) -> Result<Self, Box<Error>> {
         let (render, entities) = {
-            let (factory, view) = info.video.factory();
+            let (factory, view) = info.video.factory_view();
             let render = RenderContext::new(factory, brightness);
             let entities = Entities::new(factory, view.clone(), &render);
 
@@ -78,7 +78,7 @@ impl<'a, 'b> Game for Gunroar<'a, 'b> {
                 // Ready...
                 false
             },
-            Event::Window { win_event_id: WindowEventId::Resized, data1: width, data2: height, .. } => {
+            Event::Window { win_event: WindowEvent::Resized(width, height), .. } => {
                 self.info.video.resize(width as u32, height as u32);
                 false
             },
@@ -101,7 +101,7 @@ impl<'a, 'b> Game for Gunroar<'a, 'b> {
             return Ok(());
         }
 
-        self.state.prep_draw(&mut self.entities);
+        self.state.prep_draw(&mut self.entities, self.info.video.factory());
 
         let mut draw_context = self.info.video.context();
         let mut context = &mut draw_context.context;
