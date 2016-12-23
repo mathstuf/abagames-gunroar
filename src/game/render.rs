@@ -59,12 +59,14 @@ impl<R> RenderContext<R>
         let perspective_screen = PerspectiveScreen {
             projmat: (context.perspective_matrix * Matrix4::look_at(eye, center, up)).into(),
         };
-        context.encoder.update_constant_buffer(&self.perspective_screen_buffer, &perspective_screen);
+        context.encoder
+            .update_constant_buffer(&self.perspective_screen_buffer, &perspective_screen);
 
         let orthographic_screen = OrthographicScreen {
             orthomat: context.orthographic_matrix.clone().into(),
         };
-        context.encoder.update_constant_buffer(&self.orthographic_screen_buffer, &orthographic_screen);
+        context.encoder
+            .update_constant_buffer(&self.orthographic_screen_buffer, &orthographic_screen);
 
         let brightness = Brightness {
             brightness: self.brightness,

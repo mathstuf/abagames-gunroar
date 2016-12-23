@@ -202,7 +202,8 @@ impl GameState {
         }
     }
 
-    pub fn draw_ortho_title<R, C>(&self, entities: &Entities<R>, context: &mut EncoderContext<R, C>)
+    pub fn draw_ortho_title<R, C>(&self, entities: &Entities<R>,
+                                  context: &mut EncoderContext<R, C>)
         where R: gfx::Resources,
               C: gfx::CommandBuffer<R>,
     {
@@ -211,7 +212,8 @@ impl GameState {
         entities.title.draw(context, &entities.letter, &scores);
     }
 
-    pub fn draw_ortho_game<R, C>(&self, entities: &Entities<R>, context: &mut EncoderContext<R, C>)
+    pub fn draw_ortho_game<R, C>(&self, entities: &Entities<R>,
+                                 context: &mut EncoderContext<R, C>)
         where R: gfx::Resources,
               C: gfx::CommandBuffer<R>,
     {

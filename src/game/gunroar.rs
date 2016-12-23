@@ -2,7 +2,7 @@
 // See accompanying file LICENSE for details.
 
 extern crate abagames_util;
-use self::abagames_util::{Event, Input, Game, Resources, SdlInfo, StepResult};
+use self::abagames_util::{Event, Game, Input, Resources, SdlInfo, StepResult};
 
 extern crate gfx;
 
@@ -62,9 +62,7 @@ impl<'a, 'b> Game for Gunroar<'a, 'b> {
 
     fn handle_event(&mut self, event: &Event) -> Result<bool, Box<Error>> {
         Ok(match *event {
-            Event::AppTerminating { .. } => {
-                true
-            },
+            Event::AppTerminating { .. } => true,
             Event::AppWillEnterBackground { .. } |
             Event::AppDidEnterBackground { .. } => {
                 self.backgrounded = true;

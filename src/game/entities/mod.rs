@@ -21,7 +21,8 @@ impl<R> Entities<R>
     where R: gfx::Resources,
 {
     pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, gfx::format::Srgba8>,
-                  context: &RenderContext<R>) -> Self
+                  context: &RenderContext<R>)
+                  -> Self
         where F: gfx::Factory<R>,
     {
         Entities {
