@@ -1,0 +1,10 @@
+enum_trailing_comma = true
+fn_args_density = "Compressed"
+fn_args_layout = "Visual"
+match_block_trailing_comma = true
+match_wildcard_trailing_comma = true
+reorder_imported_names = true
+struct_lit_multiline_style = "ForceMulti"
+struct_lit_trailing_comma = "Always"
+struct_trailing_comma = "Always"
+where_trailing_comma = true
