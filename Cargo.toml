@@ -4,6 +4,8 @@ version = "0.1.0"
 authors = ["Ben Boeckel <mathstuf@gmail.com>"]
 readme = "README.md"
 license = "BSD-2-Clause"
+repository = "https://github.com/mathstuf/abagames-gunroar"
+homepage = "https://github.com/mathstuf/abagames-gunroar/tree/rust"
 
 [dependencies]
 #abagames-util = "~0.1"
