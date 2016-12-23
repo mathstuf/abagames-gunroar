@@ -108,7 +108,10 @@ impl<'a, 'b> Game for Gunroar<'a, 'b> {
         self.global_render.update(&mut context);
 
         self.state.draw(&self.entities, &mut context);
+        self.state.draw_luminous(&self.entities, &mut context);
         self.entities.field.draw_sidebars(&mut context);
+        self.state.draw_front(&self.entities, &mut context);
+        self.state.draw_ortho(&self.entities, &mut context);
 
         Ok(())
     }

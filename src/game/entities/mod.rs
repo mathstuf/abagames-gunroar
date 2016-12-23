@@ -5,6 +5,7 @@ extern crate gfx;
 
 pub mod field;
 pub mod letter;
+pub mod title;
 
 use super::render::RenderContext;
 
@@ -13,6 +14,7 @@ pub struct Entities<R>
 {
     pub field: field::Field<R>,
     pub letter: letter::Letter<R>,
+    pub title: title::Title<R>,
 }
 
 impl<R> Entities<R>
@@ -25,6 +27,7 @@ impl<R> Entities<R>
         Entities {
             field: field::Field::new(factory, view.clone(), context),
             letter: letter::Letter::new(factory, view.clone(), context),
+            title: title::Title::new(factory, view.clone(), context),
         }
     }
 }

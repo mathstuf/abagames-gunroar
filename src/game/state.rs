@@ -4,13 +4,17 @@
 extern crate abagames_util;
 use self::abagames_util::{Audio, Input, Scancode, StepResult};
 
+extern crate cgmath;
+use self::cgmath::Vector2;
+
 extern crate gfx;
 
 use super::render::{EncoderContext, RenderContext};
 use super::entities::Entities;
 use super::entities::field::FieldMode;
-use super::entities::letter::{LetterDirection, LetterStyle};
+use super::entities::letter::{LetterDirection, LetterOrientation, LetterStyle};
 
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum GameMode {
     Normal,
     TwinStick,
@@ -21,9 +25,38 @@ pub enum GameMode {
     Mouse,
 }
 
+impl GameMode {
+    pub fn name(&self) -> &str {
+        match *self {
+            GameMode::Normal => "NORMAL",
+            GameMode::TwinStick => "TWIN STICK",
+            GameMode::DoublePlay => "DOUBLE PLAY",
+            GameMode::DoublePlayTouch => "DOUBLE PLAY TOUCH",
+            GameMode::Touch => "TOUCH",
+            GameMode::Tilt => "TILT",
+            GameMode::Mouse => "MOUSE",
+        }
+    }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum GameState {
     TitleState,
     PlayingState,
+}
+
+pub struct Scores;
+
+impl Scores {
+    pub fn high_for_mode(&self, mode: GameMode) -> u32 {
+        // TODO: Implement.
+        0
+    }
+
+    pub fn last(&self) -> u32 {
+        // TODO: Implement.
+        0
+    }
 }
 
 pub struct GameStateContext<'a, 'b: 'a, R>
@@ -55,6 +88,7 @@ impl GameState {
                 .halt();
         }
 
+        context.entities.title.init();
         context.entities.field.init(0);
     }
 
@@ -76,6 +110,7 @@ impl GameState {
     pub fn step_title<R>(&mut self, context: &mut GameStateContext<R>, input: &Input) -> StepResult
         where R: gfx::Resources,
     {
+        context.entities.title.step();
         context.entities.field.step();
         context.entities.field.scroll(SCROLL_SPEED_BASE, FieldMode::Demo);
 
@@ -158,6 +193,25 @@ impl GameState {
     }
 
     pub fn draw_ortho<R, C>(&self, entities: &Entities<R>, context: &mut EncoderContext<R, C>)
+        where R: gfx::Resources,
+              C: gfx::CommandBuffer<R>,
+    {
+        match *self {
+            GameState::TitleState => self.draw_ortho_title(entities, context),
+            GameState::PlayingState => self.draw_ortho_game(entities, context),
+        }
+    }
+
+    pub fn draw_ortho_title<R, C>(&self, entities: &Entities<R>, context: &mut EncoderContext<R, C>)
+        where R: gfx::Resources,
+              C: gfx::CommandBuffer<R>,
+    {
+        // TODO: Store this somewhere.
+        let scores = Scores;
+        entities.title.draw(context, &entities.letter, &scores);
+    }
+
+    pub fn draw_ortho_game<R, C>(&self, entities: &Entities<R>, context: &mut EncoderContext<R, C>)
         where R: gfx::Resources,
               C: gfx::CommandBuffer<R>,
     {

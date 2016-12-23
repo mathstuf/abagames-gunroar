@@ -10,6 +10,7 @@ license = "BSD-2-Clause"
 cgmath = "~0.12"
 clap = "~2.19"
 gfx = { git = "https://github.com/gfx-rs/gfx" }
+image = { version = "~0.10", default-features = false, features = ["bmp"] }
 itertools = "~0.5"
 log = "~0.3"
 sdl2 = "~0.27"
