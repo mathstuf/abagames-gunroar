@@ -14,7 +14,7 @@ use self::itertools::FoldWhile::{Continue, Done};
 use self::itertools::Itertools;
 
 use super::super::render::{EncoderContext, RenderContext};
-pub use super::super::render::{Brightness, OrthographicScreen};
+pub use super::super::render::{Brightness, ScreenTransform};
 
 use std::borrow::Cow;
 use std::iter;
@@ -40,7 +40,7 @@ gfx_defines! {
     pipeline pipe {
         vbuf: gfx::VertexBuffer<Vertex> = (),
         color: gfx::ConstantBuffer<Color> = "Color",
-        screen: gfx::ConstantBuffer<OrthographicScreen> = "Screen",
+        screen: gfx::ConstantBuffer<ScreenTransform> = "Screen",
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
         letter: gfx::ConstantBuffer<LetterTransforms> = "LetterTransforms",
         segment: gfx::ConstantBuffer<LetterSegments> = "LetterSegments",
@@ -483,7 +483,8 @@ pub struct Letter<R>
     fan_slice: gfx::Slice<R>,
     fan_pso: gfx::PipelineState<R, <pipe::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
 
-    data: pipe::Data<R>,
+    data_ortho: pipe::Data<R>,
+    data_persp: pipe::Data<R>,
 }
 
 impl<R> Letter<R>
@@ -531,13 +532,25 @@ impl<R> Letter<R>
             pipe::new())
             .unwrap();
 
-        let data = pipe::Data {
-            vbuf: vbuf,
-            color: factory.create_constant_buffer(1),
+        let color_buffer = factory.create_constant_buffer(1);
+        let letter_buffer = factory.create_constant_buffer(1);
+        let segment_buffer = factory.create_constant_buffer(1);
+        let data_ortho = pipe::Data {
+            vbuf: vbuf.clone(),
+            color: color_buffer.clone(),
             screen: context.orthographic_screen_buffer.clone(),
             brightness: context.brightness_buffer.clone(),
-            letter: factory.create_constant_buffer(1),
-            segment: factory.create_constant_buffer(1),
+            letter: letter_buffer.clone(),
+            segment: segment_buffer.clone(),
+            out_color: view.clone(),
+        };
+        let data_persp = pipe::Data {
+            vbuf: vbuf,
+            color: color_buffer,
+            screen: context.perspective_screen_buffer.clone(),
+            brightness: context.brightness_buffer.clone(),
+            letter: letter_buffer,
+            segment: segment_buffer,
             out_color: view,
         };
 
@@ -548,7 +561,8 @@ impl<R> Letter<R>
             fan_slice: fan_slice,
             fan_pso: fan_pso,
 
-            data: data,
+            data_ortho: data_ortho,
+            data_persp: data_persp,
         }
     }
 
@@ -575,19 +589,25 @@ impl<R> Letter<R>
             Matrix4::from_translation(pos.extend(0.)) *
             Matrix4::from_nonuniform_scale(scale, scale * orientation.y_flip(), scale) *
             Matrix4::from_axis_angle(Vector3::unit_z(), -rotate.into());
-        self.draw_letter_with(context, drawmat, letter, style)
+        self.update_letter_matrix(context, drawmat);
+        self.draw_letter_segments(context, letter, style, &self.data_ortho)
     }
 
     pub fn draw_letter_with<C>(&self, context: &mut EncoderContext<R, C>, matrix: Matrix4<f32>,
                                letter: char, style: &LetterStyle)
         where C: gfx::CommandBuffer<R>,
     {
+        self.update_letter_matrix(context, matrix);
+        self.draw_letter_segments(context, letter, style, &self.data_persp)
+    }
+
+    fn update_letter_matrix<C>(&self, context: &mut EncoderContext<R, C>, matrix: Matrix4<f32>)
+        where C: gfx::CommandBuffer<R>,
+    {
         let letter_trans = LetterTransforms {
             drawmat: matrix.into(),
         };
-        context.encoder.update_constant_buffer(&self.data.letter, &letter_trans);
-
-        self.draw_letter_segments(context, letter, style)
+        context.encoder.update_constant_buffer(&self.data_persp.letter, &letter_trans);
     }
 
     pub fn draw_string<C>(&self, context: &mut EncoderContext<R, C>, string: &str,
@@ -763,32 +783,32 @@ impl<R> Letter<R>
     }
 
     fn draw_letter_segments<C>(&self, context: &mut EncoderContext<R, C>, letter: char,
-                               style: &LetterStyle)
+                               style: &LetterStyle, data: &pipe::Data<R>)
         where C: gfx::CommandBuffer<R>,
     {
         LetterSegmentData::segment_data_for(letter).iter()
             // Get the constant buffer for the segment.
             .map(LetterSegmentData::constant_buffer)
-            .foreach(|data| {
-                context.encoder.update_constant_buffer(&self.data.segment, &data);
+            .foreach(|letter_data| {
+                context.encoder.update_constant_buffer(&data.segment, &letter_data);
 
                 // TODO: Factor color setting out for custom colors.
                 if style.is_fill() {
                     let color = Color {
                         color: style.color(0.5).into_owned(),
                     };
-                    context.encoder.update_constant_buffer(&self.data.color, &color);
+                    context.encoder.update_constant_buffer(&data.color, &color);
 
-                    context.encoder.draw(&self.fan_slice, &self.fan_pso, &self.data);
+                    context.encoder.draw(&self.fan_slice, &self.fan_pso, data);
                 }
 
                 if style.is_outline() {
                     let color = Color {
                         color: style.color(1.).into_owned(),
                     };
-                    context.encoder.update_constant_buffer(&self.data.color, &color);
+                    context.encoder.update_constant_buffer(&data.color, &color);
 
-                    context.encoder.draw(&self.outline_slice, &self.outline_pso, &self.data);
+                    context.encoder.draw(&self.outline_slice, &self.outline_pso, data);
                 }
             });
     }

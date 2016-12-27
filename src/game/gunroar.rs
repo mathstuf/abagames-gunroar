@@ -11,7 +11,7 @@ use self::sdl2::event::WindowEvent;
 
 use super::entities::Entities;
 use super::render::RenderContext;
-use super::state::{GameState, GameStateContext};
+use super::state::{GameData, GameState, GameStateContext};
 
 error_chain! {}
 
@@ -23,6 +23,8 @@ pub struct Gunroar<'a, 'b: 'a> {
     info: &'a mut SdlInfo<'b>,
 
     backgrounded: bool,
+
+    data: GameData,
 }
 
 impl<'a, 'b> Gunroar<'a, 'b> {
@@ -43,6 +45,8 @@ impl<'a, 'b> Gunroar<'a, 'b> {
             info: info,
 
             backgrounded: false,
+
+            data: Default::default(),
         })
     }
 }
@@ -55,6 +59,8 @@ impl<'a, 'b> Game for Gunroar<'a, 'b> {
             audio: self.info.audio.as_mut(),
 
             entities: &mut self.entities,
+
+            data: &mut self.data,
         };
 
         self.state.init(&mut context);
@@ -91,6 +97,8 @@ impl<'a, 'b> Game for Gunroar<'a, 'b> {
             audio: self.info.audio.as_mut(),
 
             entities: &mut self.entities,
+
+            data: &mut self.data,
         };
 
         Ok(self.state.step(&mut context, input))
@@ -107,11 +115,11 @@ impl<'a, 'b> Game for Gunroar<'a, 'b> {
         let mut context = &mut draw_context.context;
         self.global_render.update(&mut context);
 
-        self.state.draw(&self.entities, &mut context);
-        self.state.draw_luminous(&self.entities, &mut context);
+        self.state.draw(&mut self.entities, &mut context);
+        self.state.draw_luminous(&mut self.entities, &mut context);
         self.entities.field.draw_sidebars(&mut context);
-        self.state.draw_front(&self.entities, &mut context);
-        self.state.draw_ortho(&self.entities, &mut context);
+        self.state.draw_front(&mut self.entities, &mut context, &self.data);
+        self.state.draw_ortho(&mut self.entities, &mut context);
 
         Ok(())
     }

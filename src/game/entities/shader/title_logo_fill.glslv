@@ -1,7 +1,7 @@
 #version 150
 
 uniform Screen {
-    mat4 orthomat;
+    mat4 screenmat;
 };
 
 uniform ModelTransform {
@@ -14,6 +14,6 @@ attribute vec3 color;
 varying vec3 f_color;
 
 void main() {
-    gl_Position = orthomat * modelmat * vec4(pos, 0., 1.);
+    gl_Position = screenmat * modelmat * vec4(pos, 0., 1.);
     f_color = color;
 }

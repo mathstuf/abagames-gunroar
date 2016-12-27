@@ -17,7 +17,7 @@ use self::itertools::Itertools;
 
 use super::super::render::{EncoderContext, RenderContext};
 use super::super::state::{GameMode, Scores};
-pub use super::super::render::{Brightness, OrthographicScreen};
+pub use super::super::render::{Brightness, ScreenTransform};
 
 use super::letter::{Letter, LetterDirection, LetterOrientation, LetterStyle};
 // use super::letter::{Letter, LetterDirection, LetterStyle};
@@ -52,7 +52,7 @@ gfx_defines! {
 
     pipeline logo_pipe {
         vbuf: gfx::VertexBuffer<LogoVertex> = (),
-        screen: gfx::ConstantBuffer<OrthographicScreen> = "Screen",
+        screen: gfx::ConstantBuffer<ScreenTransform> = "Screen",
         model: gfx::ConstantBuffer<ModelTransform> = "ModelTransform",
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
         sampler: gfx::TextureSampler<[f32; 4]> = "sampler",
@@ -66,7 +66,7 @@ gfx_defines! {
 
     pipeline logo_line_pipe {
         vbuf: gfx::VertexBuffer<LogoLineVertex> = (),
-        screen: gfx::ConstantBuffer<OrthographicScreen> = "Screen",
+        screen: gfx::ConstantBuffer<ScreenTransform> = "Screen",
         model: gfx::ConstantBuffer<ModelTransform> = "ModelTransform",
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
         out_color: gfx::BlendTarget<gfx::format::Srgba8> =
@@ -79,7 +79,7 @@ gfx_defines! {
 
     pipeline logo_fill_pipe {
         vbuf: gfx::VertexBuffer<LogoFillVertex> = (),
-        screen: gfx::ConstantBuffer<OrthographicScreen> = "Screen",
+        screen: gfx::ConstantBuffer<ScreenTransform> = "Screen",
         model: gfx::ConstantBuffer<ModelTransform> = "ModelTransform",
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
         out_color: gfx::BlendTarget<gfx::format::Srgba8> =

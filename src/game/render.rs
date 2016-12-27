@@ -11,12 +11,8 @@ extern crate gfx;
 use self::gfx::traits::FactoryExt;
 
 gfx_defines! {
-    constant PerspectiveScreen {
-        projmat: [[f32; 4]; 4] = "projmat",
-    }
-
-    constant OrthographicScreen {
-        orthomat: [[f32; 4]; 4] = "orthomat",
+    constant ScreenTransform {
+        screenmat: [[f32; 4]; 4] = "screenmat",
     }
 
     constant Brightness {
@@ -29,8 +25,8 @@ pub struct RenderContext<R>
 {
     brightness: f32,
 
-    pub perspective_screen_buffer: gfx::handle::Buffer<R, PerspectiveScreen>,
-    pub orthographic_screen_buffer: gfx::handle::Buffer<R, OrthographicScreen>,
+    pub perspective_screen_buffer: gfx::handle::Buffer<R, ScreenTransform>,
+    pub orthographic_screen_buffer: gfx::handle::Buffer<R, ScreenTransform>,
     pub brightness_buffer: gfx::handle::Buffer<R, Brightness>,
 }
 
@@ -56,14 +52,14 @@ impl<R> RenderContext<R>
         let center = Point3::new(0., 0., 0.);
         let up = Vector3::unit_y();
 
-        let perspective_screen = PerspectiveScreen {
-            projmat: (context.perspective_matrix * Matrix4::look_at(eye, center, up)).into(),
+        let perspective_screen = ScreenTransform {
+            screenmat: (context.perspective_matrix * Matrix4::look_at(eye, center, up)).into(),
         };
         context.encoder
             .update_constant_buffer(&self.perspective_screen_buffer, &perspective_screen);
 
-        let orthographic_screen = OrthographicScreen {
-            orthomat: context.orthographic_matrix.clone().into(),
+        let orthographic_screen = ScreenTransform {
+            screenmat: context.orthographic_matrix.clone().into(),
         };
         context.encoder
             .update_constant_buffer(&self.orthographic_screen_buffer, &orthographic_screen);
