@@ -575,8 +575,15 @@ impl<R> Letter<R>
             Matrix4::from_translation(pos.extend(0.)) *
             Matrix4::from_nonuniform_scale(scale, scale * orientation.y_flip(), scale) *
             Matrix4::from_axis_angle(Vector3::unit_z(), -rotate.into());
+        self.draw_letter_with(context, drawmat, letter, style)
+    }
+
+    pub fn draw_letter_with<C>(&self, context: &mut EncoderContext<R, C>, matrix: Matrix4<f32>,
+                               letter: char, style: &LetterStyle)
+        where C: gfx::CommandBuffer<R>,
+    {
         let letter_trans = LetterTransforms {
-            drawmat: drawmat.into(),
+            drawmat: matrix.into(),
         };
         context.encoder.update_constant_buffer(&self.data.letter, &letter_trans);
 
