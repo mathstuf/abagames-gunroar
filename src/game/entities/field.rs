@@ -649,18 +649,18 @@ impl<R> Field<R>
                 let base_idx = 2 * (block_y * BLOCK_SIZE_X + block_x);
 
                 let mut writer = factory.write_mapping(&mut self.panel_instances);
-                writer.set(base_idx, PerPanel {
+                writer[base_idx] = PerPanel {
                     pos: [base_pos.x, -base_pos.y, base_pos.z],
                     diff_factor: PANEL_WIDTH,
                     offset: [offset_x, offset_y],
                     color: (base_color.mul_element_wise(panel.color) * 0.66).into(),
-                });
-                writer.set(base_idx + 1, PerPanel {
+                };
+                writer[base_idx + 1] = PerPanel {
                     pos: [base_pos.x, -base_pos.y, 0.],
                     diff_factor: BLOCK_WIDTH,
                     offset: [offset_x, offset_y],
                     color: (base_color * 0.33).into(),
-                });
+                };
             });
     }
 
