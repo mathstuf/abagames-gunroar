@@ -7,6 +7,9 @@ use self::abagames_util::{Audio, Input, Scancode, StepResult};
 extern crate cgmath;
 use self::cgmath::Vector2;
 
+extern crate itertools;
+use self::itertools::Itertools;
+
 extern crate gfx;
 
 use super::render::{EncoderContext, RenderContext};
@@ -61,12 +64,14 @@ impl Scores {
 
 pub struct GameData {
     reel_size: f32,
+    indicator_target: f32,
 }
 
 impl Default for GameData {
     fn default() -> Self {
         GameData {
             reel_size: REEL_SIZE_DEFAULT,
+            indicator_target: INDICATOR_Y_MIN,
         }
     }
 }
@@ -78,6 +83,23 @@ impl GameData {
 
     fn shrink_reel(&mut self) {
         self.reel_size += (REEL_SIZE_SMALL - self.reel_size) * 0.08;
+    }
+
+    pub fn indicator_target(&mut self) -> f32 {
+        let range = INDICATOR_Y_MAX - INDICATOR_Y_MIN;
+        self.indicator_target = abagames_util::wrap_inc_by(self.indicator_target,
+                                                           range,
+                                                           INDICATOR_Y_INTERVAL) +
+            INDICATOR_Y_MIN;
+        self.indicator_target
+    }
+
+    pub fn indicator_target_decrement(&mut self) {
+        let range = INDICATOR_Y_MAX - INDICATOR_Y_MIN;
+        self.indicator_target = abagames_util::wrap_dec_by(self.indicator_target,
+                                                           range,
+                                                           INDICATOR_Y_INTERVAL) +
+            INDICATOR_Y_MIN;
     }
 }
 
@@ -94,6 +116,9 @@ pub struct GameStateContext<'a, 'b: 'a, R>
 static SCROLL_SPEED_BASE: f32 = 0.025;
 static REEL_SIZE_DEFAULT: f32 = 0.5;
 static REEL_SIZE_SMALL: f32 = 0.01;
+static INDICATOR_Y_MIN: f32 = -7.;
+static INDICATOR_Y_MAX: f32 = 7.;
+static INDICATOR_Y_INTERVAL: f32 = 1.;
 
 impl GameState {
     pub fn init<R>(&self, context: &mut GameStateContext<R>)
@@ -159,6 +184,7 @@ impl GameState {
         }
 
         context.entities.field.step();
+        // context.entities.indicators.run(|ref mut indicator| indicator.step(context));
         context.entities.reel.step();
 
         context.data.update_reel();
@@ -248,6 +274,13 @@ impl GameState {
                            Vector2::new(11.5 + reel_size_offset,
                                         -8.2 - reel_size_offset),
                            data.reel_size);
+
+        let letter = (&entities.letter).clone();
+        entities.indicators
+            .iter_mut()
+            .foreach(|indicator| {
+                indicator.draw(encoder, &letter)
+            })
     }
 
     pub fn draw_ortho<R, C>(&self, entities: &mut Entities<R>, encoder: &mut EncoderContext<R, C>)

@@ -502,6 +502,16 @@ impl Location {
         }
     }
 
+    pub fn new_persp(position: Vector2<f32>, scale: f32) -> Self {
+        Location {
+            position: position,
+            scale: scale,
+            direction: Direction::Right,
+            orientation: Orientation::Normal,
+            screen: Screen::Perspective,
+        }
+    }
+
     fn offset_by(self, offset: Vector2<f32>) -> Self {
         Location {
             position: self.position + offset,
