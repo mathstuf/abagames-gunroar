@@ -12,7 +12,7 @@ extern crate gfx;
 use super::render::{EncoderContext, RenderContext};
 use super::entities::Entities;
 use super::entities::field::FieldMode;
-use super::entities::letter::{LetterDirection, LetterOrientation, LetterStyle};
+use super::entities::letter;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum GameMode {

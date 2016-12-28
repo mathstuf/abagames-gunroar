@@ -19,8 +19,7 @@ use super::super::render::{EncoderContext, RenderContext};
 use super::super::state::{GameMode, Scores};
 pub use super::super::render::{Brightness, ScreenTransform};
 
-use super::letter::{Letter, LetterDirection, LetterOrientation, LetterStyle};
-// use super::letter::{Letter, LetterDirection, LetterStyle};
+use super::letter::{self, Letter};
 
 use std::borrow::Cow;
 use std::io::Cursor;
@@ -254,11 +253,8 @@ impl<R> Title<R>
             TitleState::Replay => {
                 letter.draw_string(context,
                                    "REPLAY",
-                                   Vector2::new(3., 400.),
-                                   5.,
-                                   LetterDirection::Right,
-                                   &LetterStyle::White,
-                                   LetterOrientation::Normal)
+                                   letter::Style::White,
+                                   letter::Location::new(Vector2::new(3., 400.), 5.));
             },
             TitleState::GameSelection(mode) => self.draw_title(context, letter, scores, mode),
         }
@@ -301,11 +297,8 @@ impl<R> Title<R>
         }
         letter.draw_string(context,
                            mode.name(),
-                           Vector2::new(3., 400.),
-                           5.,
-                           LetterDirection::Right,
-                           &LetterStyle::White,
-                           LetterOrientation::Normal);
+                           letter::Style::White,
+                           letter::Location::new(Vector2::new(3., 400.), 5.));
     }
 
     fn draw_score<C>(&self, context: &mut EncoderContext<R, C>, letter: &Letter<R>,
@@ -314,18 +307,16 @@ impl<R> Title<R>
     {
         letter.draw_string(context,
                            label,
-                           pos,
-                           4.,
-                           LetterDirection::Right,
-                           &LetterStyle::OffWhite,
-                           LetterOrientation::Normal);
+                           letter::Style::OffWhite,
+                           letter::Location::new(pos, 4.));
         letter.draw_number(context,
                            score,
-                           pos + Vector2::new(77., 15.),
-                           4.,
-                           &LetterStyle::OffWhite,
-                           Some(9),
-                           None,
-                           None);
+                           letter::Style::OffWhite,
+                           letter::Location::new(pos + Vector2::new(77., 15.), 4.),
+                           letter::NumberStyle {
+                               pad_to: Some(9),
+                               prefix_char: None,
+                               floating_digits: None,
+                           });
     }
 }

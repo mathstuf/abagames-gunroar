@@ -13,7 +13,7 @@ extern crate itertools;
 use self::itertools::Itertools;
 
 use super::super::render::EncoderContext;
-use super::letter::{Letter, LetterStyle};
+use super::letter::{self, Letter};
 
 use std::f32;
 use std::mem;
@@ -200,17 +200,19 @@ impl NumberReel {
             letter.draw_letter_with(context,
                                     transform,
                                     digit,
-                                    &LetterStyle::Outline(&[outline_color,
-                                                            outline_color,
-                                                            outline_color,
-                                                            1.]));
+                                    letter::Style::Outline(&[outline_color,
+                                                             outline_color,
+                                                             outline_color,
+                                                             1.]),
+                                    letter::Screen::Perspective);
             letter.draw_letter_with(context,
                                     transform,
                                     digit,
-                                    &LetterStyle::Filled(&[fill_color,
-                                                           fill_color,
-                                                           fill_color,
-                                                           1.]));
+                                    letter::Style::Filled(&[fill_color,
+                                                            fill_color,
+                                                            fill_color,
+                                                            1.]),
+                                    letter::Screen::Perspective);
 
             ((rotation + Deg(diff)).normalize(), abagames_util::wrap_dec(number, 10))
         });
