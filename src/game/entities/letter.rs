@@ -769,7 +769,7 @@ impl<R> Letter<R>
         LetterSegmentData::segment_data_for(letter).iter()
             // Get the constant buffer for the segment.
             .map(LetterSegmentData::constant_buffer)
-            .map(|data| {
+            .foreach(|data| {
                 context.encoder.update_constant_buffer(&self.data.segment, &data);
 
                 // TODO: Factor color setting out for custom colors.
@@ -790,8 +790,7 @@ impl<R> Letter<R>
 
                     context.encoder.draw(&self.outline_slice, &self.outline_pso, &self.data);
                 }
-            })
-            .count();
+            });
     }
 
     fn for_digit(digit: u32) -> char {
