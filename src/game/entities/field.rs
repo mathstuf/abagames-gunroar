@@ -257,7 +257,7 @@ pub struct Field<R>
 
     sidebar_bundle: gfx::Bundle<R, sidebar_pipe::Data<R>>,
     panel_bundle: gfx::Bundle<R, panel_pipe::Data<R>>,
-    panel_instances: gfx::mapping::WritableOnly<R, PerPanel>,
+    panel_instances: gfx::handle::Buffer<R, PerPanel>,
 }
 
 impl<R> Field<R>
@@ -313,10 +313,12 @@ impl<R> Field<R>
         let num_panel_instances = BLOCK_SIZE_Y * BLOCK_SIZE_X * 2;
         panel_slice.instances = Some((num_panel_instances as gfx::InstanceCount, 0));
 
-        let (panel_inst_vbuf, panel_write) =
-            factory.create_mapped_buffer_writable(num_panel_instances,
-                                                  gfx::buffer::Role::Vertex,
-                                                  gfx::Bind::empty());
+        let panel_instances =
+            factory.create_buffer(num_panel_instances,
+                                  gfx::buffer::Role::Vertex,
+                                  gfx::memory::Usage::Upload,
+                                  gfx::Bind::empty())
+                .unwrap();
 
         let panel_pso = factory.create_pipeline_simple(
             include_bytes!("shader/field_panel.glslv"),
@@ -326,7 +328,7 @@ impl<R> Field<R>
 
         let panel_data = panel_pipe::Data {
             vbuf: panel_vbuf,
-            instances: panel_inst_vbuf,
+            instances: panel_instances.clone(),
             screen: context.perspective_screen_buffer.clone(),
             brightness: context.brightness_buffer.clone(),
             out_color: view,
@@ -344,7 +346,7 @@ impl<R> Field<R>
 
             sidebar_bundle: gfx::Bundle::new(sidebar_slice, sidebar_pso, sidebar_data),
             panel_bundle: gfx::Bundle::new(panel_slice, panel_pso, panel_data),
-            panel_instances: panel_write,
+            panel_instances: panel_instances,
         }
     }
 
@@ -648,7 +650,7 @@ impl<R> Field<R>
                 let base_pos = &panel.position;
                 let base_idx = 2 * (block_y * BLOCK_SIZE_X + block_x);
 
-                let mut writer = factory.write_mapping(&mut self.panel_instances);
+                let mut writer = factory.write_mapping(&mut self.panel_instances).unwrap();
                 writer[base_idx] = PerPanel {
                     pos: [base_pos.x, -base_pos.y, base_pos.z],
                     diff_factor: PANEL_WIDTH,
