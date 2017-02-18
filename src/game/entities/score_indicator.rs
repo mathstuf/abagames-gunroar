@@ -13,6 +13,7 @@ use super::super::render::{EncoderContext, RenderContext};
 use super::super::state::{GameData, GameStateContext};
 
 use super::letter::{self, Letter};
+use super::reel::ScoreReel;
 
 use std::mem;
 use std::ptr;
@@ -99,16 +100,14 @@ impl ScoreIndicator {
         self.rand.set_seed(seed);
     }
 
-    pub fn expire<R>(&mut self, context: &mut GameStateContext<R>)
-        where R: gfx::Resources,
-    {
+    pub fn expire(&mut self, reel: &mut ScoreReel, context: &mut GameStateContext) {
         if let Some(target_count) = self.target_count {
             if let Indicator::Score = self.indicator_type {
                 let target = &self.targets[target_count - 1];
                 if let FlyingTo::Right = target.flying_to {
                     context.data.indicator_target_decrement();
                 }
-                context.entities.reel.add_score(target.value);
+                reel.add_score(target.value);
             }
         }
     }
@@ -134,9 +133,7 @@ impl ScoreIndicator {
         self.target_count = Some(len);
     }
 
-    pub fn step<R>(&mut self, context: &mut GameStateContext<R>) -> bool
-        where R: gfx::Resources,
-    {
+    pub fn step(&mut self, reel: &mut ScoreReel, context: &mut GameStateContext) -> bool {
         if self.target_count.is_none() {
             return true;
         }
@@ -145,7 +142,7 @@ impl ScoreIndicator {
 
         self.count -= 1;
         if self.count == 0 {
-            self.next_target(context)
+            self.next_target(reel, context)
         } else {
             false
         }
@@ -199,9 +196,7 @@ impl ScoreIndicator {
         }
     }
 
-    fn next_target<R>(&mut self, context: &mut GameStateContext<R>) -> bool
-        where R: gfx::Resources,
-    {
+    fn next_target(&mut self, reel: &mut ScoreReel, context: &mut GameStateContext) -> bool {
         self.target_index += 1;
         if self.target_index > 0 {
             if let Some(ref mut audio) = context.audio {
@@ -212,7 +207,7 @@ impl ScoreIndicator {
         if self.target_index >= self.target_count.unwrap() {
             let target = &self.targets[self.target_index];
             if let FlyingTo::Bottom = target.flying_to {
-                context.entities.reel.add_score(target.value);
+                reel.add_score(target.value);
             }
             return true;
         }
