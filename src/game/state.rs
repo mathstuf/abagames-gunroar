@@ -12,8 +12,8 @@ use self::itertools::Itertools;
 
 extern crate gfx;
 
-use super::render::{EncoderContext, RenderContext};
-use super::entities;
+use game::render::{EncoderContext, RenderContext};
+use game::entities;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum GameMode {

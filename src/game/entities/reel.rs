@@ -12,8 +12,8 @@ extern crate gfx;
 extern crate itertools;
 use self::itertools::Itertools;
 
-use super::super::render::EncoderContext;
-use super::letter::{self, Letter};
+use game::entities::letter::{self, Letter};
+use game::render::EncoderContext;
 
 use std::f32;
 use std::mem;

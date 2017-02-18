@@ -13,8 +13,8 @@ extern crate itertools;
 use self::itertools::FoldWhile::{Continue, Done};
 use self::itertools::Itertools;
 
-use super::super::render::{EncoderContext, RenderContext};
-pub use super::super::render::{Brightness, ScreenTransform};
+use game::render::{EncoderContext, RenderContext};
+pub use game::render::{Brightness, ScreenTransform};
 
 use std::borrow::Cow;
 use std::iter;

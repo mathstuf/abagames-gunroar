@@ -9,11 +9,11 @@ use self::cgmath::Vector2;
 
 extern crate gfx;
 
-use super::super::render::{EncoderContext, RenderContext};
-use super::super::state::{GameData, GameStateContext};
+use game::render::{EncoderContext, RenderContext};
+use game::state::{GameData, GameStateContext};
 
-use super::letter::{self, Letter};
-use super::reel::ScoreReel;
+use game::entities::letter::{self, Letter};
+use game::entities::reel::ScoreReel;
 
 use std::mem;
 use std::ptr;

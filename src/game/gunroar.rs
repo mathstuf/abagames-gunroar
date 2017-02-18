@@ -9,8 +9,8 @@ extern crate gfx;
 extern crate sdl2;
 use self::sdl2::event::WindowEvent;
 
-use super::render::RenderContext;
-use super::state::{GameData, GameState, GameStateContext};
+use game::render::RenderContext;
+use game::state::{GameData, GameState, GameStateContext};
 
 error_chain! {}
 

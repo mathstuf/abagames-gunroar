@@ -13,8 +13,8 @@ use self::gfx::traits::FactoryExt;
 extern crate itertools;
 use self::itertools::Itertools;
 
-use super::super::render::{EncoderContext, RenderContext};
-pub use super::super::render::{Brightness, ScreenTransform};
+use game::render::{EncoderContext, RenderContext};
+pub use game::render::{Brightness, ScreenTransform};
 
 use std::f32;
 

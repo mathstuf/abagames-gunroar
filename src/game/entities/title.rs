@@ -15,11 +15,11 @@ extern crate itertools;
 use self::itertools::FoldWhile::{Continue, Done};
 use self::itertools::Itertools;
 
-use super::super::render::{EncoderContext, RenderContext};
-use super::super::state::{GameMode, Scores};
-pub use super::super::render::{Brightness, ScreenTransform};
+use game::render::{EncoderContext, RenderContext};
+use game::state::{GameMode, Scores};
+pub use game::render::{Brightness, ScreenTransform};
 
-use super::letter::{self, Letter};
+use game::entities::letter::{self, Letter};
 
 use std::borrow::Cow;
 use std::io::Cursor;
