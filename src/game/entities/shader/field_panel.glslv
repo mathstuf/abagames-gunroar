@@ -1,7 +1,7 @@
 #version 150
 
 uniform Screen {
-    mat4 projmat;
+    mat4 screenmat;
 };
 
 attribute vec3 pos;
@@ -14,6 +14,6 @@ attribute vec2 diff;
 varying vec3 f_color;
 
 void main() {
-    gl_Position = projmat * vec4(pos + vec3(diff_factor * diff + offset, 0.), 1.);
+    gl_Position = screenmat * vec4(pos + vec3(diff_factor * diff + offset, 0.), 1.);
     f_color = color;
 }

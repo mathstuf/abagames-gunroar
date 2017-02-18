@@ -14,7 +14,7 @@ extern crate itertools;
 use self::itertools::Itertools;
 
 use super::super::render::{EncoderContext, RenderContext};
-pub use super::super::render::{Brightness, PerspectiveScreen};
+pub use super::super::render::{Brightness, ScreenTransform};
 
 use std::f32;
 
@@ -41,14 +41,14 @@ gfx_defines! {
     pipeline sidebar_pipe {
         vbuf: gfx::VertexBuffer<Position> = (),
         instances: gfx::InstanceBuffer<PerSidebar> = (),
-        screen: gfx::ConstantBuffer<PerspectiveScreen> = "Screen",
+        screen: gfx::ConstantBuffer<ScreenTransform> = "Screen",
         out_color: gfx::RenderTarget<gfx::format::Srgba8> = "Target0",
     }
 
     pipeline panel_pipe {
         vbuf: gfx::VertexBuffer<Difference> = (),
         instances: gfx::InstanceBuffer<PerPanel> = (),
-        screen: gfx::ConstantBuffer<PerspectiveScreen> = "Screen",
+        screen: gfx::ConstantBuffer<ScreenTransform> = "Screen",
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
         out_color: gfx::BlendTarget<gfx::format::Srgba8> =
             ("Target0",

@@ -1,7 +1,7 @@
 #version 150
 
 uniform Screen {
-    mat4 orthomat;
+    mat4 screenmat;
 };
 
 uniform ModelTransform {
@@ -11,5 +11,5 @@ uniform ModelTransform {
 attribute vec2 pos;
 
 void main() {
-    gl_Position = orthomat * modelmat * vec4(pos, 0., 1.);
+    gl_Position = screenmat * modelmat * vec4(pos, 0., 1.);
 }
