@@ -129,7 +129,8 @@ impl ScoreIndicator {
             .map(|(w, r)| {
                 *w = r;
             })
-            .count();
+            .collect::<Vec<_>>()
+            .len();
         self.target_count = Some(len);
     }
 
