@@ -2,7 +2,7 @@
 // See accompanying file LICENSE for details.
 
 extern crate abagames_util;
-use self::abagames_util::Rand;
+use self::abagames_util::{PoolRemoval, Rand};
 
 extern crate cgmath;
 use self::cgmath::Vector2;
@@ -133,9 +133,9 @@ impl ScoreIndicator {
         self.target_count = Some(len);
     }
 
-    pub fn step(&mut self, reel: &mut ScoreReel, context: &mut GameStateContext) -> bool {
+    pub fn step(&mut self, reel: &mut ScoreReel, context: &mut GameStateContext) -> PoolRemoval {
         if self.target_count.is_none() {
-            return true;
+            return PoolRemoval::Remove;
         }
 
         self.update_position();
@@ -144,7 +144,7 @@ impl ScoreIndicator {
         if self.count == 0 {
             self.next_target(reel, context)
         } else {
-            false
+            PoolRemoval::Keep
         }
     }
 
@@ -196,7 +196,7 @@ impl ScoreIndicator {
         }
     }
 
-    fn next_target(&mut self, reel: &mut ScoreReel, context: &mut GameStateContext) -> bool {
+    fn next_target(&mut self, reel: &mut ScoreReel, context: &mut GameStateContext) -> PoolRemoval {
         self.target_index += 1;
         if self.target_index > 0 {
             if let Some(ref mut audio) = context.audio {
@@ -209,7 +209,7 @@ impl ScoreIndicator {
             if let FlyingTo::Bottom = target.flying_to {
                 reel.add_score(target.value);
             }
-            return true;
+            return PoolRemoval::Remove;
         }
 
         let target = &self.targets[self.target_index];
@@ -228,7 +228,7 @@ impl ScoreIndicator {
         self.vel *= target.initial_velocity_ratio;
         self.count = target.count;
 
-        false
+        PoolRemoval::Keep
     }
 
     pub fn draw<R, C>(&mut self, context: &mut EncoderContext<R, C>, letter: &Letter<R>)
