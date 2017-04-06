@@ -748,7 +748,7 @@ impl<R> Letter<R>
             number_style.with_digits(fd);
 
             ctor((new_loc, next_num, number_style))
-        });
+        }).into_inner();
 
         if let Some(prefix) = number_style.prefix_char {
             let prefix_offset = loc.scale * LETTER_WIDTH * 0.2;
