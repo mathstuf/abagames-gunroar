@@ -186,11 +186,11 @@ impl Block {
 
     fn is_land(&self) -> bool {
         match *self {
-            Block::DeepWater => false,
-            Block::Water => false,
+            Block::DeepWater |
+            Block::Water |
             Block::Shore => false,
-            Block::Beach => true,
-            Block::Inland => true,
+            Block::Beach |
+            Block::Inland |
             Block::DeepInland => true,
         }
     }
@@ -210,7 +210,7 @@ impl Block {
             _ => unreachable!(),
         };
 
-        self.clone()
+        *self
     }
 }
 
@@ -291,7 +291,7 @@ impl<R> Field<R>
             include_bytes!("shader/field_sidebar.glslv"),
             include_bytes!("shader/field_sidebar.glslf"),
             sidebar_pipe::new())
-            .unwrap();
+            .expect("failed to create the pipeline for field_sidebar");
 
         let sidebar_data = sidebar_pipe::Data {
             vbuf: sidebar_vbuf,
@@ -318,13 +318,13 @@ impl<R> Field<R>
                                   gfx::buffer::Role::Vertex,
                                   gfx::memory::Usage::Upload,
                                   gfx::Bind::empty())
-                .unwrap();
+                .expect("failed to create the buffer for panels");
 
         let panel_pso = factory.create_pipeline_simple(
             include_bytes!("shader/field_panel.glslv"),
             include_bytes!("shader/field_panel.glslf"),
             panel_pipe::new())
-            .unwrap();
+            .expect("failed to create the pipeline for field_panel");
 
         let panel_data = panel_pipe::Data {
             vbuf: panel_vbuf,
@@ -357,7 +357,7 @@ impl<R> Field<R>
         self.next_block_y = 0;
 
         (0..BLOCK_SIZE_Y)
-            .cartesian_product((0..BLOCK_SIZE_X))
+            .cartesian_product(0..BLOCK_SIZE_X)
             .foreach(|(y, x)| {
                 self.blocks[x][y] = Block::DeepWater;
 
@@ -415,7 +415,7 @@ impl<R> Field<R>
             .collect::<Vec<_>>();
         let indices = rows.iter()
             .cloned()
-            .cartesian_product((0..BLOCK_SIZE_X))
+            .cartesian_product(0..BLOCK_SIZE_X)
             .collect::<Vec<_>>();
 
         // Clear out the blocks in the current strip.
@@ -439,7 +439,7 @@ impl<R> Field<R>
                         self.blocks[x][y] = Block::Water;
                     }
                 }
-                for x in BLOCK_SIZE_X..0 {
+                for x in (0..BLOCK_SIZE_X).rev() {
                     if self.blocks[x][y] == Block::Beach &&
                        self.count_around_block(x, y, Block::Beach) <= 1 {
                         self.blocks[x][y] = Block::Water;
@@ -489,31 +489,32 @@ impl<R> Field<R>
         let d = self.rand.next_int(4) as usize;
         (0..4)
             .into_iter()
-            .map(|i| abagames_util::wrap_inc_by(i, 4, d))
-            .map(|i| {
-                (i, (x as i32) + ANGLE_BLOCK_OFFSET[i][0], (y as i32) + ANGLE_BLOCK_OFFSET[i][1])
-            })
-            .filter(|&(_, ox, oy)| !self.check_block(ox, oy, Block::Shore).unwrap_or(true))
-            .map(|(i, ox, oy)| {
-                let prev = abagames_util::wrap_dec(i, 4);
-                let next = abagames_util::wrap_inc(i, 4);
+            .filter_map(|i| {
+                let new_i = abagames_util::wrap_inc_by(i, 4, d);
+                let (ox, oy) = ((x as i32) + ANGLE_BLOCK_OFFSET[new_i][0], (y as i32) + ANGLE_BLOCK_OFFSET[new_i][1]);
+                if self.check_block(ox, oy, Block::Shore).unwrap_or(true) {
+                    let prev = abagames_util::wrap_dec(new_i, 4);
+                    let next = abagames_util::wrap_inc(new_i, 4);
 
-                let prev_block_ok = self.check_block(ox + ANGLE_BLOCK_OFFSET[prev][0],
-                                                     oy + ANGLE_BLOCK_OFFSET[prev][1],
-                                                     Block::Shore)
-                    .unwrap_or(true);
-                let next_block_ok = self.check_block(ox + ANGLE_BLOCK_OFFSET[next][0],
-                                                     oy + ANGLE_BLOCK_OFFSET[next][1],
-                                                     Block::Shore)
-                    .unwrap_or(true);
+                    let prev_block_ok = self.check_block(ox + ANGLE_BLOCK_OFFSET[prev][0],
+                                                         oy + ANGLE_BLOCK_OFFSET[prev][1],
+                                                         Block::Shore)
+                        .unwrap_or(true);
+                    let next_block_ok = self.check_block(ox + ANGLE_BLOCK_OFFSET[next][0],
+                                                         oy + ANGLE_BLOCK_OFFSET[next][1],
+                                                         Block::Shore)
+                        .unwrap_or(true);
 
-                let angle_offset = match (prev_block_ok, next_block_ok) {
-                    (false, true) => -Rad::turn_div_4(),
-                    (true, false) => Rad::turn_div_4(),
-                    _ => Rad(0.),
-                };
+                    let angle_offset = match (prev_block_ok, next_block_ok) {
+                        (false, true) => -Rad::turn_div_4(),
+                        (true, false) => Rad::turn_div_4(),
+                        _ => Rad(0.),
+                    };
 
-                (Rad::turn_div_2() * (d as f32) + angle_offset).normalize()
+                    Some((Rad::turn_div_2() * (d as f32) + angle_offset).normalize())
+                } else {
+                    None
+                }
             })
             .next()
     }
@@ -547,7 +548,7 @@ impl<R> Field<R>
         let nby = self.next_block_y;
         (0..NEXT_BLOCK_AREA_SIZE)
             .map(|y| abagames_util::wrap_inc_by(y, BLOCK_SIZE_Y, nby))
-            .cartesian_product((0..BLOCK_SIZE_X))
+            .cartesian_product(0..BLOCK_SIZE_X)
             .map(|(y, x)| (y as isize, x as isize))
             .filter(|&(y, x)| {
                 [cx <= x, x < (cx + width), cy <= y, y < (cy + height)]
@@ -580,13 +581,13 @@ impl<R> Field<R>
     }
 
     fn count_around_block(&self, x: usize, y: usize, threshold: Block) -> usize {
-        let x = x as i32;
-        let y = y as i32;
+        let x32 = x as i32;
+        let y32 = y as i32;
         [
-            self.check_block(x, y - 1, threshold).unwrap_or(false),
-            self.check_block(x + 1, y, threshold).unwrap_or(false),
-            self.check_block(x, y + 1, threshold).unwrap_or(false),
-            self.check_block(x - 1, y, threshold).unwrap_or(false),
+            self.check_block(x32, y32 - 1, threshold).unwrap_or(false),
+            self.check_block(x32 + 1, y32, threshold).unwrap_or(false),
+            self.check_block(x32, y32 + 1, threshold).unwrap_or(false),
+            self.check_block(x32 - 1, y32, threshold).unwrap_or(false),
         ].into_iter()
             .filter(|&&b| b)
             .count()
@@ -650,7 +651,7 @@ impl<R> Field<R>
                 let base_pos = &panel.position;
                 let base_idx = 2 * (block_y * BLOCK_SIZE_X + block_x);
 
-                let mut writer = factory.write_mapping(&mut self.panel_instances).unwrap();
+                let mut writer = factory.write_mapping(&self.panel_instances).expect("could not get a writable mapping to the panel buffer");
                 writer[base_idx] = PerPanel {
                     pos: [base_pos.x, -base_pos.y, base_pos.z],
                     diff_factor: PANEL_WIDTH,

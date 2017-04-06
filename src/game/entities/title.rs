@@ -4,16 +4,12 @@
 extern crate abagames_util;
 
 extern crate cgmath;
-use self::cgmath::{Deg, Matrix4, Rad, Vector2};
+use self::cgmath::{Matrix4, Vector2};
 
 extern crate gfx;
 use self::gfx::traits::FactoryExt;
 
 extern crate image;
-
-extern crate itertools;
-use self::itertools::FoldWhile::{Continue, Done};
-use self::itertools::Itertools;
 
 use game::render::{EncoderContext, RenderContext};
 use game::state::{GameMode, Scores};
@@ -21,9 +17,7 @@ pub use game::render::{Brightness, ScreenTransform};
 
 use game::entities::letter::{self, Letter};
 
-use std::borrow::Cow;
 use std::io::Cursor;
-use std::iter;
 
 gfx_defines! {
     vertex LogoVertex {
@@ -131,10 +125,10 @@ impl<R> Title<R>
             include_bytes!("shader/title_logo.glslv"),
             include_bytes!("shader/title_logo.glslf"),
             logo_pipe::new())
-            .unwrap();
+            .expect("failed to create the pipeline for title_logo");
 
         let logo_bmp_data = include_bytes!("images/title.bmp");
-        let logo_img = image::load(Cursor::new(&logo_bmp_data[..]), image::BMP).unwrap().to_rgba();
+        let logo_img = image::load(Cursor::new(&logo_bmp_data[..]), image::BMP).expect("failed to load the logo image").to_rgba();
         let (logo_width, logo_height) = logo_img.dimensions();
         let logo_tex_kind = gfx::texture::Kind::D2(
             logo_width as gfx::texture::Size,
@@ -142,7 +136,7 @@ impl<R> Title<R>
             gfx::texture::AaMode::Single);
         let (_, logo_tex) =
             factory.create_texture_immutable_u8::<gfx::format::Rgba8>(logo_tex_kind, &[&logo_img])
-                .unwrap();
+                .expect("failed to create the logo texture");
         let logo_sampler = factory.create_sampler(gfx::texture::SamplerInfo::new(
             gfx::texture::FilterMethod::Mipmap,
             gfx::texture::WrapMode::Tile
@@ -164,7 +158,7 @@ impl<R> Title<R>
 
         let logo_line_program = factory.link_program(include_bytes!("shader/title_logo_line.glslv"),
                           include_bytes!("shader/title_logo_line.glslf"))
-            .unwrap();
+            .expect("could not link the title logo line shader");
         let logo_line_pso = factory.create_pipeline_from_program(
             &logo_line_program,
             gfx::Primitive::LineList,
@@ -176,7 +170,7 @@ impl<R> Title<R>
                 samples: None,
             },
             logo_line_pipe::new())
-            .unwrap();
+            .expect("failed to create the pipeline for the logo line");
 
         let logo_fill_data = [
             LogoFillVertex { pos: [-19.,  -6.], color: [1., 1., 1.], },
@@ -193,7 +187,7 @@ impl<R> Title<R>
             include_bytes!("shader/title_logo_fill.glslv"),
             include_bytes!("shader/title_logo_fill.glslf"),
             logo_fill_pipe::new())
-            .unwrap();
+            .expect("failed to create the pipeline for the logo fill");
 
         let model_buffer = factory.create_constant_buffer(1);
 

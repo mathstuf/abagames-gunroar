@@ -73,8 +73,8 @@ impl<'a> Style<'a> {
         match *self {
             Style::White => Cow::Owned([1., 1., 1., alpha]),
             Style::OffWhite => Cow::Owned([0.9, 0.7, 0.5, alpha]),
-            Style::Outline(ref data) |
-            Style::Filled(ref data) => Cow::Borrowed(data),
+            Style::Outline(data) |
+            Style::Filled(data) => Cow::Borrowed(data),
         }
     }
 
@@ -412,9 +412,9 @@ impl SegmentData {
     fn segment_data_for(ch: char) -> &'static [SegmentData] {
         let ch_u8 = ch as u8;
         let idx = match ch {
-            '0'...'9' => ch_u8 - ('0' as u8),
-            'A'...'Z' => ch_u8 - ('A' as u8) + 10,
-            'a'...'z' => ch_u8 - ('a' as u8) + 10,
+            '0'...'9' => ch_u8 - b'0',
+            'A'...'Z' => ch_u8 - b'A' + 10,
+            'a'...'z' => ch_u8 - b'a' + 10,
             '.' => 36,
             '_' => 37,
             '-' => 38,
@@ -426,7 +426,7 @@ impl SegmentData {
             ' ' | _ => return &[],
         } as usize;
 
-        &LETTER_DATA[idx]
+        LETTER_DATA[idx]
     }
 }
 
@@ -546,10 +546,10 @@ impl NumberStyle {
     fn reduce_padding(&mut self) {
         if let Some(pad) = self.pad_to {
             let new_pad = pad - 1;
-            if new_pad != 0 {
-                self.pad_to = Some(new_pad);
-            } else {
+            if new_pad == 0 {
                 self.pad_to = None;
+            } else {
+                self.pad_to = Some(new_pad);
             }
         }
     }
@@ -601,7 +601,7 @@ impl<R> Letter<R>
         let program = factory.link_program(
             include_bytes!("shader/letter.glslv"),
             include_bytes!("shader/letter.glslf"))
-            .unwrap();
+            .expect("could not link the letter shader");
         let outline_pso = factory.create_pipeline_from_program(
             &program,
             gfx::Primitive::LineStrip,
@@ -613,13 +613,13 @@ impl<R> Letter<R>
                 samples: None,
             },
             pipe::new())
-            .unwrap();
+            .expect("failed to create the outline pipeline for letter");
         let fan_pso = factory.create_pipeline_from_program(
             &program,
             gfx::Primitive::TriangleList,
             gfx::state::Rasterizer::new_fill(),
             pipe::new())
-            .unwrap();
+            .expect("failed to create the fill pipeline for letter");
 
         let color_buffer = factory.create_constant_buffer(1);
         let letter_buffer = factory.create_constant_buffer(1);
@@ -699,7 +699,7 @@ impl<R> Letter<R>
         let offset = LETTER_OFFSET * loc.scale;
 
         string.chars()
-            .fold(loc.offset_by(offset / 2.), |mut loc, ch| {
+            .fold(loc.offset_by(offset / 2.), |loc, ch| {
                 self.draw_letter_at(context, ch, style, loc);
 
                 loc.offset_by(loc.direction.offset(offset))
@@ -712,7 +712,6 @@ impl<R> Letter<R>
     {
         let offset = LETTER_OFFSET * loc.scale;
         let new_loc = loc.offset_by(offset);
-        let pos = loc.position + offset / 2.;
         let norm_digit_offset = offset.x * Vector2::unit_x();
         let fp_offset_x = norm_digit_offset * 0.5;
         let fp_offset_y = offset.y * 0.25 * Vector2::unit_y();
@@ -777,20 +776,20 @@ impl<R> Letter<R>
         let offset_quotes = loc.scale * 1.16 * Vector2::unit_x();
 
         (0..).fold_while((loc, time), |(loc, time), idx| {
-            let new_time = if idx != 4 {
-                let letter = Self::for_digit(time % 10);
-                self.draw_letter_at(context,
-                                    letter,
-                                    style,
-                                    loc);
-                time / 10
-            } else {
+            let new_time = if idx == 4 {
                 let letter = Self::for_digit(time % 6);
                 self.draw_letter_at(context,
                                     letter,
                                     style,
                                     loc);
                 time / 6
+            } else {
+                let letter = Self::for_digit(time % 10);
+                self.draw_letter_at(context,
+                                    letter,
+                                    style,
+                                    loc);
+                time / 10
             };
 
             let next_offset = if idx == 0 || (idx & 1) == 1 {
@@ -809,10 +808,10 @@ impl<R> Letter<R>
                 offset_wide
             };
 
-            if new_time != 0 {
-                Continue((loc.offset_by(-next_offset), new_time))
-            } else {
+            if new_time == 0 {
                 Done((loc, new_time))
+            } else {
+                Continue((loc.offset_by(-next_offset), new_time))
             }
         });
     }

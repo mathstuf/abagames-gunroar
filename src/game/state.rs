@@ -297,7 +297,7 @@ impl<R> GameState<R>
         indicators
             .iter_mut()
             .foreach(|indicator| {
-                indicator.draw(encoder, &letter)
+                indicator.draw(encoder, letter)
             })
     }
 

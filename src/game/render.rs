@@ -59,7 +59,7 @@ impl<R> RenderContext<R>
             .update_constant_buffer(&self.perspective_screen_buffer, &perspective_screen);
 
         let orthographic_screen = ScreenTransform {
-            screenmat: context.orthographic_matrix.clone().into(),
+            screenmat: context.orthographic_matrix.into(),
         };
         context.encoder
             .update_constant_buffer(&self.orthographic_screen_buffer, &orthographic_screen);

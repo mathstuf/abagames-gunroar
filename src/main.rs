@@ -89,8 +89,7 @@ fn try_main() -> Result<(), Box<Error>> {
     setup_logging();
 
     let brightness = matches.value_of("BRIGHTNESS")
-        .map(|s| s.parse().unwrap())
-        .unwrap_or(100.);
+        .map_or(100., |s| s.parse().expect("could not parse brightness as an integer"));
 
     let mut builder = try!(SdlBuilder::new("gunroar", env!("CARGO_MANIFEST_DIR")));
     let (mut info, mainloop) = try!(builder
@@ -105,5 +104,5 @@ fn try_main() -> Result<(), Box<Error>> {
 }
 
 fn main() {
-    try_main().unwrap()
+    try_main().expect("an error occurred during the game")
 }

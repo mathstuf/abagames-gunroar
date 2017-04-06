@@ -9,8 +9,8 @@ use self::cgmath::Vector2;
 
 extern crate gfx;
 
-use game::render::{EncoderContext, RenderContext};
-use game::state::{GameData, GameStateContext};
+use game::render::EncoderContext;
+use game::state::GameStateContext;
 
 use game::entities::letter::{self, Letter};
 use game::entities::reel::ScoreReel;
@@ -205,7 +205,7 @@ impl ScoreIndicator {
             }
         }
 
-        if self.target_index >= self.target_count.unwrap() {
+        if self.target_index >= self.target_count.expect("expected to have a target count") {
             let target = &self.targets[self.target_index];
             if let FlyingTo::Bottom = target.flying_to {
                 reel.add_score(target.value);
