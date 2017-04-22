@@ -1,17 +1,12 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
-extern crate abagames_util;
-
-extern crate cgmath;
-use self::cgmath::{Deg, ElementWise, Matrix4, Rad, Vector2, Vector3};
-
-extern crate gfx;
-use self::gfx::traits::FactoryExt;
-
-extern crate itertools;
-use self::itertools::FoldWhile::{Continue, Done};
-use self::itertools::Itertools;
+use crates::abagames_util;
+use crates::cgmath::{Deg, ElementWise, Matrix4, Rad, Vector2, Vector3};
+use crates::gfx;
+use crates::gfx::traits::FactoryExt;
+use crates::itertools::FoldWhile::{Continue, Done};
+use crates::itertools::Itertools;
 
 use game::render::{EncoderContext, RenderContext};
 pub use game::render::{Brightness, ScreenTransform};

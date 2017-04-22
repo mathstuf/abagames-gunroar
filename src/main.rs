@@ -1,12 +1,8 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
-extern crate abagames_util;
-use abagames_util::SdlBuilder;
-
 #[macro_use]
 extern crate clap;
-use clap::{App, Arg};
 
 #[macro_use]
 extern crate error_chain;
@@ -14,8 +10,20 @@ extern crate error_chain;
 #[macro_use]
 extern crate gfx;
 
-extern crate log;
-use self::log::{Log, LogLevel, LogLevelFilter, LogMetadata, LogRecord, set_logger};
+mod crates {
+    pub extern crate abagames_util;
+    pub extern crate cgmath;
+    pub extern crate clap;
+    pub extern crate gfx;
+    pub extern crate image;
+    pub extern crate itertools;
+    pub extern crate log;
+    pub extern crate sdl2;
+}
+
+use crates::abagames_util::SdlBuilder;
+use crates::clap::{App, Arg};
+use crates::log::{Log, LogLevel, LogLevelFilter, LogMetadata, LogRecord, set_logger};
 
 mod game;
 use game::Gunroar;

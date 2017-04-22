@@ -1,13 +1,8 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
-extern crate abagames_util;
-use self::abagames_util::{Event, Game, Input, Resources, SdlInfo, StepResult};
-
-extern crate gfx;
-
-extern crate sdl2;
-use self::sdl2::event::WindowEvent;
+use crates::abagames_util::{Event, Game, Input, Resources, SdlInfo, StepResult};
+use crates::sdl2::event::WindowEvent;
 
 use game::render::RenderContext;
 use game::state::{GameData, GameState, GameStateContext};

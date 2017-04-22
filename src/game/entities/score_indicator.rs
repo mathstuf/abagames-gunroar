@@ -1,13 +1,9 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
-extern crate abagames_util;
-use self::abagames_util::{PoolRemoval, Rand};
-
-extern crate cgmath;
-use self::cgmath::Vector2;
-
-extern crate gfx;
+use crates::abagames_util::{PoolRemoval, Rand};
+use crates::cgmath::Vector2;
+use crates::gfx;
 
 use game::render::EncoderContext;
 use game::state::GameStateContext;

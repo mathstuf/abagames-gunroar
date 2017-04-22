@@ -1,15 +1,11 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
-extern crate abagames_util;
-
-extern crate cgmath;
-use self::cgmath::{Matrix4, Vector2};
-
-extern crate gfx;
-use self::gfx::traits::FactoryExt;
-
-extern crate image;
+use crates::abagames_util;
+use crates::cgmath::{Matrix4, Vector2};
+use crates::gfx;
+use crates::gfx::traits::FactoryExt;
+use crates::image;
 
 use game::render::{EncoderContext, RenderContext};
 use game::state::{GameMode, Scores};

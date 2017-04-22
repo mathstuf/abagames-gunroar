@@ -1,16 +1,10 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
-extern crate abagames_util;
-use self::abagames_util::{Audio, Input, Pool, Scancode, StepResult};
-
-extern crate cgmath;
-use self::cgmath::Vector2;
-
-extern crate itertools;
-use self::itertools::Itertools;
-
-extern crate gfx;
+use crates::abagames_util::{self, Audio, Input, Pool, Scancode, StepResult};
+use crates::cgmath::Vector2;
+use crates::itertools::Itertools;
+use crates::gfx;
 
 use game::render::{EncoderContext, RenderContext};
 use game::entities;
