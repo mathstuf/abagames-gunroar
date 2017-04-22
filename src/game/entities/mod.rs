@@ -3,6 +3,7 @@
 
 pub mod field;
 pub mod letter;
+pub mod particles;
 pub mod reel;
 pub mod score_indicator;
 pub mod title;

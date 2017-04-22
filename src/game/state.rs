@@ -56,6 +56,8 @@ pub struct GameState<R>
     letter: entities::letter::Letter<R>,
     reel: entities::reel::ScoreReel,
     title: entities::title::Title<R>,
+
+    sparks: entities::particles::SparkPool<R>,
 }
 
 pub struct Scores;
@@ -142,6 +144,8 @@ impl<R> GameState<R>
             letter: entities::letter::Letter::new(factory, view.clone(), context),
             reel: entities::reel::ScoreReel::new(),
             title: entities::title::Title::new(factory, view.clone(), context),
+
+            sparks: entities::particles::SparkPool::new(120, factory, view.clone(), context),
         }
     }
 
@@ -227,6 +231,7 @@ impl<R> GameState<R>
         where F: gfx::Factory<R>,
     {
         self.field.prep_draw(factory);
+        self.sparks.prep_draw(factory);
     }
 
     pub fn draw<C>(&self, encoder: &mut EncoderContext<R, C>)
@@ -242,17 +247,20 @@ impl<R> GameState<R>
         where C: gfx::CommandBuffer<R>,
     {
         self.field.draw_panels(encoder);
+        self.sparks.draw(encoder);
     }
 
     pub fn draw_game<C>(&self, encoder: &mut EncoderContext<R, C>)
         where C: gfx::CommandBuffer<R>,
     {
         self.field.draw_panels(encoder);
+        self.sparks.draw(encoder);
     }
 
     pub fn draw_luminous<C>(&self, encoder: &mut EncoderContext<R, C>)
         where C: gfx::CommandBuffer<R>
     {
+        // self.sparks.draw_luminous(encoder);
     }
 
     pub fn draw_sidebars<C>(&self, encoder: &mut EncoderContext<R, C>)
