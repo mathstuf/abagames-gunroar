@@ -9,14 +9,14 @@ homepage = "https://github.com/mathstuf/abagames-gunroar/tree/rust"
 
 [dependencies]
 #abagames-util = "~0.1"
-cgmath = "~0.12"
-clap = "^2.20"
+cgmath = "~0.13"
+clap = "~2.20"
 error-chain = "~0.10"
-gfx = "~0.14"
+gfx = "~0.15"
 image = { version = "~0.12", default-features = false, features = ["bmp"] }
 itertools = "~0.6"
 log = "~0.3"
-sdl2 = "~0.28"
+sdl2 = "~0.29"
 
 [dependencies.abagames-util]
 path = "../../rust-abagames-util/src"
