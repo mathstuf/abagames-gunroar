@@ -896,9 +896,9 @@ public class Wake: Actor {
       "\n"
       "attribute vec2 velFactor;\n"
       "attribute float velFlip;\n"
-      "attribute vec3 color;\n"
+      "attribute vec4 color;\n"
       "\n"
-      "varying vec3 f_color;\n"
+      "varying vec4 f_color;\n"
       "\n"
       "void main() {\n"
       "  vec2 rvel;\n"
@@ -916,10 +916,10 @@ public class Wake: Actor {
     program.setFragmentShader(
       "uniform float brightness;\n"
       "\n"
-      "varying vec3 f_color;\n"
+      "varying vec4 f_color;\n"
       "\n"
       "void main() {\n"
-      "  gl_FragColor = vec4(f_color * brightness, 1);\n"
+      "  gl_FragColor = f_color * vec4(vec3(brightness), 1);\n"
       "}\n"
     );
     GLint velFactorLoc = 0;
