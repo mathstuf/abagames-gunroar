@@ -323,7 +323,7 @@ impl<R> GameState<R>
     }
 
     pub fn draw_luminous<C>(&self, encoder: &mut EncoderContext<R, C>)
-        where C: gfx::CommandBuffer<R>
+        where C: gfx::CommandBuffer<R>,
     {
         // self.sparks_draw.draw_luminous(encoder);
         // self.spark_fragments_draw.draw_luminous(encoder);
@@ -331,7 +331,7 @@ impl<R> GameState<R>
     }
 
     pub fn draw_sidebars<C>(&self, encoder: &mut EncoderContext<R, C>)
-        where C: gfx::CommandBuffer<R>
+        where C: gfx::CommandBuffer<R>,
     {
         self.field_draw.draw_sidebars(encoder);
     }
