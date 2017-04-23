@@ -53,9 +53,11 @@ pub struct GameState<R>
 
     field: entities::field::Field,
     sparks: entities::particles::SparkPool,
+    wakes: entities::particles::WakePool,
 
     field_draw: entities::field::FieldDraw<R>,
     sparks_draw: entities::particles::SparkPoolDraw<R>,
+    wakes_draw: entities::particles::WakePoolDraw<R>,
 
     indicators: Pool<entities::score_indicator::ScoreIndicator>,
     letter: entities::letter::Letter<R>,
@@ -144,9 +146,11 @@ impl<R> GameState<R>
 
             field: entities::field::Field::new(),
             sparks: entities::particles::SparkPool::new(120),
+            wakes: entities::particles::WakePool::new(100),
 
             field_draw: entities::field::FieldDraw::new(factory, view.clone(), context),
             sparks_draw: entities::particles::SparkPoolDraw::new(factory, view.clone(), context),
+            wakes_draw: entities::particles::WakePoolDraw::new(factory, view.clone(), context),
 
             indicators: Pool::new(50, entities::score_indicator::ScoreIndicator::new),
             letter: entities::letter::Letter::new(factory, view.clone(), context),
@@ -237,6 +241,7 @@ impl<R> GameState<R>
         where F: gfx::Factory<R>,
     {
         self.field_draw.prep_draw(factory, &self.field);
+        self.wakes_draw.prep_draw(factory, &self.wakes);
         self.sparks_draw.prep_draw(factory, &self.sparks);
     }
 
@@ -253,6 +258,7 @@ impl<R> GameState<R>
         where C: gfx::CommandBuffer<R>,
     {
         self.field_draw.draw_panels(encoder);
+        self.wakes_draw.draw(encoder);
         self.sparks_draw.draw(encoder);
     }
 
@@ -260,6 +266,7 @@ impl<R> GameState<R>
         where C: gfx::CommandBuffer<R>,
     {
         self.field_draw.draw_panels(encoder);
+        self.wakes_draw.draw(encoder);
         self.sparks_draw.draw(encoder);
     }
 
