@@ -4,6 +4,7 @@
 mod shape;
 pub mod bullet;
 pub mod enemy;
+pub mod shield;
 pub mod turret;
 
 pub use self::shape::BaseShape;
