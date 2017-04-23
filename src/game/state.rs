@@ -52,12 +52,12 @@ pub struct GameState<R>
     state: State,
 
     field: entities::field::Field,
-    sparks: entities::particles::SparkPool,
-    wakes: entities::particles::WakePool,
+    sparks: Pool<entities::particles::Spark>,
+    wakes: Pool<entities::particles::Wake>,
 
     field_draw: entities::field::FieldDraw<R>,
-    sparks_draw: entities::particles::SparkPoolDraw<R>,
-    wakes_draw: entities::particles::WakePoolDraw<R>,
+    sparks_draw: entities::particles::SparkDraw<R>,
+    wakes_draw: entities::particles::WakeDraw<R>,
 
     indicators: Pool<entities::score_indicator::ScoreIndicator>,
     letter: entities::letter::Letter<R>,
@@ -145,12 +145,12 @@ impl<R> GameState<R>
             state: State::default(),
 
             field: entities::field::Field::new(),
-            sparks: entities::particles::SparkPool::new(120),
-            wakes: entities::particles::WakePool::new(100),
+            sparks: entities::particles::Spark::new_pool(),
+            wakes: entities::particles::Wake::new_pool(),
 
             field_draw: entities::field::FieldDraw::new(factory, view.clone(), context),
-            sparks_draw: entities::particles::SparkPoolDraw::new(factory, view.clone(), context),
-            wakes_draw: entities::particles::WakePoolDraw::new(factory, view.clone(), context),
+            sparks_draw: entities::particles::SparkDraw::new(factory, view.clone(), context),
+            wakes_draw: entities::particles::WakeDraw::new(factory, view.clone(), context),
 
             indicators: Pool::new(50, entities::score_indicator::ScoreIndicator::new),
             letter: entities::letter::Letter::new(factory, view.clone(), context),

@@ -49,6 +49,10 @@ impl Wake {
         }
     }
 
+    pub fn new_pool() -> Pool<Self> {
+        Pool::new(MAX_WAKE_SIZE, Self::new)
+    }
+
     pub fn init(&mut self, field: &Field, pos: Vector2<f32>, angle: Rad<f32>, speed: f32, count: u32, size: f32, direction: WakeDirection) {
         if !field.is_in_outer_field(self.pos) {
             self.count = 0;
@@ -81,22 +85,6 @@ impl Wake {
 
 const MAX_WAKE_SIZE: usize = 100;
 
-pub struct WakePool {
-    pool: Pool<Wake>,
-}
-
-impl WakePool {
-    pub fn new(size: usize) -> Self {
-        if size > MAX_WAKE_SIZE {
-            panic!();
-        }
-
-        WakePool {
-            pool: Pool::new(size, Wake::new),
-        }
-    }
-}
-
 gfx_defines! {
     vertex Vertex {
         vel_factor: [f32; 2] = "vel_factor",
@@ -126,7 +114,7 @@ gfx_defines! {
     }
 }
 
-pub struct WakePoolDraw<R>
+pub struct WakeDraw<R>
     where R: gfx::Resources,
 {
     slice: gfx::Slice<R>,
@@ -135,7 +123,7 @@ pub struct WakePoolDraw<R>
     wakes: gfx::handle::Buffer<R, PerWake>,
 }
 
-impl<R> WakePoolDraw<R>
+impl<R> WakeDraw<R>
     where R: gfx::Resources,
 {
     pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, gfx::format::Srgba8>,
@@ -189,7 +177,7 @@ impl<R> WakePoolDraw<R>
             out_color: view,
         };
 
-        WakePoolDraw {
+        WakeDraw {
             slice: slice,
             pso: pso,
             data: data,
@@ -197,14 +185,13 @@ impl<R> WakePoolDraw<R>
         }
     }
 
-    pub fn prep_draw<F>(&mut self, factory: &mut F, wakes: &WakePool)
+    pub fn prep_draw<F>(&mut self, factory: &mut F, wakes: &Pool<Wake>)
         where F: gfx::Factory<R>,
     {
         let mut writer = factory.write_mapping(&self.wakes)
             .expect("could not get a writeable mapping to the wake buffer");
 
-        let num_wakes = wakes.pool
-            .iter()
+        let num_wakes = wakes.iter()
             .enumerate()
             .map(|(idx, wake)| {
                 writer[idx] = PerWake {

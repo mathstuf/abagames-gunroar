@@ -29,6 +29,10 @@ impl Spark {
         }
     }
 
+    pub fn new_pool() -> Pool<Self> {
+        Pool::new(MAX_SPARK_SIZE, Self::new)
+    }
+
     pub fn init(&mut self, pos: Vector2<f32>, vel: Vector2<f32>, color: Vector3<f32>, count: u32) {
         self.pos = pos;
         self.vel = vel;
@@ -49,22 +53,6 @@ impl Spark {
 }
 
 const MAX_SPARK_SIZE: usize = 120;
-
-pub struct SparkPool {
-    pool: Pool<Spark>,
-}
-
-impl SparkPool {
-    pub fn new(size: usize) -> Self {
-        if size > MAX_SPARK_SIZE {
-            panic!();
-        }
-
-        SparkPool {
-            pool: Pool::new(size, Spark::new),
-        }
-    }
-}
 
 gfx_defines! {
     vertex Vertex {
@@ -95,7 +83,7 @@ gfx_defines! {
     }
 }
 
-pub struct SparkPoolDraw<R>
+pub struct SparkDraw<R>
     where R: gfx::Resources,
 {
     slice: gfx::Slice<R>,
@@ -104,7 +92,7 @@ pub struct SparkPoolDraw<R>
     sparks: gfx::handle::Buffer<R, PerSpark>,
 }
 
-impl<R> SparkPoolDraw<R>
+impl<R> SparkDraw<R>
     where R: gfx::Resources,
 {
     pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, gfx::format::Srgba8>,
@@ -158,7 +146,7 @@ impl<R> SparkPoolDraw<R>
             out_color: view,
         };
 
-        SparkPoolDraw {
+        SparkDraw {
             slice: slice,
             pso: pso,
             data: data,
@@ -166,14 +154,13 @@ impl<R> SparkPoolDraw<R>
         }
     }
 
-    pub fn prep_draw<F>(&mut self, factory: &mut F, sparks: &SparkPool)
+    pub fn prep_draw<F>(&mut self, factory: &mut F, sparks: &Pool<Spark>)
         where F: gfx::Factory<R>,
     {
         let mut writer = factory.write_mapping(&self.sparks)
             .expect("could not get a writeable mapping to the spark buffer");
 
-        let num_sparks = sparks.pool
-            .iter()
+        let num_sparks = sparks.iter()
             .enumerate()
             .map(|(idx, spark)| {
                 writer[idx] = PerSpark {
