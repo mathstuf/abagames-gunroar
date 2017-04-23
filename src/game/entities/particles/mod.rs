@@ -1,10 +1,13 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
+mod fragment;
 mod smoke;
 mod spark;
 mod wake;
 
+pub use self::fragment::Fragment;
+pub use self::fragment::FragmentDraw;
 pub use self::smoke::Smoke;
 pub use self::smoke::SmokeDraw;
 pub use self::smoke::SmokeKind;

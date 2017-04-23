@@ -55,11 +55,13 @@ pub struct GameState<R>
     sparks: Pool<entities::particles::Spark>,
     wakes: Pool<entities::particles::Wake>,
     smokes: Pool<entities::particles::Smoke>,
+    fragments: Pool<entities::particles::Fragment>,
 
     field_draw: entities::field::FieldDraw<R>,
     sparks_draw: entities::particles::SparkDraw<R>,
     wakes_draw: entities::particles::WakeDraw<R>,
     smokes_draw: entities::particles::SmokeDraw<R>,
+    fragments_draw: entities::particles::FragmentDraw<R>,
 
     indicators: Pool<entities::score_indicator::ScoreIndicator>,
     letter: entities::letter::Letter<R>,
@@ -150,11 +152,13 @@ impl<R> GameState<R>
             sparks: entities::particles::Spark::new_pool(),
             wakes: entities::particles::Wake::new_pool(),
             smokes: entities::particles::Smoke::new_pool(),
+            fragments: entities::particles::Fragment::new_pool(),
 
             field_draw: entities::field::FieldDraw::new(factory, view.clone(), context),
             sparks_draw: entities::particles::SparkDraw::new(factory, view.clone(), context),
             wakes_draw: entities::particles::WakeDraw::new(factory, view.clone(), context),
             smokes_draw: entities::particles::SmokeDraw::new(factory, view.clone(), context),
+            fragments_draw: entities::particles::FragmentDraw::new(factory, view.clone(), context),
 
             indicators: Pool::new(50, entities::score_indicator::ScoreIndicator::new),
             letter: entities::letter::Letter::new(factory, view.clone(), context),
@@ -265,6 +269,7 @@ impl<R> GameState<R>
         self.wakes_draw.draw(encoder);
         self.sparks_draw.draw(encoder);
         self.smokes_draw.draw(encoder);
+        self.fragments_draw.draw(encoder, &self.fragments);
     }
 
     pub fn draw_game<C>(&self, encoder: &mut EncoderContext<R, C>)
@@ -274,6 +279,7 @@ impl<R> GameState<R>
         self.wakes_draw.draw(encoder);
         self.sparks_draw.draw(encoder);
         self.smokes_draw.draw(encoder);
+        self.fragments_draw.draw(encoder, &self.fragments);
     }
 
     pub fn draw_luminous<C>(&self, encoder: &mut EncoderContext<R, C>)
