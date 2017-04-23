@@ -120,7 +120,6 @@ pub struct WakeDraw<R>
     slice: gfx::Slice<R>,
     pso: gfx::PipelineState<R, <pipe::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
     data: pipe::Data<R>,
-    wakes: gfx::handle::Buffer<R, PerWake>,
 }
 
 impl<R> WakeDraw<R>
@@ -151,14 +150,7 @@ impl<R> WakeDraw<R>
 
         let vbuf = factory.create_vertex_buffer(&data);
         let slice = abagames_util::slice_for_fan::<R, F>(factory,
-                                                             data.len() as u32);
-
-        let wakes =
-            factory.create_buffer(MAX_WAKE_SIZE,
-                                  gfx::buffer::Role::Constant,
-                                  gfx::memory::Usage::Dynamic,
-                                  gfx::Bind::empty())
-                .expect("failed to create the buffer for wake");
+                                                         data.len() as u32);
 
         let vert_source = str::from_utf8(include_bytes!("shader/wake.glslv")).expect("invalid utf-8 in wake vertex shader");
         let frag_source = str::from_utf8(include_bytes!("shader/wake.glslf")).expect("invalid utf-8 in wake fragment shader");
@@ -171,7 +163,8 @@ impl<R> WakeDraw<R>
 
         let data = pipe::Data {
             vbuf: vbuf,
-            wakes: wakes.clone(),
+            wakes: factory.create_upload_buffer(MAX_WAKE_SIZE)
+                .expect("failed to create the buffer for wake"),
             screen: context.perspective_screen_buffer.clone(),
             brightness: context.brightness_buffer.clone(),
             out_color: view,
@@ -181,14 +174,13 @@ impl<R> WakeDraw<R>
             slice: slice,
             pso: pso,
             data: data,
-            wakes: wakes,
         }
     }
 
     pub fn prep_draw<F>(&mut self, factory: &mut F, wakes: &Pool<Wake>)
         where F: gfx::Factory<R>,
     {
-        let mut writer = factory.write_mapping(&self.wakes)
+        let mut writer = factory.write_mapping(&self.data.wakes)
             .expect("could not get a writeable mapping to the wake buffer");
 
         let num_wakes = wakes.iter()

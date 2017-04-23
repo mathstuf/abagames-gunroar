@@ -89,7 +89,6 @@ pub struct SparkDraw<R>
     slice: gfx::Slice<R>,
     pso: gfx::PipelineState<R, <pipe::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
     data: pipe::Data<R>,
-    sparks: gfx::handle::Buffer<R, PerSpark>,
 }
 
 impl<R> SparkDraw<R>
@@ -120,14 +119,7 @@ impl<R> SparkDraw<R>
 
         let vbuf = factory.create_vertex_buffer(&data);
         let slice = abagames_util::slice_for_fan::<R, F>(factory,
-                                                             data.len() as u32);
-
-        let sparks =
-            factory.create_buffer(MAX_SPARK_SIZE,
-                                  gfx::buffer::Role::Constant,
-                                  gfx::memory::Usage::Dynamic,
-                                  gfx::Bind::empty())
-                .expect("failed to create the buffer for spark");
+                                                         data.len() as u32);
 
         let vert_source = str::from_utf8(include_bytes!("shader/spark.glslv")).expect("invalid utf-8 in spark vertex shader");
         let frag_source = str::from_utf8(include_bytes!("shader/spark.glslf")).expect("invalid utf-8 in spark fragment shader");
@@ -140,7 +132,8 @@ impl<R> SparkDraw<R>
 
         let data = pipe::Data {
             vbuf: vbuf,
-            sparks: sparks.clone(),
+            sparks: factory.create_upload_buffer(MAX_SPARK_SIZE)
+                .expect("failed to create the pipeline for spark"),
             screen: context.perspective_screen_buffer.clone(),
             brightness: context.brightness_buffer.clone(),
             out_color: view,
@@ -150,14 +143,13 @@ impl<R> SparkDraw<R>
             slice: slice,
             pso: pso,
             data: data,
-            sparks: sparks,
         }
     }
 
     pub fn prep_draw<F>(&mut self, factory: &mut F, sparks: &Pool<Spark>)
         where F: gfx::Factory<R>,
     {
-        let mut writer = factory.write_mapping(&self.sparks)
+        let mut writer = factory.write_mapping(&self.data.sparks)
             .expect("could not get a writeable mapping to the spark buffer");
 
         let num_sparks = sparks.iter()

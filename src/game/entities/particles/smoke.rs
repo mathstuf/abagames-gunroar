@@ -238,7 +238,6 @@ pub struct SmokeDraw<R>
     slice: gfx::Slice<R>,
     pso: gfx::PipelineState<R, <pipe::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
     data: pipe::Data<R>,
-    smokes: gfx::handle::Buffer<R, PerSmoke>,
 }
 
 impl<R> SmokeDraw<R>
@@ -258,14 +257,7 @@ impl<R> SmokeDraw<R>
 
         let vbuf = factory.create_vertex_buffer(&data);
         let slice = abagames_util::slice_for_fan::<R, F>(factory,
-                                                             data.len() as u32);
-
-        let smokes =
-            factory.create_buffer(MAX_SMOKE_SIZE,
-                                  gfx::buffer::Role::Constant,
-                                  gfx::memory::Usage::Dynamic,
-                                  gfx::Bind::empty())
-                .expect("failed to create the buffer for smoke");
+                                                         data.len() as u32);
 
         let vert_source = str::from_utf8(include_bytes!("shader/smoke.glslv")).expect("invalid utf-8 in smoke vertex shader");
         let frag_source = str::from_utf8(include_bytes!("shader/smoke.glslf")).expect("invalid utf-8 in smoke fragment shader");
@@ -278,7 +270,8 @@ impl<R> SmokeDraw<R>
 
         let data = pipe::Data {
             vbuf: vbuf,
-            smokes: smokes.clone(),
+            smokes: factory.create_upload_buffer(MAX_SMOKE_SIZE)
+                .expect("failed to create the buffer for smoke"),
             screen: context.perspective_screen_buffer.clone(),
             brightness: context.brightness_buffer.clone(),
             out_color: view,
@@ -288,14 +281,13 @@ impl<R> SmokeDraw<R>
             slice: slice,
             pso: pso,
             data: data,
-            smokes: smokes,
         }
     }
 
     pub fn prep_draw<F>(&mut self, factory: &mut F, smokes: &Pool<Smoke>)
         where F: gfx::Factory<R>,
     {
-        let mut writer = factory.write_mapping(&self.smokes)
+        let mut writer = factory.write_mapping(&self.data.smokes)
             .expect("could not get a writeable mapping to the smoke buffer");
 
         let num_smokes = smokes.iter()
