@@ -10,6 +10,9 @@ extern crate error_chain;
 #[macro_use]
 extern crate gfx;
 
+#[macro_use]
+extern crate lazy_static;
+
 mod crates {
     pub extern crate abagames_util;
     pub extern crate cgmath;

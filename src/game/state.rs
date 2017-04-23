@@ -66,6 +66,7 @@ pub struct GameState<R>
     smokes_draw: entities::particles::SmokeDraw<R>,
     fragments_draw: entities::particles::FragmentDraw<R>,
     spark_fragments_draw: entities::particles::SparkFragmentDraw<R>,
+    shape_draw: entities::shapes::ShapeDraw<R>,
 
     indicators: Pool<entities::score_indicator::ScoreIndicator>,
     letter: entities::letter::Letter<R>,
@@ -167,6 +168,7 @@ impl<R> GameState<R>
             smokes_draw: entities::particles::SmokeDraw::new(factory, view.clone(), context),
             fragments_draw: entities::particles::FragmentDraw::new(factory, view.clone(), context),
             spark_fragments_draw: entities::particles::SparkFragmentDraw::new(factory, view.clone(), context),
+            shape_draw: entities::shapes::ShapeDraw::new(factory, view.clone(), context),
 
             indicators: Pool::new(50, entities::score_indicator::ScoreIndicator::new),
             letter: entities::letter::Letter::new(factory, view.clone(), context),

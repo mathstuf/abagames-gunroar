@@ -15,6 +15,7 @@ error-chain = "~0.10"
 gfx = "~0.15"
 image = { version = "~0.12", default-features = false, features = ["bmp"] }
 itertools = "~0.6"
+lazy_static = "~0.2"
 log = "~0.3"
 sdl2 = "~0.29"
 
