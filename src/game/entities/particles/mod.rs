@@ -5,3 +5,4 @@ mod spark;
 
 pub use self::spark::Spark;
 pub use self::spark::SparkPool;
+pub use self::spark::SparkPoolDraw;

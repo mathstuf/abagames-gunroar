@@ -12,47 +12,6 @@ pub use game::render::{Brightness, ScreenTransform};
 
 use std::f32;
 
-gfx_defines! {
-    vertex Position {
-        pos: [f32; 2] = "pos",
-    }
-
-    vertex PerSidebar {
-        flip: f32 = "flip",
-    }
-
-    vertex Difference {
-        diff: [f32; 2] = "diff",
-    }
-
-    vertex PerPanel {
-        pos: [f32; 3] = "pos",
-        diff_factor: f32 = "diff_factor",
-        offset: [f32; 2] = "offset",
-        color: [f32; 3] = "color",
-    }
-
-    pipeline sidebar_pipe {
-        vbuf: gfx::VertexBuffer<Position> = (),
-        instances: gfx::InstanceBuffer<PerSidebar> = (),
-        screen: gfx::ConstantBuffer<ScreenTransform> = "Screen",
-        out_color: gfx::RenderTarget<gfx::format::Srgba8> = "Target0",
-    }
-
-    pipeline panel_pipe {
-        vbuf: gfx::VertexBuffer<Difference> = (),
-        instances: gfx::InstanceBuffer<PerPanel> = (),
-        screen: gfx::ConstantBuffer<ScreenTransform> = "Screen",
-        brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
-        out_color: gfx::BlendTarget<gfx::format::Srgba8> =
-            ("Target0",
-             gfx::state::MASK_ALL,
-             gfx::state::Blend::new(gfx::state::Equation::Add,
-                                    gfx::state::Factor::ZeroPlus(gfx::state::BlendValue::SourceAlpha),
-                                    gfx::state::Factor::One)),
-    }
-}
-
 const BLOCK_SIZE_X: usize = 20;
 const BLOCK_SIZE_Y: usize = 64;
 const BLOCK_SIZE_X_F32: f32 = BLOCK_SIZE_X as f32;
@@ -237,9 +196,7 @@ struct Platform {
     angle: Rad<f32>,
 }
 
-pub struct Field<R>
-    where R: gfx::Resources,
-{
+pub struct Field {
     color_step: f32,
     screen_y: f32,
     block_count: f32,
@@ -248,86 +205,10 @@ pub struct Field<R>
     rand: Rand,
     blocks: [[Block; BLOCK_SIZE_Y]; BLOCK_SIZE_X],
     panels: [[Panel; BLOCK_SIZE_Y]; BLOCK_SIZE_X],
-
-    sidebar_bundle: gfx::Bundle<R, sidebar_pipe::Data<R>>,
-    panel_bundle: gfx::Bundle<R, panel_pipe::Data<R>>,
-    panel_instances: gfx::handle::Buffer<R, PerPanel>,
 }
 
-impl<R> Field<R>
-    where R: gfx::Resources,
-{
-    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, gfx::format::Srgba8>,
-                  context: &RenderContext<R>)
-                  -> Self
-        where F: gfx::Factory<R>,
-    {
-        let sidebar_data = [
-            Position { pos: [SIDEWALL_X1,  SIDEWALL_Y], },
-            Position { pos: [SIDEWALL_X2,  SIDEWALL_Y], },
-            Position { pos: [SIDEWALL_X2, -SIDEWALL_Y], },
-            Position { pos: [SIDEWALL_X1, -SIDEWALL_Y], },
-        ];
-
-        let sidebar_vbuf = factory.create_vertex_buffer(&sidebar_data);
-        let mut sidebar_slice = abagames_util::slice_for_fan::<R, F>(factory,
-                                                                     sidebar_data.len() as u32);
-        sidebar_slice.instances = Some((2, 0));
-
-        let sidebar_instance_data = [
-            PerSidebar { flip: 1., },
-            PerSidebar { flip: -1., },
-        ];
-
-        let sidebar_instance_buffer = factory.create_vertex_buffer(&sidebar_instance_data);
-
-        let sidebar_pso = factory.create_pipeline_simple(
-            include_bytes!("shader/field_sidebar.glslv"),
-            include_bytes!("shader/field_sidebar.glslf"),
-            sidebar_pipe::new())
-            .expect("failed to create the pipeline for field_sidebar");
-
-        let sidebar_data = sidebar_pipe::Data {
-            vbuf: sidebar_vbuf,
-            instances: sidebar_instance_buffer.clone(),
-            screen: context.perspective_screen_buffer.clone(),
-            out_color: view.clone(),
-        };
-
-        let panel_data = [
-            Difference { diff: [0.,  0.], },
-            Difference { diff: [1.,  0.], },
-            Difference { diff: [1., -1.], },
-            Difference { diff: [0., -1.], },
-        ];
-
-        let panel_vbuf = factory.create_vertex_buffer(&panel_data);
-        let mut panel_slice = abagames_util::slice_for_fan::<R, F>(factory,
-                                                                   panel_data.len() as u32);
-        let num_panel_instances = BLOCK_SIZE_Y * BLOCK_SIZE_X * 2;
-        panel_slice.instances = Some((num_panel_instances as gfx::InstanceCount, 0));
-
-        let panel_instances =
-            factory.create_buffer(num_panel_instances,
-                                  gfx::buffer::Role::Vertex,
-                                  gfx::memory::Usage::Upload,
-                                  gfx::Bind::empty())
-                .expect("failed to create the buffer for panels");
-
-        let panel_pso = factory.create_pipeline_simple(
-            include_bytes!("shader/field_panel.glslv"),
-            include_bytes!("shader/field_panel.glslf"),
-            panel_pipe::new())
-            .expect("failed to create the pipeline for field_panel");
-
-        let panel_data = panel_pipe::Data {
-            vbuf: panel_vbuf,
-            instances: panel_instances.clone(),
-            screen: context.perspective_screen_buffer.clone(),
-            brightness: context.brightness_buffer.clone(),
-            out_color: view,
-        };
-
+impl Field {
+    pub fn new() -> Self {
         Field {
             color_step: 0.,
             screen_y: 0.,
@@ -337,10 +218,6 @@ impl<R> Field<R>
             rand: Rand::new(),
             blocks: [[Block::DeepWater; BLOCK_SIZE_Y]; BLOCK_SIZE_X],
             panels: [[Panel::new(); BLOCK_SIZE_Y]; BLOCK_SIZE_X],
-
-            sidebar_bundle: gfx::Bundle::new(sidebar_slice, sidebar_pso, sidebar_data),
-            panel_bundle: gfx::Bundle::new(panel_slice, panel_pso, panel_data),
-            panel_instances: panel_instances,
         }
     }
 
@@ -607,13 +484,144 @@ impl<R> Field<R>
         }
         self.next_block_y -= NEXT_BLOCK_AREA_SIZE;
     }
+}
 
-    pub fn prep_draw<F>(&mut self, factory: &mut F)
+gfx_defines! {
+    vertex Position {
+        pos: [f32; 2] = "pos",
+    }
+
+    vertex PerSidebar {
+        flip: f32 = "flip",
+    }
+
+    vertex Difference {
+        diff: [f32; 2] = "diff",
+    }
+
+    vertex PerPanel {
+        pos: [f32; 3] = "pos",
+        diff_factor: f32 = "diff_factor",
+        offset: [f32; 2] = "offset",
+        color: [f32; 3] = "color",
+    }
+
+    pipeline sidebar_pipe {
+        vbuf: gfx::VertexBuffer<Position> = (),
+        instances: gfx::InstanceBuffer<PerSidebar> = (),
+        screen: gfx::ConstantBuffer<ScreenTransform> = "Screen",
+        out_color: gfx::RenderTarget<gfx::format::Srgba8> = "Target0",
+    }
+
+    pipeline panel_pipe {
+        vbuf: gfx::VertexBuffer<Difference> = (),
+        instances: gfx::InstanceBuffer<PerPanel> = (),
+        screen: gfx::ConstantBuffer<ScreenTransform> = "Screen",
+        brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
+        out_color: gfx::BlendTarget<gfx::format::Srgba8> =
+            ("Target0",
+             gfx::state::MASK_ALL,
+             gfx::state::Blend::new(gfx::state::Equation::Add,
+                                    gfx::state::Factor::ZeroPlus(gfx::state::BlendValue::SourceAlpha),
+                                    gfx::state::Factor::One)),
+    }
+}
+
+pub struct FieldDraw<R>
+    where R: gfx::Resources,
+{
+    sidebar_bundle: gfx::Bundle<R, sidebar_pipe::Data<R>>,
+    panel_bundle: gfx::Bundle<R, panel_pipe::Data<R>>,
+    panel_instances: gfx::handle::Buffer<R, PerPanel>,
+}
+
+impl<R> FieldDraw<R>
+    where R: gfx::Resources,
+{
+    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, gfx::format::Srgba8>,
+                  context: &RenderContext<R>)
+                  -> Self
         where F: gfx::Factory<R>,
     {
-        let color_index = self.color_step as usize;
+        let sidebar_data = [
+            Position { pos: [SIDEWALL_X1,  SIDEWALL_Y], },
+            Position { pos: [SIDEWALL_X2,  SIDEWALL_Y], },
+            Position { pos: [SIDEWALL_X2, -SIDEWALL_Y], },
+            Position { pos: [SIDEWALL_X1, -SIDEWALL_Y], },
+        ];
+
+        let sidebar_vbuf = factory.create_vertex_buffer(&sidebar_data);
+        let mut sidebar_slice = abagames_util::slice_for_fan::<R, F>(factory,
+                                                                     sidebar_data.len() as u32);
+        sidebar_slice.instances = Some((2, 0));
+
+        let sidebar_instance_data = [
+            PerSidebar { flip: 1., },
+            PerSidebar { flip: -1., },
+        ];
+
+        let sidebar_instance_buffer = factory.create_vertex_buffer(&sidebar_instance_data);
+
+        let sidebar_pso = factory.create_pipeline_simple(
+            include_bytes!("shader/field_sidebar.glslv"),
+            include_bytes!("shader/field_sidebar.glslf"),
+            sidebar_pipe::new())
+            .expect("failed to create the pipeline for field_sidebar");
+
+        let sidebar_data = sidebar_pipe::Data {
+            vbuf: sidebar_vbuf,
+            instances: sidebar_instance_buffer.clone(),
+            screen: context.perspective_screen_buffer.clone(),
+            out_color: view.clone(),
+        };
+
+        let panel_data = [
+            Difference { diff: [0.,  0.], },
+            Difference { diff: [1.,  0.], },
+            Difference { diff: [1., -1.], },
+            Difference { diff: [0., -1.], },
+        ];
+
+        let panel_vbuf = factory.create_vertex_buffer(&panel_data);
+        let mut panel_slice = abagames_util::slice_for_fan::<R, F>(factory,
+                                                                   panel_data.len() as u32);
+        let num_panel_instances = BLOCK_SIZE_Y * BLOCK_SIZE_X * 2;
+        panel_slice.instances = Some((num_panel_instances as gfx::InstanceCount, 0));
+
+        let panel_instances =
+            factory.create_buffer(num_panel_instances,
+                                  gfx::buffer::Role::Vertex,
+                                  gfx::memory::Usage::Upload,
+                                  gfx::Bind::empty())
+                .expect("failed to create the buffer for panels");
+
+        let panel_pso = factory.create_pipeline_simple(
+            include_bytes!("shader/field_panel.glslv"),
+            include_bytes!("shader/field_panel.glslf"),
+            panel_pipe::new())
+            .expect("failed to create the pipeline for field_panel");
+
+        let panel_data = panel_pipe::Data {
+            vbuf: panel_vbuf,
+            instances: panel_instances.clone(),
+            screen: context.perspective_screen_buffer.clone(),
+            brightness: context.brightness_buffer.clone(),
+            out_color: view,
+        };
+
+        FieldDraw {
+            sidebar_bundle: gfx::Bundle::new(sidebar_slice, sidebar_pso, sidebar_data),
+            panel_bundle: gfx::Bundle::new(panel_slice, panel_pso, panel_data),
+            panel_instances: panel_instances,
+        }
+    }
+
+    pub fn prep_draw<F>(&mut self, factory: &mut F, field: &Field)
+        where F: gfx::Factory<R>,
+    {
+        let color_index = field.color_step as usize;
         let next_color_index = abagames_util::wrap_inc(color_index, TIME_COLOR_SIZE);
-        let blend = self.color_step.fract();
+        let blend = field.color_step.fract();
 
         let colors = BASE_COLOR_TIME[color_index]
             .iter()
@@ -621,10 +629,10 @@ impl<R> Field<R>
             .map(|(color_0, color_1)| color_0 * (1. - blend) + color_1 * blend)
             .collect::<Vec<_>>();
 
-        let screen_y_base = abagames_util::wrap_dec(self.screen_y as usize, BLOCK_SIZE_Y);
+        let screen_y_base = abagames_util::wrap_dec(field.screen_y as usize, BLOCK_SIZE_Y);
         let offset_x_base = -BLOCK_WIDTH * (SCREEN_BLOCK_SIZE_X as f32) / 2.;
         let offset_y_base = BLOCK_WIDTH * (SCREEN_BLOCK_SIZE_Y as f32) / 2. + BLOCK_WIDTH +
-                            self.screen_y.fract();
+                            field.screen_y.fract();
 
         // FIXME: Use inclusive syntax.
         let y_info = (0..SCREEN_BLOCK_SIZE_Y + NEXT_BLOCK_AREA_SIZE + 1).map(|block_y| {
@@ -639,7 +647,7 @@ impl<R> Field<R>
 
         y_info.cartesian_product(x_info)
             .foreach(|((block_y, offset_y), (block_x, offset_x))| {
-                let panel = &self.panels[block_x][block_y];
+                let panel = &field.panels[block_x][block_y];
 
                 let base_color = &colors[panel.color_index];
                 let base_pos = &panel.position;

@@ -51,13 +51,16 @@ pub struct GameState<R>
 {
     state: State,
 
-    field: entities::field::Field<R>,
+    field: entities::field::Field,
+    sparks: entities::particles::SparkPool,
+
+    field_draw: entities::field::FieldDraw<R>,
+    sparks_draw: entities::particles::SparkPoolDraw<R>,
+
     indicators: Pool<entities::score_indicator::ScoreIndicator>,
     letter: entities::letter::Letter<R>,
     reel: entities::reel::ScoreReel,
     title: entities::title::Title<R>,
-
-    sparks: entities::particles::SparkPool<R>,
 }
 
 pub struct Scores;
@@ -139,13 +142,16 @@ impl<R> GameState<R>
         GameState {
             state: State::default(),
 
-            field: entities::field::Field::new(factory, view.clone(), context),
+            field: entities::field::Field::new(),
+            sparks: entities::particles::SparkPool::new(120),
+
+            field_draw: entities::field::FieldDraw::new(factory, view.clone(), context),
+            sparks_draw: entities::particles::SparkPoolDraw::new(factory, view.clone(), context),
+
             indicators: Pool::new(50, entities::score_indicator::ScoreIndicator::new),
             letter: entities::letter::Letter::new(factory, view.clone(), context),
             reel: entities::reel::ScoreReel::new(),
             title: entities::title::Title::new(factory, view.clone(), context),
-
-            sparks: entities::particles::SparkPool::new(120, factory, view.clone(), context),
         }
     }
 
@@ -224,14 +230,14 @@ impl<R> GameState<R>
     pub fn prep_draw_title<F>(&mut self, factory: &mut F)
         where F: gfx::Factory<R>,
     {
-        self.field.prep_draw(factory);
+        self.field_draw.prep_draw(factory, &self.field);
     }
 
     pub fn prep_draw_game<F>(&mut self, factory: &mut F)
         where F: gfx::Factory<R>,
     {
-        self.field.prep_draw(factory);
-        self.sparks.prep_draw(factory);
+        self.field_draw.prep_draw(factory, &self.field);
+        self.sparks_draw.prep_draw(factory, &self.sparks);
     }
 
     pub fn draw<C>(&self, encoder: &mut EncoderContext<R, C>)
@@ -246,27 +252,27 @@ impl<R> GameState<R>
     pub fn draw_title<C>(&self, encoder: &mut EncoderContext<R, C>)
         where C: gfx::CommandBuffer<R>,
     {
-        self.field.draw_panels(encoder);
-        self.sparks.draw(encoder);
+        self.field_draw.draw_panels(encoder);
+        self.sparks_draw.draw(encoder);
     }
 
     pub fn draw_game<C>(&self, encoder: &mut EncoderContext<R, C>)
         where C: gfx::CommandBuffer<R>,
     {
-        self.field.draw_panels(encoder);
-        self.sparks.draw(encoder);
+        self.field_draw.draw_panels(encoder);
+        self.sparks_draw.draw(encoder);
     }
 
     pub fn draw_luminous<C>(&self, encoder: &mut EncoderContext<R, C>)
         where C: gfx::CommandBuffer<R>
     {
-        // self.sparks.draw_luminous(encoder);
+        // self.sparks_draw.draw_luminous(encoder);
     }
 
     pub fn draw_sidebars<C>(&self, encoder: &mut EncoderContext<R, C>)
         where C: gfx::CommandBuffer<R>
     {
-        self.field.draw_sidebars(encoder);
+        self.field_draw.draw_sidebars(encoder);
     }
 
     pub fn draw_front<C>(&mut self, encoder: &mut EncoderContext<R, C>, data: &GameData)

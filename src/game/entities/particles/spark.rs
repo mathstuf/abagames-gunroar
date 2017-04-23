@@ -11,35 +11,6 @@ use game::render::{Brightness, ScreenTransform};
 
 use std::str;
 
-gfx_defines! {
-    vertex Vertex {
-        vel_factor: [f32; 2] = "vel_factor",
-        vel_flip: i32 = "vel_flip",
-        color_factor: [f32; 4] = "color_factor",
-    }
-
-    constant PerSpark {
-        pos: [f32; 2] = "pos",
-        vel: [f32; 2] = "vel",
-        color: [f32; 3] = "color",
-        // Alignment element.
-        _dummy: f32 = "_dummy",
-    }
-
-    pipeline pipe {
-        vbuf: gfx::VertexBuffer<Vertex> = (),
-        screen: gfx::ConstantBuffer<ScreenTransform> = "Screen",
-        brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
-        sparks: gfx::ConstantBuffer<PerSpark> = "Sparks",
-        out_color: gfx::BlendTarget<gfx::format::Srgba8> =
-            ("Target0",
-             gfx::state::MASK_ALL,
-             gfx::state::Blend::new(gfx::state::Equation::Add,
-                                    gfx::state::Factor::ZeroPlus(gfx::state::BlendValue::SourceAlpha),
-                                    gfx::state::Factor::One)),
-    }
-}
-
 #[derive(Debug, Clone, Copy)]
 pub struct Spark {
     pos: Vector2<f32>,
@@ -77,22 +48,66 @@ impl Spark {
     }
 }
 
-pub struct SparkPool<R>
+const MAX_SPARK_SIZE: usize = 120;
+
+pub struct SparkPool {
+    pool: Pool<Spark>,
+}
+
+impl SparkPool {
+    pub fn new(size: usize) -> Self {
+        if size > MAX_SPARK_SIZE {
+            panic!();
+        }
+
+        SparkPool {
+            pool: Pool::new(size, Spark::new),
+        }
+    }
+}
+
+gfx_defines! {
+    vertex Vertex {
+        vel_factor: [f32; 2] = "vel_factor",
+        vel_flip: i32 = "vel_flip",
+        color_factor: [f32; 4] = "color_factor",
+    }
+
+    constant PerSpark {
+        pos: [f32; 2] = "pos",
+        vel: [f32; 2] = "vel",
+        color: [f32; 3] = "color",
+        // Alignment element.
+        _dummy: f32 = "_dummy",
+    }
+
+    pipeline pipe {
+        vbuf: gfx::VertexBuffer<Vertex> = (),
+        screen: gfx::ConstantBuffer<ScreenTransform> = "Screen",
+        brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
+        sparks: gfx::ConstantBuffer<PerSpark> = "Sparks",
+        out_color: gfx::BlendTarget<gfx::format::Srgba8> =
+            ("Target0",
+             gfx::state::MASK_ALL,
+             gfx::state::Blend::new(gfx::state::Equation::Add,
+                                    gfx::state::Factor::ZeroPlus(gfx::state::BlendValue::SourceAlpha),
+                                    gfx::state::Factor::One)),
+    }
+}
+
+pub struct SparkPoolDraw<R>
     where R: gfx::Resources,
 {
-    pool: Pool<Spark>,
-
     slice: gfx::Slice<R>,
     pso: gfx::PipelineState<R, <pipe::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
     data: pipe::Data<R>,
     sparks: gfx::handle::Buffer<R, PerSpark>,
 }
 
-impl<R> SparkPool<R>
+impl<R> SparkPoolDraw<R>
     where R: gfx::Resources,
 {
-    pub fn new<F>(size: usize, factory: &mut F,
-                  view: gfx::handle::RenderTargetView<R, gfx::format::Srgba8>,
+    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, gfx::format::Srgba8>,
                   context: &RenderContext<R>)
                   -> Self
         where F: gfx::Factory<R>,
@@ -120,7 +135,7 @@ impl<R> SparkPool<R>
                                                              data.len() as u32);
 
         let sparks =
-            factory.create_buffer(size,
+            factory.create_buffer(MAX_SPARK_SIZE,
                                   gfx::buffer::Role::Constant,
                                   gfx::memory::Usage::Dynamic,
                                   gfx::Bind::empty())
@@ -128,7 +143,7 @@ impl<R> SparkPool<R>
 
         let vert_source = str::from_utf8(include_bytes!("shader/spark.glslv")).expect("invalid utf-8 in spark vertex shader");
         let frag_source = str::from_utf8(include_bytes!("shader/spark.glslf")).expect("invalid utf-8 in spark fragment shader");
-        let size_str = format!("{}", size);
+        let size_str = format!("{}", MAX_SPARK_SIZE);
         let pso = factory.create_pipeline_simple(
             vert_source.replace("NUM_SPARKS", &size_str).as_bytes(),
             frag_source.replace("NUM_SPARKS", &size_str).as_bytes(),
@@ -143,9 +158,7 @@ impl<R> SparkPool<R>
             out_color: view,
         };
 
-        SparkPool {
-            pool: Pool::new(size, Spark::new),
-
+        SparkPoolDraw {
             slice: slice,
             pso: pso,
             data: data,
@@ -153,13 +166,13 @@ impl<R> SparkPool<R>
         }
     }
 
-    pub fn prep_draw<F>(&mut self, factory: &mut F)
+    pub fn prep_draw<F>(&mut self, factory: &mut F, sparks: &SparkPool)
         where F: gfx::Factory<R>,
     {
         let mut writer = factory.write_mapping(&self.sparks)
             .expect("could not get a writeable mapping to the spark buffer");
 
-        let num_sparks = self.pool
+        let num_sparks = sparks.pool
             .iter()
             .enumerate()
             .map(|(idx, spark)| {
