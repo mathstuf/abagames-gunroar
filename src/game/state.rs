@@ -231,6 +231,7 @@ impl<R> GameState<R>
 
         self.field.step();
         // self.bullets.step()
+        // self.crystals.step()
         {
             let (indicators, reel, rand) = (&mut self.indicators,
                                             &mut self.reel,
@@ -312,6 +313,7 @@ impl<R> GameState<R>
         self.smokes_draw.draw(encoder);
         self.fragments_draw.draw(encoder, &self.fragments);
         self.spark_fragments_draw.draw(encoder);
+        // self.crystals.draw(encoder);
         // self.bullet_draw.draw_bullets(encoder);
     }
 
@@ -324,6 +326,7 @@ impl<R> GameState<R>
         self.smokes_draw.draw(encoder);
         self.fragments_draw.draw(encoder, &self.fragments);
         self.spark_fragments_draw.draw(encoder);
+        // self.crystals.draw(encoder);
         // self.bullet_draw.draw_bullets(encoder);
     }
 

@@ -140,6 +140,8 @@ pub struct BulletDraw<R>
     normal_data: pipe3::Data<R>,
     small_data: pipe3::Data<R>,
     destructible_data: pipe2::Data<R>,
+
+    crystal_bundle: gfx::Bundle<R, crystal_pipe::Data<R>>,
 }
 
 impl<R> BulletDraw<R>
@@ -194,6 +196,14 @@ impl<R> BulletDraw<R>
         ];
         let destructible_vbuf = factory.create_vertex_buffer(&destructible_vertex_data);
 
+        let crystal_vertex_data = [
+            Vertex2 { pos: [-0.2, 0.2], },
+            Vertex2 { pos: [0.2, 0.2], },
+            Vertex2 { pos: [0.2, -0.2], },
+            Vertex2 { pos: [-0.2, -0.2], },
+        ];
+        let crystal_vbuf = factory.create_vertex_buffer(&crystal_vertex_data);
+
         let frag_shader = factory.create_shader_pixel(include_bytes!("shader/uniform3.glslf"))
             .expect("failed to compile the fragment shader for bullet shapes");
         let vert2_shader = factory.create_shader_vertex(include_bytes!("shader/uniform2.glslv"))
@@ -244,6 +254,19 @@ impl<R> BulletDraw<R>
             pipe3::new())
             .expect("failed to create the fan pipeline for 3-pos");
 
+        let crystal_pso = factory.create_pipeline_from_program(
+            &pipe2_program,
+            gfx::Primitive::LineStrip,
+            gfx::state::Rasterizer {
+                front_face: gfx::state::FrontFace::CounterClockwise,
+                cull_face: gfx::state::CullFace::Nothing,
+                method: gfx::state::RasterMethod::Line(1),
+                offset: None,
+                samples: None,
+            },
+            crystal_pipe::new())
+            .expect("failed to create the pipeline for crystal");
+
         let outline_slice_a = abagames_util::slice_for_loop::<R, F>(factory, 3);
         let mut outline_slice_b = outline_slice_a.clone();
         outline_slice_b.base_vertex = 3;
@@ -254,6 +277,9 @@ impl<R> BulletDraw<R>
                                                                                destructible_vertex_data.len() as u32);
         let destructible_fill_slice = abagames_util::slice_for_fan::<R, F>(factory,
                                                                            destructible_vertex_data.len() as u32);
+
+        let crystal_slice = abagames_util::slice_for_loop::<R, F>(factory,
+                                                                  crystal_vertex_data.len() as u32);
 
         let modelmat = factory.create_constant_buffer(1);
         let color = factory.create_constant_buffer(1);
@@ -309,6 +335,15 @@ impl<R> BulletDraw<R>
             out_color: view.clone(),
         };
 
+        let crystal_data = crystal_pipe::Data {
+            vbuf: crystal_vbuf.clone(),
+            screen: context.perspective_screen_buffer.clone(),
+            brightness: context.brightness_buffer.clone(),
+            modelmat: modelmat.clone(),
+            color: color.clone(),
+            out_color: view.clone(),
+        };
+
         BulletDraw {
             pipe2_pso: pipe2_pso,
             pipe2_outline_pso: pipe2_outline_pso,
@@ -333,6 +368,8 @@ impl<R> BulletDraw<R>
             normal_data: normal_data,
             small_data: small_data,
             destructible_data: destructible_data,
+
+            crystal_bundle: gfx::Bundle::new(crystal_slice, crystal_pso, crystal_data),
         }
     }
 
@@ -385,5 +422,20 @@ impl<R> BulletDraw<R>
         context.encoder.update_constant_buffer(&self.modelmat, &modelmat);
 
         self.draw_bullet_impl(context.encoder, kind)
+    }
+
+    pub fn draw_crystal<C>(&self, context: &mut EncoderContext<R, C>, modelmat: Matrix4<f32>)
+        where C: gfx::CommandBuffer<R>,
+    {
+        let modelmat = ModelMat {
+            modelmat: modelmat.into(),
+        };
+        let color = Color {
+            color: [0.6, 1., 0.7],
+        };
+        context.encoder.update_constant_buffer(&self.modelmat, &modelmat);
+        context.encoder.update_constant_buffer(&self.color, &color);
+
+        self.crystal_bundle.encode(context.encoder);
     }
 }
