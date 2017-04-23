@@ -3,6 +3,7 @@
 
 mod shape;
 
+pub use self::shape::BaseShape;
 pub use self::shape::Shape;
 pub use self::shape::ShapeDraw;
 pub use self::shape::ShapeKind;

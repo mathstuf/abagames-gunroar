@@ -400,44 +400,34 @@ const NUM_PILLARS: usize = 4;
 
 #[derive(Debug, Clone, Copy)]
 /// A generic shape.
-pub struct Shape {
+pub struct BaseShape {
     kind: ShapeKind,
-    size: f32,
     distance_ratio: f32,
     spiny_ratio: f32,
-    base_color: Vector3<f32>,
-    stored_color: Vector3<f32>,
-    modelmat: Matrix4<f32>,
+    size: f32,
+    color: Vector3<f32>,
 
     pillars: [Vector2<f32>; NUM_PILLARS],
     num_pillars: usize,
 
     points: [ShapePoint; POINT_NUM],
     num_points: usize,
-
-    commands: [ShapeCommand; MAX_SHAPE_COMMANDS],
-    num_commands: usize,
 }
 
-impl Shape {
+impl BaseShape {
     pub fn new(kind: ShapeKind, size: f32, distance_ratio: f32, spiny_ratio: f32, color: Vector3<f32>) -> Self {
-        let mut shape = Shape {
+        let mut shape = BaseShape {
             kind: kind,
-            size: size,
             distance_ratio: distance_ratio,
             spiny_ratio: spiny_ratio,
-            base_color: color,
-            stored_color: (0., 0., 0.).into(),
-            modelmat: Matrix4::identity(),
+            size: size,
+            color: color,
 
             pillars: [(0., 0.).into(); NUM_PILLARS],
             num_pillars: 0,
 
             points: [ShapePoint::new(); POINT_NUM],
             num_points: 0,
-
-            commands: [ShapeCommand::new(); MAX_SHAPE_COMMANDS],
-            num_commands: 0,
         };
 
         if shape.kind != ShapeKind::Bridge {
@@ -474,6 +464,32 @@ impl Shape {
     pub fn points(&self) -> &[ShapePoint] {
         &self.points[0..self.num_points]
     }
+}
+
+#[derive(Debug, Clone, Copy)]
+/// A generic shape.
+pub struct Shape {
+    base: &'static BaseShape,
+    size: f32,
+    color: Vector3<f32>,
+    modelmat: Matrix4<f32>,
+
+    commands: [ShapeCommand; MAX_SHAPE_COMMANDS],
+    num_commands: usize,
+}
+
+impl Shape {
+    pub fn new(base: &'static BaseShape) -> Self {
+        Shape {
+            base: base,
+            size: base.size,
+            color: base.color,
+            modelmat: Matrix4::identity(),
+
+            commands: [ShapeCommand::new(); MAX_SHAPE_COMMANDS],
+            num_commands: 0,
+        }
+    }
 
     pub fn prep_draw(&mut self) {
         self.num_commands = 0;
@@ -482,32 +498,32 @@ impl Shape {
         let mut z = 0.;
         let mut sf = 1.;
 
-        if self.kind == ShapeKind::Bridge {
+        if self.base.kind == ShapeKind::Bridge {
             z += height;
         }
 
-        let mut color = if self.kind == ShapeKind::ShipDestroyed {
-            self.stored_color
+        let mut color = if self.base.kind == ShapeKind::ShipDestroyed {
+            self.color
         } else {
-            self.base_color
+            self.base.color
         };
 
-        if self.kind == ShapeKind::Bridge {
+        if self.base.kind == ShapeKind::Bridge {
             self.add_square_loop(sf, z, color, Closure::Open, 1.)
         } else {
             self.add_loop(sf, z, color, Closure::Open)
         }
 
-        if self.kind != ShapeKind::ShipShadow && !self.kind.is_destroyed() {
-            color = 0.4 * self.base_color;
+        if self.base.kind != ShapeKind::ShipShadow && !self.base.kind.is_destroyed() {
+            color = 0.4 * self.base.color;
             self.add_loop(sf, z, color, Closure::Closed)
         }
 
-        match self.kind {
+        match self.base.kind {
             ShapeKind::Ship | ShapeKind::ShipRoundTail | ShapeKind::ShipShadow |
             ShapeKind::ShipDamaged | ShapeKind::ShipDestroyed => {
-                if self.kind != ShapeKind::ShipDestroyed {
-                    color = 0.4 * self.base_color;
+                if self.base.kind != ShapeKind::ShipDestroyed {
+                    color = 0.4 * self.base.color;
                 }
                 (0..3).foreach(|_| {
                     z -= height / 4.;
@@ -516,26 +532,26 @@ impl Shape {
                 })
             },
             ShapeKind::Platform | ShapeKind::PlatformDamaged | ShapeKind::PlatformDestroyed => {
-                color = 0.4 * self.base_color;
+                color = 0.4 * self.base.color;
                 (0..3).foreach(|_| {
                     z -= height / 3.;
-                    for pillar in 0..self.num_pillars {
-                        let pos = self.pillars[pillar];
+                    for pillar in 0..self.base.num_pillars {
+                        let pos = self.base.pillars[pillar];
                         self.add_pillar(sf * 0.2, z, color, pos)
                     }
                 })
             },
             ShapeKind::Bridge | ShapeKind::Turret | ShapeKind::TurretDamaged => {
-                color = 0.6 * self.base_color;
+                color = 0.6 * self.base.color;
                 z += height;
                 sf -= 0.33;
-                if self.kind == ShapeKind::Bridge {
+                if self.base.kind == ShapeKind::Bridge {
                     self.add_square_loop(sf, z, color, Closure::Open, 1.)
                 } else {
                     self.add_square_loop(sf, z / 2., color, Closure::Open, 3.)
                 }
-                color = 0.6 * self.base_color;
-                if self.kind == ShapeKind::Bridge {
+                color = 0.6 * self.base.color;
+                if self.base.kind == ShapeKind::Bridge {
                     self.add_square_loop(sf, z, color, Closure::Closed, 1.)
                 } else {
                     self.add_square_loop(sf, z / 2., color, Closure::Closed, 3.)
@@ -546,7 +562,7 @@ impl Shape {
     }
 
     fn add_loop(&mut self, size_factor: f32, z: f32, color: Vector3<f32>, closure: Closure) {
-        let loop_category = self.kind.loop_category();
+        let loop_category = self.base.kind.loop_category();
         self.add_command(ShapeCommand {
             category: ShapeCategory::Loop {
                 category: loop_category,
@@ -932,8 +948,8 @@ impl<R> ShapeDraw<R>
             size: shape.size,
         };
         let loop_ = Loop {
-            distance_ratio: shape.distance_ratio,
-            spiny_ratio: shape.spiny_ratio,
+            distance_ratio: shape.base.distance_ratio,
+            spiny_ratio: shape.base.spiny_ratio,
         };
         context.encoder.update_constant_buffer(&self.modelmat, &modelmat);
         context.encoder.update_constant_buffer(&self.size, &size);
