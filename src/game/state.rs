@@ -54,10 +54,12 @@ pub struct GameState<R>
     field: entities::field::Field,
     sparks: Pool<entities::particles::Spark>,
     wakes: Pool<entities::particles::Wake>,
+    smokes: Pool<entities::particles::Smoke>,
 
     field_draw: entities::field::FieldDraw<R>,
     sparks_draw: entities::particles::SparkDraw<R>,
     wakes_draw: entities::particles::WakeDraw<R>,
+    smokes_draw: entities::particles::SmokeDraw<R>,
 
     indicators: Pool<entities::score_indicator::ScoreIndicator>,
     letter: entities::letter::Letter<R>,
@@ -147,10 +149,12 @@ impl<R> GameState<R>
             field: entities::field::Field::new(),
             sparks: entities::particles::Spark::new_pool(),
             wakes: entities::particles::Wake::new_pool(),
+            smokes: entities::particles::Smoke::new_pool(),
 
             field_draw: entities::field::FieldDraw::new(factory, view.clone(), context),
             sparks_draw: entities::particles::SparkDraw::new(factory, view.clone(), context),
             wakes_draw: entities::particles::WakeDraw::new(factory, view.clone(), context),
+            smokes_draw: entities::particles::SmokeDraw::new(factory, view.clone(), context),
 
             indicators: Pool::new(50, entities::score_indicator::ScoreIndicator::new),
             letter: entities::letter::Letter::new(factory, view.clone(), context),
@@ -260,6 +264,7 @@ impl<R> GameState<R>
         self.field_draw.draw_panels(encoder);
         self.wakes_draw.draw(encoder);
         self.sparks_draw.draw(encoder);
+        self.smokes_draw.draw(encoder);
     }
 
     pub fn draw_game<C>(&self, encoder: &mut EncoderContext<R, C>)
@@ -268,12 +273,14 @@ impl<R> GameState<R>
         self.field_draw.draw_panels(encoder);
         self.wakes_draw.draw(encoder);
         self.sparks_draw.draw(encoder);
+        self.smokes_draw.draw(encoder);
     }
 
     pub fn draw_luminous<C>(&self, encoder: &mut EncoderContext<R, C>)
         where C: gfx::CommandBuffer<R>
     {
         // self.sparks_draw.draw_luminous(encoder);
+        // self.smokes_draw.draw_luminous(encoder);
     }
 
     pub fn draw_sidebars<C>(&self, encoder: &mut EncoderContext<R, C>)
