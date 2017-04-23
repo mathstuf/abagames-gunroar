@@ -2,6 +2,7 @@
 // See accompanying file LICENSE for details.
 
 mod shape;
+pub mod enemy;
 pub mod turret;
 
 pub use self::shape::BaseShape;
