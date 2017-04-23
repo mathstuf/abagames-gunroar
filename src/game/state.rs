@@ -232,6 +232,32 @@ impl<R> GameState<R>
                                             &mut self.rand);
             indicators.run(|ref mut indicator| indicator.step(reel, context, rand));
         }
+        self.sparks.run(entities::particles::Spark::step);
+        {
+            let (smokes, field, wakes, rand) = (&mut self.smokes,
+                                                &self.field,
+                                                &mut self.wakes,
+                                                &mut self.rand);
+            smokes.run(|ref mut smoke| smoke.step(field, wakes, rand));
+        }
+        {
+            let (fragments, field, smokes, rand) = (&mut self.fragments,
+                                                    &self.field,
+                                                    &mut self.smokes,
+                                                    &mut self.rand);
+            fragments.run(|ref mut fragment| fragment.step(field, smokes, rand));
+        }
+        {
+            let (spark_fragments, field, smokes, rand) = (&mut self.spark_fragments,
+                                                          &self.field,
+                                                          &mut self.smokes,
+                                                          &mut self.rand);
+            spark_fragments.run(|ref mut spark_fragment| spark_fragment.step(field, smokes, rand));
+        }
+        {
+            let (wakes, field) = (&mut self.wakes, &self.field);
+            wakes.run(|ref mut wake| wake.step(field));
+        }
         self.reel.step();
 
         context.data.update_reel();
