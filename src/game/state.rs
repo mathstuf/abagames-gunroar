@@ -1,7 +1,7 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
-use crates::abagames_util::{self, Audio, Input, Pool, Scancode, StepResult};
+use crates::abagames_util::{self, Audio, Input, Pool, Rand, Scancode, StepResult};
 use crates::cgmath::Vector2;
 use crates::itertools::Itertools;
 use crates::gfx;
@@ -51,17 +51,21 @@ pub struct GameState<R>
 {
     state: State,
 
+    rand: Rand,
+
     field: entities::field::Field,
     sparks: Pool<entities::particles::Spark>,
     wakes: Pool<entities::particles::Wake>,
     smokes: Pool<entities::particles::Smoke>,
     fragments: Pool<entities::particles::Fragment>,
+    spark_fragments: Pool<entities::particles::SparkFragment>,
 
     field_draw: entities::field::FieldDraw<R>,
     sparks_draw: entities::particles::SparkDraw<R>,
     wakes_draw: entities::particles::WakeDraw<R>,
     smokes_draw: entities::particles::SmokeDraw<R>,
     fragments_draw: entities::particles::FragmentDraw<R>,
+    spark_fragments_draw: entities::particles::SparkFragmentDraw<R>,
 
     indicators: Pool<entities::score_indicator::ScoreIndicator>,
     letter: entities::letter::Letter<R>,
@@ -148,17 +152,21 @@ impl<R> GameState<R>
         GameState {
             state: State::default(),
 
+            rand: Rand::new(),
+
             field: entities::field::Field::new(),
             sparks: entities::particles::Spark::new_pool(),
             wakes: entities::particles::Wake::new_pool(),
             smokes: entities::particles::Smoke::new_pool(),
             fragments: entities::particles::Fragment::new_pool(),
+            spark_fragments: entities::particles::SparkFragment::new_pool(),
 
             field_draw: entities::field::FieldDraw::new(factory, view.clone(), context),
             sparks_draw: entities::particles::SparkDraw::new(factory, view.clone(), context),
             wakes_draw: entities::particles::WakeDraw::new(factory, view.clone(), context),
             smokes_draw: entities::particles::SmokeDraw::new(factory, view.clone(), context),
             fragments_draw: entities::particles::FragmentDraw::new(factory, view.clone(), context),
+            spark_fragments_draw: entities::particles::SparkFragmentDraw::new(factory, view.clone(), context),
 
             indicators: Pool::new(50, entities::score_indicator::ScoreIndicator::new),
             letter: entities::letter::Letter::new(factory, view.clone(), context),
@@ -251,6 +259,7 @@ impl<R> GameState<R>
         self.field_draw.prep_draw(factory, &self.field);
         self.wakes_draw.prep_draw(factory, &self.wakes);
         self.sparks_draw.prep_draw(factory, &self.sparks);
+        self.spark_fragments_draw.prep_draw(factory, &self.spark_fragments, &mut self.rand);
     }
 
     pub fn draw<C>(&self, encoder: &mut EncoderContext<R, C>)
@@ -270,6 +279,7 @@ impl<R> GameState<R>
         self.sparks_draw.draw(encoder);
         self.smokes_draw.draw(encoder);
         self.fragments_draw.draw(encoder, &self.fragments);
+        self.spark_fragments_draw.draw(encoder);
     }
 
     pub fn draw_game<C>(&self, encoder: &mut EncoderContext<R, C>)
@@ -280,12 +290,14 @@ impl<R> GameState<R>
         self.sparks_draw.draw(encoder);
         self.smokes_draw.draw(encoder);
         self.fragments_draw.draw(encoder, &self.fragments);
+        self.spark_fragments_draw.draw(encoder);
     }
 
     pub fn draw_luminous<C>(&self, encoder: &mut EncoderContext<R, C>)
         where C: gfx::CommandBuffer<R>
     {
         // self.sparks_draw.draw_luminous(encoder);
+        // self.spark_fragments_draw.draw_luminous(encoder);
         // self.smokes_draw.draw_luminous(encoder);
     }
 
