@@ -67,6 +67,7 @@ pub struct GameState<R>
     fragments_draw: entities::particles::FragmentDraw<R>,
     spark_fragments_draw: entities::particles::SparkFragmentDraw<R>,
     shape_draw: entities::shapes::ShapeDraw<R>,
+    bullet_draw: entities::shapes::bullet::BulletDraw<R>,
 
     indicators: Pool<entities::score_indicator::ScoreIndicator>,
     letter: entities::letter::Letter<R>,
@@ -169,6 +170,7 @@ impl<R> GameState<R>
             fragments_draw: entities::particles::FragmentDraw::new(factory, view.clone(), context),
             spark_fragments_draw: entities::particles::SparkFragmentDraw::new(factory, view.clone(), context),
             shape_draw: entities::shapes::ShapeDraw::new(factory, view.clone(), context),
+            bullet_draw: entities::shapes::bullet::BulletDraw::new(factory, view.clone(), context),
 
             indicators: Pool::new(50, entities::score_indicator::ScoreIndicator::new),
             letter: entities::letter::Letter::new(factory, view.clone(), context),
@@ -228,6 +230,7 @@ impl<R> GameState<R>
         }
 
         self.field.step();
+        // self.bullets.step()
         {
             let (indicators, reel, rand) = (&mut self.indicators,
                                             &mut self.reel,
@@ -309,6 +312,7 @@ impl<R> GameState<R>
         self.smokes_draw.draw(encoder);
         self.fragments_draw.draw(encoder, &self.fragments);
         self.spark_fragments_draw.draw(encoder);
+        // self.bullet_draw.draw_bullets(encoder);
     }
 
     pub fn draw_game<C>(&self, encoder: &mut EncoderContext<R, C>)
@@ -320,6 +324,7 @@ impl<R> GameState<R>
         self.smokes_draw.draw(encoder);
         self.fragments_draw.draw(encoder, &self.fragments);
         self.spark_fragments_draw.draw(encoder);
+        // self.bullet_draw.draw_bullets(encoder);
     }
 
     pub fn draw_luminous<C>(&self, encoder: &mut EncoderContext<R, C>)
