@@ -212,7 +212,6 @@ pub struct Field {
     next_block_y: usize,
     last_scroll_y: f32,
 
-    rand: Rand,
     blocks: [[Block; BLOCK_SIZE_Y]; BLOCK_SIZE_X],
     panels: [[Panel; BLOCK_SIZE_Y]; BLOCK_SIZE_X],
 }
@@ -226,14 +225,12 @@ impl Field {
             next_block_y: 0,
             last_scroll_y: 0.,
 
-            rand: Rand::new(),
             blocks: [[Block::DeepWater; BLOCK_SIZE_Y]; BLOCK_SIZE_X],
             panels: [[Panel::new(); BLOCK_SIZE_Y]; BLOCK_SIZE_X],
         }
     }
 
-    pub fn init(&mut self, seed: u32) {
-        self.rand.set_seed(0);
+    pub fn init(&mut self, rand: &mut Rand) {
         self.screen_y = NEXT_BLOCK_AREA_SIZE as f32;
         self.block_count = 0.;
         self.next_block_y = 0;
@@ -243,25 +240,25 @@ impl Field {
             .foreach(|(y, x)| {
                 self.blocks[x][y] = Block::DeepWater;
 
-                self.create_panel(x, y);
+                self.create_panel(x, y, rand);
             });
 
-        self.color_step = self.rand.next_float(TIME_COLOR_SIZE as f32);
+        self.color_step = rand.next_float(TIME_COLOR_SIZE as f32);
     }
 
-    fn create_panel(&mut self, x: usize, y: usize) {
+    fn create_panel(&mut self, x: usize, y: usize, rand: &mut Rand) {
         let block = self.blocks[x][y];
         let panel = &mut self.panels[x][y];
 
         panel.position = Vector3::new(
-            self.rand.next_float(1.) - 0.75,
-            self.rand.next_float(1.) - 0.75,
-            block.factor() * PANEL_HEIGHT_BASE + self.rand.next_float(PANEL_HEIGHT_BASE),
+            rand.next_float(1.) - 0.75,
+            rand.next_float(1.) - 0.75,
+            block.factor() * PANEL_HEIGHT_BASE + rand.next_float(PANEL_HEIGHT_BASE),
         );
         panel.color = Vector3::new(
-            1. + self.rand.next_float_signed(0.1),
-            1. + self.rand.next_float_signed(0.1),
-            1. + self.rand.next_float_signed(0.1),
+            1. + rand.next_float_signed(0.1),
+            1. + rand.next_float_signed(0.1),
+            1. + rand.next_float_signed(0.1),
         ) * 0.33;
         panel.color_index = block.color_index();
     }
@@ -325,7 +322,7 @@ impl Field {
             abagames_util::wrap_inc_by(self.color_step, TIME_COLOR_SIZE as f32, TIME_CHANGE_RATIO);
     }
 
-    pub fn scroll(&mut self, speed: f32, mode: FieldMode) {
+    pub fn scroll(&mut self, speed: f32, mode: FieldMode, rand: &mut Rand) {
         self.last_scroll_y = speed;
         self.screen_y = abagames_util::wrap_dec_by(self.screen_y, BLOCK_SIZE_Y as f32, speed);
         self.block_count -= speed;
@@ -337,7 +334,7 @@ impl Field {
             //} else {
                 //stageManager.blockDensity
             //};
-            let platforms = self.create_blocks(2);
+            let platforms = self.create_blocks(2, rand);
             if let FieldMode::Live = mode {
                 //stageManager.addBatteries(platformPos, platformPosNum);
             }
@@ -345,7 +342,7 @@ impl Field {
         }
     }
 
-    fn create_blocks(&mut self, density: usize) -> Vec<Platform> {
+    fn create_blocks(&mut self, density: usize, rand: &mut Rand) -> Vec<Platform> {
         let nby = self.next_block_y;
         let rows = (0..NEXT_BLOCK_AREA_SIZE)
             .map(|y| abagames_util::wrap_inc_by(y, BLOCK_SIZE_Y, nby))
@@ -360,8 +357,8 @@ impl Field {
             .foreach(|&(y, x)| self.blocks[x][y] = Block::DeepWater);
 
         // Add ground.
-        let ground_type = self.rand.next_int(3).into();
-        (0..density).foreach(|_| self.add_ground(ground_type));
+        let ground_type = rand.next_int(3).into();
+        (0..density).foreach(|_| self.add_ground(ground_type, rand));
 
         // Clear out the blocks at the edges of the current strip.
         indices.iter()
@@ -390,7 +387,7 @@ impl Field {
 
                         // FIXME: Use (2..BLOCK_SIZE_X - 2).contains(x)
                         if new_block == Block::Shore && between(2, x, BLOCK_SIZE_X - 2) {
-                            if let Some(angle) = self.platform_angle(x, y) {
+                            if let Some(angle) = self.platform_angle(x, y, rand) {
                                 Some(Platform {
                                     position: Vector2::new(x, y),
                                     angle: angle,
@@ -416,14 +413,14 @@ impl Field {
                           self.count_around_block(x, y, Block::Inland) > 0 {
                     self.blocks[x][y] = Block::Inland;
                 }
-                self.create_panel(x, y);
+                self.create_panel(x, y, rand);
             });
 
         platforms
     }
 
-    fn platform_angle(&mut self, x: usize, y: usize) -> Option<Rad<f32>> {
-        let d = self.rand.next_int(4) as usize;
+    fn platform_angle(&mut self, x: usize, y: usize, rand: &mut Rand) -> Option<Rad<f32>> {
+        let d = rand.next_int(4) as usize;
         (0..4)
             .into_iter()
             .filter_map(|i| {
@@ -456,27 +453,26 @@ impl Field {
             .next()
     }
 
-    fn add_ground(&mut self, ground_type: GroundType) {
+    fn add_ground(&mut self, ground_type: GroundType, rand: &mut Rand) {
         let base_size = (BLOCK_SIZE_X_F32 * 0.4) as u32;
         let mut cx = match ground_type {
-            GroundType::Zero => self.rand.next_int(base_size) + ((BLOCK_SIZE_X_F32 * 0.1) as u32),
-            GroundType::One => self.rand.next_int(base_size) + ((BLOCK_SIZE_X_F32 * 0.5) as u32),
+            GroundType::Zero => rand.next_int(base_size) + ((BLOCK_SIZE_X_F32 * 0.1) as u32),
+            GroundType::One => rand.next_int(base_size) + ((BLOCK_SIZE_X_F32 * 0.5) as u32),
             GroundType::Two => {
-                let rand_bool = self.rand.next_int(2);
-                match rand_bool {
-                    0 => self.rand.next_int(base_size) + ((BLOCK_SIZE_X_F32 * 0.2) as u32),
-                    1 => self.rand.next_int(base_size) + ((BLOCK_SIZE_X_F32 * 0.8) as u32),
-                    _ => unreachable!(),
+                if rand.next_int(2) == 0 {
+                    rand.next_int(base_size) + ((BLOCK_SIZE_X_F32 * 0.2) as u32)
+                } else {
+                    rand.next_int(base_size) + ((BLOCK_SIZE_X_F32 * 0.8) as u32)
                 }
             },
         } as isize;
-        let mut cy = (self.rand.next_int((NEXT_BLOCK_AREA_SIZE_F32 * 0.6) as u32) +
+        let mut cy = (rand.next_int((NEXT_BLOCK_AREA_SIZE_F32 * 0.6) as u32) +
                       ((NEXT_BLOCK_AREA_SIZE_F32 * 0.2) as u32)) as isize;
         cy += self.next_block_y as isize;
 
-        let width = (self.rand.next_int((BLOCK_SIZE_X_F32 * 0.33) as u32) +
+        let width = (rand.next_int((BLOCK_SIZE_X_F32 * 0.33) as u32) +
                      ((BLOCK_SIZE_X_F32 * 0.33) as u32)) as isize;
-        let height = (self.rand.next_int((NEXT_BLOCK_AREA_SIZE_F32 * 0.24) as u32) +
+        let height = (rand.next_int((NEXT_BLOCK_AREA_SIZE_F32 * 0.24) as u32) +
                       ((NEXT_BLOCK_AREA_SIZE_F32 * 0.33) as u32)) as isize;
 
         cx -= width / 2;
@@ -496,8 +492,8 @@ impl Field {
                 // Determine if there should be an island seeded at this location.
                 let island_choice = {
                     let mut hw_rand = || {
-                        (self.rand.next_float(0.2) + 0.2,
-                         self.rand.next_float(0.3) + 0.4)
+                        (rand.next_float(0.2) + 0.2,
+                         rand.next_float(0.3) + 0.4)
                     };
 
                     [y - cy, cy + height - 1 - y]

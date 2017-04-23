@@ -46,10 +46,10 @@ impl ScoreReel {
         }
     }
 
-    pub fn init(&mut self, seed: u32) {
+    pub fn init(&mut self) {
         self.reels
             .iter_mut()
-            .foreach(|reel| reel.init(seed))
+            .foreach(NumberReel::init)
     }
 
     pub fn clear(&mut self, digits: usize) {
@@ -71,7 +71,7 @@ impl ScoreReel {
     }
 
     pub fn draw<R, C>(&mut self, context: &mut EncoderContext<R, C>, letter: &Letter<R>,
-                      pos: Vector2<f32>, scale: f32)
+                      pos: Vector2<f32>, scale: f32, rand: &mut Rand)
         where R: gfx::Resources,
               C: gfx::CommandBuffer<R>,
     {
@@ -83,7 +83,8 @@ impl ScoreReel {
                 reel.draw(context,
                           letter,
                           pos - Vector2::unit_x() * (2. * (idx as f32) * scale),
-                          scale)
+                          scale,
+                          rand)
             })
     }
 
@@ -117,7 +118,6 @@ impl ScoreReel {
 const MIN_VELOCITY: f32 = 5.;
 
 struct NumberReel {
-    rand: Rand,
     degrees: Deg<f32>,
     target_degrees: Deg<f32>,
     ofs: f32,
@@ -127,7 +127,6 @@ struct NumberReel {
 impl NumberReel {
     fn new() -> Self {
         NumberReel {
-            rand: Rand::new(),
             degrees: Deg(0.),
             target_degrees: Deg(0.),
             ofs: 0.,
@@ -135,8 +134,7 @@ impl NumberReel {
         }
     }
 
-    fn init(&mut self, seed: u32) {
-        self.rand.set_seed(seed);
+    fn init(&mut self) {
         self.clear();
     }
 
@@ -157,7 +155,7 @@ impl NumberReel {
     // FIXME: Move calculations into a prep_draw method. This does mean that storage is higher
     // for the matrix bits.
     fn draw<R, C>(&mut self, context: &mut EncoderContext<R, C>, letter: &Letter<R>,
-                  pos: Vector2<f32>, scale: f32)
+                  pos: Vector2<f32>, scale: f32, rand: &mut Rand)
         where R: gfx::Resources,
               C: gfx::CommandBuffer<R>,
     {
@@ -173,8 +171,8 @@ impl NumberReel {
         (0..3).fold((rotation_base, number), |(rotation, number), _| {
             let offset_pos = if self.ofs > 0.005 {
                 pos +
-                (Vector2::new(self.rand.next_int_signed(1) as f32,
-                              self.rand.next_int_signed(1) as f32)) * self.ofs
+                (Vector2::new(rand.next_int_signed(1) as f32,
+                              rand.next_int_signed(1) as f32)) * self.ofs
             } else {
                 pos
             };

@@ -190,12 +190,12 @@ impl<R> GameState<R>
         }
 
         self.title.init();
-        self.field.init(0);
+        self.field.init(&mut self.rand);
     }
 
     fn init_game(&mut self, context: &mut GameStateContext) {
-        self.field.init(0);
-        self.reel.init(0);
+        self.field.init(&mut self.rand);
+        self.reel.init();
         self.reel.clear(9);
         self.reel.set_score(0);
     }
@@ -210,7 +210,7 @@ impl<R> GameState<R>
     pub fn step_title(&mut self, context: &mut GameStateContext, input: &Input) -> StepResult {
         self.title.step();
         self.field.step();
-        self.field.scroll(SCROLL_SPEED_BASE, entities::field::FieldMode::Demo);
+        self.field.scroll(SCROLL_SPEED_BASE, entities::field::FieldMode::Demo, &mut self.rand);
 
         if input.keyboard.is_scancode_pressed(Scancode::Escape) {
             self.state = State::Playing;
@@ -227,9 +227,10 @@ impl<R> GameState<R>
 
         self.field.step();
         {
-            let (indicators, reel) = (&mut self.indicators,
-                                      &mut self.reel);
-            indicators.run(|ref mut indicator| indicator.step(reel, context));
+            let (indicators, reel, rand) = (&mut self.indicators,
+                                            &mut self.reel,
+                                            &mut self.rand);
+            indicators.run(|ref mut indicator| indicator.step(reel, context, rand));
         }
         self.reel.step();
 
@@ -329,7 +330,8 @@ impl<R> GameState<R>
                        &self.letter,
                        Vector2::new(11.5 + reel_size_offset,
                                     -8.2 - reel_size_offset),
-                       data.reel_size);
+                       data.reel_size,
+                       &mut self.rand);
 
         let (indicators, letter) = (&mut self.indicators,
                                     &self.letter);

@@ -49,8 +49,6 @@ impl Target {
 const MAX_TARGETS: usize = 4;
 
 pub struct ScoreIndicator {
-    rand: Rand,
-
     pos: Vector2<f32>,
     vel: Vector2<f32>,
     value: u64,
@@ -76,8 +74,6 @@ impl ScoreIndicator {
         }
 
         ScoreIndicator {
-            rand: Rand::new(),
-
             pos: Vector2::new(0., 0.),
             vel: Vector2::new(0., 0.),
             value: 0,
@@ -90,10 +86,6 @@ impl ScoreIndicator {
 
             targets: targets,
         }
-    }
-
-    pub fn init(&mut self, seed: u32) {
-        self.rand.set_seed(seed);
     }
 
     pub fn expire(&mut self, reel: &mut ScoreReel, context: &mut GameStateContext) {
@@ -130,7 +122,7 @@ impl ScoreIndicator {
         self.target_count = Some(len);
     }
 
-    pub fn step(&mut self, reel: &mut ScoreReel, context: &mut GameStateContext) -> PoolRemoval {
+    pub fn step(&mut self, reel: &mut ScoreReel, context: &mut GameStateContext, rand: &mut Rand) -> PoolRemoval {
         if self.target_count.is_none() {
             return PoolRemoval::Remove;
         }
@@ -139,7 +131,7 @@ impl ScoreIndicator {
 
         self.count -= 1;
         if self.count == 0 {
-            self.next_target(reel, context)
+            self.next_target(reel, context, rand)
         } else {
             PoolRemoval::Keep
         }
@@ -193,7 +185,7 @@ impl ScoreIndicator {
         }
     }
 
-    fn next_target(&mut self, reel: &mut ScoreReel, context: &mut GameStateContext) -> PoolRemoval {
+    fn next_target(&mut self, reel: &mut ScoreReel, context: &mut GameStateContext, rand: &mut Rand) -> PoolRemoval {
         self.target_index += 1;
         if self.target_index > 0 {
             if let Some(ref mut audio) = context.audio {
@@ -212,12 +204,12 @@ impl ScoreIndicator {
         let target = &self.targets[self.target_index];
         match target.flying_to {
             FlyingTo::Right => {
-                self.vel = Vector2::new(-0.3 + self.rand.next_float_signed(0.05),
-                                        self.rand.next_float_signed(0.1));
+                self.vel = Vector2::new(-0.3 + rand.next_float_signed(0.05),
+                                        rand.next_float_signed(0.1));
             },
             FlyingTo::Bottom => {
-                self.vel = Vector2::new(self.rand.next_float_signed(0.1),
-                                        -0.3 + self.rand.next_float_signed(0.05));
+                self.vel = Vector2::new(rand.next_float_signed(0.1),
+                                        -0.3 + rand.next_float_signed(0.05));
                 context.data.indicator_target_decrement();
             },
         }
