@@ -18,6 +18,15 @@ const BLOCK_SIZE_X_F32: f32 = BLOCK_SIZE_X as f32;
 const NEXT_BLOCK_AREA_SIZE: usize = 16;
 const NEXT_BLOCK_AREA_SIZE_F32: f32 = NEXT_BLOCK_AREA_SIZE as f32;
 
+const FIELD_SIZE: Vector2<f32> = Vector2 {
+    x: ((SCREEN_BLOCK_SIZE_X / 2) as f32) * 0.9,
+    y: ((SCREEN_BLOCK_SIZE_Y / 2) as f32) * 0.8,
+};
+const FIELD_OUTER_SIZE: Vector2<f32> = Vector2 {
+    x: (SCREEN_BLOCK_SIZE_X / 2) as f32,
+    y: (SCREEN_BLOCK_SIZE_Y / 2) as f32,
+};
+
 static SIDEWALL_X1: f32 = 18.;
 static SIDEWALL_X2: f32 = 9.3;
 static SIDEWALL_Y: f32 = 15.;
@@ -25,8 +34,8 @@ static SIDEWALL_Y: f32 = 15.;
 const TIME_COLOR_SIZE: usize = 5;
 static TIME_CHANGE_RATIO: f32 = 0.00033;
 
-static SCREEN_BLOCK_SIZE_X: usize = 20;
-static SCREEN_BLOCK_SIZE_Y: usize = 24;
+const SCREEN_BLOCK_SIZE_X: usize = 20;
+const SCREEN_BLOCK_SIZE_Y: usize = 24;
 static BLOCK_WIDTH: f32 = 1.;
 
 static PANEL_WIDTH: f32 = 1.8;
@@ -105,7 +114,7 @@ pub enum FieldMode {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-enum Block {
+pub enum Block {
     DeepWater,
     Water,
     Shore,
@@ -201,6 +210,7 @@ pub struct Field {
     screen_y: f32,
     block_count: f32,
     next_block_y: usize,
+    last_scroll_y: f32,
 
     rand: Rand,
     blocks: [[Block; BLOCK_SIZE_Y]; BLOCK_SIZE_X],
@@ -214,6 +224,7 @@ impl Field {
             screen_y: 0.,
             block_count: 0.,
             next_block_y: 0,
+            last_scroll_y: 0.,
 
             rand: Rand::new(),
             blocks: [[Block::DeepWater; BLOCK_SIZE_Y]; BLOCK_SIZE_X],
@@ -255,12 +266,67 @@ impl Field {
         panel.color_index = block.color_index();
     }
 
+    pub fn block(&self, pos: Vector2<f32>) -> Block {
+        let y = self.screen_y.fract();
+        let block_x = ((pos.x + (BLOCK_WIDTH * (SCREEN_BLOCK_SIZE_X as f32) / 2.)) / BLOCK_WIDTH) as i32;
+        let block_y = (self.screen_y + (-pos.y + (BLOCK_WIDTH * (SCREEN_BLOCK_SIZE_Y as f32) / 2.)) / BLOCK_WIDTH) as i32;
+
+        if !between(0, block_x, BLOCK_SIZE_X as i32) {
+            return Block::Shore;
+        }
+
+        let block_y = block_y + if block_y < 0 {
+            BLOCK_SIZE_Y as i32
+        } else if block_y >= (BLOCK_SIZE_Y as i32) {
+            -(BLOCK_SIZE_Y as i32)
+        } else {
+            0
+        };
+
+        self.blocks[block_x as usize][block_y as usize]
+    }
+
+    pub fn is_in_field(&self, pos: Vector2<f32>) -> bool {
+        abagames_util::contains(FIELD_SIZE, pos, 1.)
+    }
+
+    pub fn is_in_field_no_top(&self, pos: Vector2<f32>) -> bool {
+        true &&
+            -FIELD_SIZE.x <= pos.x &&
+            pos.x <= FIELD_SIZE.x &&
+            -FIELD_SIZE.y <= pos.y
+    }
+
+    pub fn is_in_outer_field(&self, pos: Vector2<f32>) -> bool {
+        abagames_util::contains(FIELD_OUTER_SIZE, pos, 1.)
+    }
+
+    pub fn is_in_outer_field_no_top(&self, pos: Vector2<f32>) -> bool {
+        true &&
+            -FIELD_OUTER_SIZE.x <= pos.x &&
+            pos.x <= FIELD_OUTER_SIZE.x &&
+            -FIELD_OUTER_SIZE.y <= pos.y
+    }
+
+    pub fn is_in_outer_height_field(&self, pos: Vector2<f32>) -> bool {
+        true &&
+            -FIELD_SIZE.x <= pos.x &&
+            pos.x <= FIELD_SIZE.x &&
+            -FIELD_OUTER_SIZE.y <= pos.y &&
+            pos.y <= FIELD_OUTER_SIZE.y
+    }
+
+    pub fn last_scroll_y(&self) -> f32 {
+        self.last_scroll_y
+    }
+
     pub fn step(&mut self) {
         self.color_step =
             abagames_util::wrap_inc_by(self.color_step, TIME_COLOR_SIZE as f32, TIME_CHANGE_RATIO);
     }
 
     pub fn scroll(&mut self, speed: f32, mode: FieldMode) {
+        self.last_scroll_y = speed;
         self.screen_y = abagames_util::wrap_dec_by(self.screen_y, BLOCK_SIZE_Y as f32, speed);
         self.block_count -= speed;
         if self.block_count < 0. {
