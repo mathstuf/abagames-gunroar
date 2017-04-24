@@ -59,6 +59,7 @@ pub struct GameState<R>
     smokes: Pool<entities::particles::Smoke>,
     fragments: Pool<entities::particles::Fragment>,
     spark_fragments: Pool<entities::particles::SparkFragment>,
+    crystals: Pool<entities::crystal::Crystal>,
 
     field_draw: entities::field::FieldDraw<R>,
     sparks_draw: entities::particles::SparkDraw<R>,
@@ -163,6 +164,7 @@ impl<R> GameState<R>
             smokes: entities::particles::Smoke::new_pool(),
             fragments: entities::particles::Fragment::new_pool(),
             spark_fragments: entities::particles::SparkFragment::new_pool(),
+            crystals: entities::crystal::Crystal::new_pool(),
 
             field_draw: entities::field::FieldDraw::new(factory, view.clone(), context),
             sparks_draw: entities::particles::SparkDraw::new(factory, view.clone(), context),
@@ -295,6 +297,7 @@ impl<R> GameState<R>
         self.wakes_draw.prep_draw(factory, &self.wakes);
         self.sparks_draw.prep_draw(factory, &self.sparks);
         self.spark_fragments_draw.prep_draw(factory, &self.spark_fragments, &mut self.rand);
+        self.bullet_draw.prep_draw_crystals(factory, &self.crystals);
     }
 
     pub fn draw<C>(&self, encoder: &mut EncoderContext<R, C>)
@@ -315,7 +318,7 @@ impl<R> GameState<R>
         self.smokes_draw.draw(encoder);
         self.fragments_draw.draw(encoder, &self.fragments);
         self.spark_fragments_draw.draw(encoder);
-        // self.crystals.draw(encoder);
+        self.bullet_draw.draw_crystals(encoder);
         // self.bullet_draw.draw_bullets(encoder);
     }
 
