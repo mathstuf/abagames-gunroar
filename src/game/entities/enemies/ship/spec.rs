@@ -817,11 +817,11 @@ impl EnemySpec {
     }
 
     pub fn turret_group_specs(&self) -> &[TurretGroupSpec] {
-        self.spec.turret_groups[0..self.spec.num_turret_groups]
+        &self.spec.turret_groups[0..self.spec.num_turret_groups]
     }
 
     pub fn moving_turret_group_specs(&self) -> &[MovingTurretGroupSpec] {
-        self.spec.moving_turret_groups[0..self.spec.num_moving_turret_groups]
+        &self.spec.moving_turret_groups[0..self.spec.num_moving_turret_groups]
     }
 
     pub fn score(&self) -> u32 {
