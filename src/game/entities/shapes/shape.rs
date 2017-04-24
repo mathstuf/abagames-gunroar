@@ -777,7 +777,7 @@ impl<R> ShapeDraw<R>
             gfx::Primitive::TriangleList,
             gfx::state::Rasterizer::new_fill(),
             loop_pipe::new())
-            .expect("failed to create the outline pipeline for loop");
+            .expect("failed to create the fan pipeline for loop");
 
         let square_loop_vertex_data = (0..SQUARE_LOOP_SIZE + 1)
             .map(|i| {
