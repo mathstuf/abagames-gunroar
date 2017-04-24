@@ -1,11 +1,12 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
-use crates::abagames_util;
+use crates::abagames_util::{self, Pool};
 use crates::cgmath::Matrix4;
 use crates::gfx;
 use crates::gfx::traits::FactoryExt;
 
+use game::entities::crystal::{Crystal, MAX_CRYSTAL_SIZE};
 use game::render::{EncoderContext, RenderContext};
 use game::render::{Brightness, ScreenTransform};
 
@@ -52,6 +53,13 @@ gfx_defines! {
 
     vertex Vertex3 {
         pos: [f32; 3] = "pos",
+    }
+
+    vertex PerCrystal {
+        modelmat_col0: [f32; 4] = "modelmat_col0",
+        modelmat_col1: [f32; 4] = "modelmat_col1",
+        modelmat_col2: [f32; 4] = "modelmat_col2",
+        modelmat_col3: [f32; 4] = "modelmat_col3",
     }
 
     pipeline pipe2 {
@@ -104,7 +112,7 @@ gfx_defines! {
         vbuf: gfx::VertexBuffer<Vertex2> = (),
         screen: gfx::ConstantBuffer<ScreenTransform> = "Screen",
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
-        modelmat: gfx::ConstantBuffer<ModelMat> = "ModelMat",
+        instances: gfx::InstanceBuffer<PerCrystal> = (),
         color: gfx::ConstantBuffer<Color> = "Color",
         out_color: gfx::BlendTarget<gfx::format::Srgba8> =
             ("Target0",
@@ -112,6 +120,17 @@ gfx_defines! {
              gfx::state::Blend::new(gfx::state::Equation::Add,
                                     gfx::state::Factor::ZeroPlus(gfx::state::BlendValue::SourceAlpha),
                                     gfx::state::Factor::OneMinus(gfx::state::BlendValue::SourceAlpha))),
+    }
+}
+
+impl From<Matrix4<f32>> for PerCrystal {
+    fn from(matrix: Matrix4<f32>) -> Self {
+        PerCrystal {
+            modelmat_col0: matrix.x.into(),
+            modelmat_col1: matrix.y.into(),
+            modelmat_col2: matrix.z.into(),
+            modelmat_col3: matrix.w.into(),
+        }
     }
 }
 
@@ -142,7 +161,10 @@ pub struct BulletDraw<R>
     small_data: pipe3::Data<R>,
     destructible_data: pipe2::Data<R>,
 
-    crystal_bundle: gfx::Bundle<R, crystal_pipe::Data<R>>,
+    crystal_slice: gfx::Slice<R>,
+    crystal_pso: gfx::PipelineState<R, <crystal_pipe::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
+    crystal_data: crystal_pipe::Data<R>,
+    crystal_instances: gfx::handle::Buffer<R, PerCrystal>,
 }
 
 impl<R> BulletDraw<R>
@@ -211,11 +233,16 @@ impl<R> BulletDraw<R>
             .expect("failed to compile the vertex shader for 2-pos bullet shapes");
         let vert3_shader = factory.create_shader_vertex(include_bytes!("shader/uniform3.glslv"))
             .expect("failed to compile the vertex shader for 3-pos bullet shapes");
+        let crystal_shader = factory.create_shader_vertex(include_bytes!("shader/crystal.glslv"))
+            .expect("failed to compile the vertex shader for crystals");
 
         let pipe2_program = factory.create_program(&gfx::ShaderSet::Simple(vert2_shader, frag_shader.clone()))
             .expect("failed to link the 2-pos shader");
         let pipe3_program = factory.create_program(&gfx::ShaderSet::Simple(vert3_shader, frag_shader.clone()))
             .expect("failed to link the 3-pos shader");
+
+        let crystal_program = factory.create_program(&gfx::ShaderSet::Simple(crystal_shader, frag_shader.clone()))
+            .expect("failed to link the crystal shader");
 
         let pipe2_outline_pso = factory.create_pipeline_from_program(
             &pipe2_program,
@@ -256,7 +283,7 @@ impl<R> BulletDraw<R>
             .expect("failed to create the fan pipeline for 3-pos");
 
         let crystal_pso = factory.create_pipeline_from_program(
-            &pipe2_program,
+            &crystal_program,
             gfx::Primitive::LineStrip,
             gfx::state::Rasterizer {
                 front_face: gfx::state::FrontFace::CounterClockwise,
@@ -281,6 +308,12 @@ impl<R> BulletDraw<R>
 
         let crystal_slice = abagames_util::slice_for_loop::<R, F>(factory,
                                                                   crystal_vertex_data.len() as u32);
+        let crystal_instances =
+            factory.create_buffer(4 * MAX_CRYSTAL_SIZE,
+                                  gfx::buffer::Role::Vertex,
+                                  gfx::memory::Usage::Upload,
+                                  gfx::Bind::empty())
+                .expect("failed to create the instance buffer for crystals");
 
         let modelmat = factory.create_constant_buffer(1);
         let color = factory.create_constant_buffer(1);
@@ -340,7 +373,7 @@ impl<R> BulletDraw<R>
             vbuf: crystal_vbuf.clone(),
             screen: context.perspective_screen_buffer.clone(),
             brightness: context.brightness_buffer.clone(),
-            modelmat: modelmat.clone(),
+            instances: crystal_instances.clone(),
             color: color.clone(),
             out_color: view.clone(),
         };
@@ -370,7 +403,10 @@ impl<R> BulletDraw<R>
             small_data: small_data,
             destructible_data: destructible_data,
 
-            crystal_bundle: gfx::Bundle::new(crystal_slice, crystal_pso, crystal_data),
+            crystal_slice: crystal_slice,
+            crystal_pso: crystal_pso,
+            crystal_data: crystal_data,
+            crystal_instances: crystal_instances,
         }
     }
 
@@ -425,18 +461,32 @@ impl<R> BulletDraw<R>
         self.draw_bullet_impl(context.encoder, kind)
     }
 
-    pub fn draw_crystal<C>(&self, context: &mut EncoderContext<R, C>, modelmat: Matrix4<f32>)
+    pub fn prep_draw_crystals<F>(&mut self, factory: &mut F, crystals: &Pool<Crystal>)
+        where F: gfx::Factory<R>,
+    {
+        let mut writer = factory.write_mapping(&self.crystal_instances).expect("could not get a writable mapping to the crystal buffer");
+
+        let mut count = 0;
+        for (i, crystal) in crystals.iter().enumerate() {
+            let modelmats = crystal.modelmats();
+            writer[4 * i] = modelmats[0].into();
+            writer[4 * i + 1] = modelmats[1].into();
+            writer[4 * i + 2] = modelmats[2].into();
+            writer[4 * i + 3] = modelmats[3].into();
+            count += 4;
+        }
+
+        self.crystal_slice.instances = Some((count, 0));
+    }
+
+    pub fn draw_crystals<C>(&self, context: &mut EncoderContext<R, C>)
         where C: gfx::CommandBuffer<R>,
     {
-        let modelmat = ModelMat {
-            modelmat: modelmat.into(),
-        };
         let color = Color {
             color: [0.6, 1., 0.7],
         };
-        context.encoder.update_constant_buffer(&self.modelmat, &modelmat);
         context.encoder.update_constant_buffer(&self.color, &color);
 
-        self.crystal_bundle.encode(context.encoder);
+        context.encoder.draw(&self.crystal_slice, &self.crystal_pso, &self.crystal_data);
     }
 }

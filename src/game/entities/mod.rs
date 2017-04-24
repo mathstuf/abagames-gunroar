@@ -1,6 +1,7 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
+pub mod crystal;
 pub mod field;
 pub mod letter;
 pub mod particles;
