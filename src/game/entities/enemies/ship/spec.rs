@@ -300,7 +300,7 @@ enum SmallShipMoveState {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum ShipClass {
+pub enum ShipClass {
     Middle,
     Large,
     Boss,
