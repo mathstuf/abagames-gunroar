@@ -824,6 +824,10 @@ impl EnemySpec {
         &self.spec.moving_turret_groups[0..self.spec.num_moving_turret_groups]
     }
 
+    pub fn shield(&self) -> u32 {
+        self.shield
+    }
+
     pub fn score(&self) -> u32 {
         self.spec_data.score()
     }
