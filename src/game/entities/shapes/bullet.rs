@@ -9,6 +9,7 @@ use crates::gfx::traits::FactoryExt;
 use game::render::{EncoderContext, RenderContext};
 use game::render::{Brightness, ScreenTransform};
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BulletShapeKind {
     Normal,
     Small,
