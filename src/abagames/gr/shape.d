@@ -488,7 +488,7 @@ public class BaseShape: Drawable {
     wakePos = pos + vec2(sin(deg + PI / 2 + 0.7f), cos(deg + PI / 2 + 0.7f)) * size * 0.5f * sr;
     Wake w = wakes.getInstanceForced();
     w.set(wakePos, deg + PI - 0.2f + rand.nextSignedFloat(0.1f), sp, 40, sz * 32 * sr);
-    wakePos = pos + vec2(sin(deg - PI / 2 - 0.7f), cos(deg - PI / 2 + 0.7f)) * size * 0.5f * sr;
+    wakePos = pos + vec2(sin(deg - PI / 2 - 0.7f), cos(deg - PI / 2 - 0.7f)) * size * 0.5f * sr;
     w = wakes.getInstanceForced();
     w.set(wakePos, deg + PI + 0.2f + rand.nextSignedFloat(0.1f), sp, 40, sz * 32 * sr);
   }
