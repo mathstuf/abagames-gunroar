@@ -55,11 +55,11 @@ gfx_defines! {
         pos: [f32; 3] = "pos",
     }
 
-    vertex PerCrystal {
-        modelmat_col0: [f32; 4] = "modelmat_col0",
-        modelmat_col1: [f32; 4] = "modelmat_col1",
-        modelmat_col2: [f32; 4] = "modelmat_col2",
-        modelmat_col3: [f32; 4] = "modelmat_col3",
+    vertex ShapeMat {
+        shapemat_col0: [f32; 4] = "shapemat_col0",
+        shapemat_col1: [f32; 4] = "shapemat_col1",
+        shapemat_col2: [f32; 4] = "shapemat_col2",
+        shapemat_col3: [f32; 4] = "shapemat_col3",
     }
 
     pipeline pipe2 {
@@ -112,7 +112,7 @@ gfx_defines! {
         vbuf: gfx::VertexBuffer<Vertex2> = (),
         screen: gfx::ConstantBuffer<ScreenTransform> = "Screen",
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
-        instances: gfx::InstanceBuffer<PerCrystal> = (),
+        instances: gfx::InstanceBuffer<ShapeMat> = (),
         color: gfx::ConstantBuffer<Color> = "Color",
         out_color: gfx::BlendTarget<gfx::format::Srgba8> =
             ("Target0",
@@ -123,13 +123,13 @@ gfx_defines! {
     }
 }
 
-impl From<Matrix4<f32>> for PerCrystal {
+impl From<Matrix4<f32>> for ShapeMat {
     fn from(matrix: Matrix4<f32>) -> Self {
-        PerCrystal {
-            modelmat_col0: matrix.x.into(),
-            modelmat_col1: matrix.y.into(),
-            modelmat_col2: matrix.z.into(),
-            modelmat_col3: matrix.w.into(),
+        ShapeMat {
+            shapemat_col0: matrix.x.into(),
+            shapemat_col1: matrix.y.into(),
+            shapemat_col2: matrix.z.into(),
+            shapemat_col3: matrix.w.into(),
         }
     }
 }
@@ -164,7 +164,7 @@ pub struct BulletDraw<R>
     crystal_slice: gfx::Slice<R>,
     crystal_pso: gfx::PipelineState<R, <crystal_pipe::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
     crystal_data: crystal_pipe::Data<R>,
-    crystal_instances: gfx::handle::Buffer<R, PerCrystal>,
+    crystal_instances: gfx::handle::Buffer<R, ShapeMat>,
 }
 
 impl<R> BulletDraw<R>
