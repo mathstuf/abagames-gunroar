@@ -944,7 +944,7 @@ public class SmallShipEnemySpec: EnemySpec, HasAppearType {
       }
       break;
     case MoveType.CHASE:
-      es.pos += vec2(sin(es.velDeg), es.velDeg) * speed;
+      es.pos += vec2(sin(es.velDeg), cos(es.velDeg)) * speed;
       es.pos.y -= field.lastScrollY;
       if  (es.pos.y <= -field.outerSize.y)
         return false;
