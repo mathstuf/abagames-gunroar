@@ -22,7 +22,7 @@ public class LuminousScreen {
   GLuint luminousTexture;
   static const int LUMINOUS_TEXTURE_WIDTH_MAX = 64;
   static const int LUMINOUS_TEXTURE_HEIGHT_MAX = 64;
-  GLuint td[LUMINOUS_TEXTURE_WIDTH_MAX * LUMINOUS_TEXTURE_HEIGHT_MAX * 4 * uint.sizeof];
+  GLuint[LUMINOUS_TEXTURE_WIDTH_MAX * LUMINOUS_TEXTURE_HEIGHT_MAX * 4 * uint.sizeof] td;
   int luminousTextureWidth = 64, luminousTextureHeight = 64;
   int screenWidth, screenHeight;
   float luminosity;

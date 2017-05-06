@@ -213,7 +213,7 @@ public class TouchVector {
 public class TouchState {
  public:
   static const int MAXFINGERS = 10;
-  FingerState fingers[MAXFINGERS];
+  FingerState[MAXFINGERS] fingers;
  private:
 
   public static TouchState newInstance() {
