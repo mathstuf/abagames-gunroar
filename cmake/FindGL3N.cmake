@@ -4,6 +4,8 @@ find_path("GL3N_INCLUDE_DIR"
     NAMES "gl3n/util.d"
     PATHS "${CMAKE_SYSTEM_ROOT}/include/d"
           "/usr/include/d"
+    PATH_SUFFIXES
+          "include/d"
     DOC   "The include directory for GL3N")
 
 find_library("GL3N_LIBRARY"

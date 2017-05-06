@@ -80,6 +80,8 @@ find_path("Derelict_INCLUDE_DIR"
     NAMES "derelict/util/exception.d"
     PATHS "${CMAKE_SYSTEM_ROOT}/include/d"
           "/usr/include/d"
+    PATH_SUFFIXES
+          "include/d"
     DOC   "The include directory for Derelict")
 
 function (find_derelict_library component)
@@ -92,6 +94,8 @@ function (find_derelict_library component)
         NAMES "derelict/${component}/${${component}_file}.d"
         HINTS "${Derelict_INCLUDE_DIR}"
         PATHS "/usr/include/d"
+        PATH_SUFFIXES
+              "include/d"
         DOC   "The include path for the Derelict ${component} library")
     if (_derelict_sentinel)
         set("Derelict_${component}_FOUND" TRUE
