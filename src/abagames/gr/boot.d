@@ -79,6 +79,7 @@ public int boot(string[] args) {
   mainLoop = new MainLoop(screen, input, gameManager, prefManager);
   try {
     parseArgs(args);
+    screen.windowMode = true;
   } catch (Exception e) {
     Logger.info(e.toString());
     return EXIT_FAILURE;
