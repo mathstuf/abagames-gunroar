@@ -9,7 +9,7 @@ use crates::itertools::FoldWhile::{Continue, Done};
 use crates::itertools::Itertools;
 
 use game::render::{EncoderContext, RenderContext};
-pub use game::render::{Brightness, ScreenTransform};
+use game::render::{Brightness, ScreenTransform};
 
 use std::borrow::Cow;
 use std::iter;
@@ -104,12 +104,12 @@ impl SegmentData {
         // TODO: Put this back into the segment data.
         let pos = self.pos.mul_element_wise(Vector2::new(1., -0.9));
         let size = self.size.mul_element_wise(Vector2::new(1.4, 1.05));
-        let deg = Deg(self.deg % 180.);
+        let angle = Deg(self.deg % 180.);
         let trans = pos - size / 2.;
 
         let boxmat =
             Matrix4::from_translation(trans.extend(0.)) *
-            Matrix4::from_axis_angle(Vector3::unit_z(), deg);
+            Matrix4::from_axis_angle(Vector3::unit_z(), angle);
         LetterSegments {
             boxmat: boxmat.into(),
             size: size.into(),
@@ -516,6 +516,16 @@ impl Location {
             screen: self.screen,
         }
     }
+
+    fn scaled_by(self, scale: f32) -> Self {
+        Location {
+            position: self.position,
+            scale: self.scale * scale,
+            direction: self.direction,
+            orientation: self.orientation,
+            screen: self.screen,
+        }
+    }
 }
 
 impl Default for Location {
@@ -538,6 +548,22 @@ pub struct NumberStyle {
 }
 
 impl NumberStyle {
+    pub fn score() -> Self {
+        NumberStyle {
+            pad_to: None,
+            prefix_char: None,
+            floating_digits: None,
+        }
+    }
+
+    pub fn multiplier() -> Self {
+        NumberStyle {
+            pad_to: None,
+            prefix_char: Some('x'),
+            floating_digits: Some(3),
+        }
+    }
+
     fn reduce_padding(&mut self) {
         if let Some(pad) = self.pad_to {
             let new_pad = pad - 1;
@@ -657,7 +683,7 @@ impl<R> Letter<R>
         self.draw_letter_at(context,
                             letter,
                             style,
-                            Default::default())
+                            Location::default())
     }
 
     pub fn draw_letter_at<C>(&self, context: &mut EncoderContext<R, C>, letter: char,
@@ -717,7 +743,7 @@ impl<R> Letter<R>
             let next_num = num / 10;
 
             let (digit_offset, fd) = if let Some(fd) = number_style.floating_digits {
-                let fp_loc = loc.offset_by(fp_offset_y);
+                let fp_loc = loc.offset_by(fp_offset_y).scaled_by(0.5);
                 self.draw_letter_at(context, digit, style, fp_loc);
                 let new_fp = fd - 1;
                 if new_fp == 0 {

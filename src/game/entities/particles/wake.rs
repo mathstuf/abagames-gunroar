@@ -70,7 +70,7 @@ impl Wake {
     }
 
     pub fn step(&mut self, field: &Field) -> PoolRemoval {
-        self.count.saturating_sub(1);
+        self.count = self.count.saturating_sub(1);
         if self.count == 0 || abagames_util::fast_distance_origin(self.vel) < 0.005 || field.is_in_outer_field(self.pos) {
             PoolRemoval::Remove
         } else {

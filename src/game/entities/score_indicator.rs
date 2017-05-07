@@ -1,9 +1,10 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
-use crates::abagames_util::{PoolRemoval, Rand};
+use crates::abagames_util::{Pool, PoolRemoval, Rand};
 use crates::cgmath::Vector2;
 use crates::gfx;
+use crates::itertools::Itertools;
 
 use game::render::EncoderContext;
 use game::state::GameStateContext;
@@ -11,31 +12,31 @@ use game::state::GameStateContext;
 use game::entities::letter::{self, Letter};
 use game::entities::reel::ScoreReel;
 
-use std::mem;
-use std::ptr;
-
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Indicator {
     Score,
     Multiplier,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FlyingTo {
     Right,
     Bottom,
 }
 
-pub struct Target {
+#[derive(Debug, Clone, Copy)]
+pub struct ScoreTarget {
     pub pos: Vector2<f32>,
     pub flying_to: FlyingTo,
     pub initial_velocity_ratio: f32,
     pub scale: f32,
-    pub value: u64,
+    pub value: u32,
     pub count: u32,
 }
 
-impl Target {
+impl ScoreTarget {
     fn new() -> Self {
-        Target {
+        ScoreTarget {
             pos: Vector2::new(0., 0.),
             flying_to: FlyingTo::Right,
             initial_velocity_ratio: 0.,
@@ -47,32 +48,24 @@ impl Target {
 }
 
 const MAX_TARGETS: usize = 4;
+const MAX_INDICATORS: usize = 50;
 
+#[derive(Debug, Clone, Copy)]
 pub struct ScoreIndicator {
     pos: Vector2<f32>,
     vel: Vector2<f32>,
-    value: u64,
+    value: u32,
     indicator_type: Indicator,
     scale: f32,
     count: u32,
     alpha: f32,
-    targets: [Target; MAX_TARGETS],
+    targets: [ScoreTarget; MAX_TARGETS],
     target_index: usize,
     target_count: Option<usize>,
 }
 
 impl ScoreIndicator {
-    pub fn new() -> Self {
-        let mut targets: [Target; MAX_TARGETS];
-
-        unsafe {
-            targets = mem::uninitialized();
-
-            for target in &mut targets[..] {
-                ptr::write(target, Target::new());
-            }
-        }
-
+    fn new() -> Self {
         ScoreIndicator {
             pos: Vector2::new(0., 0.),
             vel: Vector2::new(0., 0.),
@@ -84,11 +77,17 @@ impl ScoreIndicator {
             target_index: 0,
             target_count: None,
 
-            targets: targets,
+            targets: [ScoreTarget::new(); MAX_TARGETS],
         }
     }
 
-    pub fn expire(&mut self, reel: &mut ScoreReel, context: &mut GameStateContext) {
+    pub fn new_pool() -> Pool<Self> {
+        Pool::new(MAX_INDICATORS, Self::new)
+    }
+
+    pub fn init<'a, I>(&mut self, value: u32, indicator: Indicator, pos: Vector2<f32>, scale: f32, targets: I, reel: &mut ScoreReel, context: &mut GameStateContext, rand: &mut Rand)
+        where I: IntoIterator<Item = &'a ScoreTarget>,
+    {
         if let Some(target_count) = self.target_count {
             if let Indicator::Score = self.indicator_type {
                 let target = &self.targets[target_count - 1];
@@ -98,28 +97,19 @@ impl ScoreIndicator {
                 reel.add_score(target.value);
             }
         }
-    }
 
-    pub fn set(&mut self, value: u64, indicator: Indicator, pos: Vector2<f32>, scale: f32) {
         self.value = value;
         self.indicator_type = indicator;
         self.scale = scale;
         self.pos = pos;
         self.alpha = 0.1;
-    }
-
-    pub fn add_targets<I>(&mut self, targets: I)
-        where I: IntoIterator<Item = Target>,
-    {
-        let len = self.targets
+        self.target_count = Some(0);
+        let count = self.targets
             .iter_mut()
-            .zip(targets.into_iter())
-            .map(|(w, r)| {
-                *w = r;
-            })
-            .collect::<Vec<_>>()
-            .len();
-        self.target_count = Some(len);
+            .set_from(targets.into_iter().cloned());
+        self.target_count = Some(count);
+        self.target_index = 0;
+        self.next_target(reel, context, rand);
     }
 
     pub fn step(&mut self, reel: &mut ScoreReel, context: &mut GameStateContext, rand: &mut Rand) -> PoolRemoval {
@@ -129,8 +119,9 @@ impl ScoreIndicator {
 
         self.update_position();
 
-        self.count -= 1;
+        self.count = self.count.saturating_sub(1);
         if self.count == 0 {
+            self.target_index += 1;
             self.next_target(reel, context, rand)
         } else {
             PoolRemoval::Keep
@@ -161,12 +152,11 @@ impl ScoreIndicator {
         self.scale += (target.scale - self.scale) * 0.025;
         self.pos += self.vel;
 
-        // let vn = (((target.value - self.value) as f32) * 0.2) as u32;
-        let vn = (target.value as i64 - self.value as i64) / 5;
-        if -10 < vn && vn < 10 {
+        let vn = (target.value - self.value) / 5;
+        if vn < 10 {
             self.value = target.value;
         } else {
-            // self.value += vn;
+            self.value += vn;
         };
 
         match target.flying_to {
@@ -186,7 +176,6 @@ impl ScoreIndicator {
     }
 
     fn next_target(&mut self, reel: &mut ScoreReel, context: &mut GameStateContext, rand: &mut Rand) -> PoolRemoval {
-        self.target_index += 1;
         if self.target_index > 0 {
             if let Some(ref mut audio) = context.audio {
                 audio.mark_sfx("score_up.wav");
@@ -198,6 +187,7 @@ impl ScoreIndicator {
             if let FlyingTo::Bottom = target.flying_to {
                 reel.add_score(target.value);
             }
+            self.target_count = None;
             return PoolRemoval::Remove;
         }
 
@@ -224,14 +214,9 @@ impl ScoreIndicator {
         where R: gfx::Resources,
               C: gfx::CommandBuffer<R>,
     {
-        let (prefix_char, floating_digits) = match self.indicator_type {
-            Indicator::Score => (None, None),
-            Indicator::Multiplier => (Some('x'), Some(3)),
-        };
-        let number_style = letter::NumberStyle {
-            pad_to: None,
-            prefix_char: prefix_char,
-            floating_digits: floating_digits,
+        let number_style = match self.indicator_type {
+            Indicator::Score => letter::NumberStyle::score(),
+            Indicator::Multiplier => letter::NumberStyle::multiplier(),
         };
 
         letter.draw_number(context,

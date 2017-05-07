@@ -7,7 +7,7 @@ use crates::gfx;
 use crates::gfx::traits::FactoryExt;
 use crates::itertools::Itertools;
 
-use game::entities::field::{Block, Field};
+use game::entities::field::Field;
 use game::entities::particles::{Smoke, SmokeKind};
 use game::render::{EncoderContext, RenderContext};
 use game::render::{Brightness, ScreenTransform};
@@ -59,10 +59,10 @@ impl Fragment {
         self.pos += self.vel;
 
         if self.pos.z < 0. {
-            let (kind, size_factor) = if field.block(self.pos.truncate()) <= Block::Beach {
-                (SmokeKind::Wake, 0.66)
-            } else {
+            let (kind, size_factor) = if field.block(self.pos.truncate()).is_dry() {
                 (SmokeKind::Sand, 0.75)
+            } else {
+                (SmokeKind::Wake, 0.66)
             };
             smokes.get_force()
                 .init(self.pos, [0., 0., 0.].into(), kind, 60, self.size * size_factor, rand);
@@ -115,8 +115,11 @@ pub struct FragmentDraw<R>
     where R: gfx::Resources,
 {
     fan_slice: gfx::Slice<R>,
+    fan_pso: gfx::PipelineState<R, <pipe::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
+
     outline_slice: gfx::Slice<R>,
-    pso: gfx::PipelineState<R, <pipe::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
+    outline_pso: gfx::PipelineState<R, <pipe::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
+
     data: pipe::Data<R>,
 }
 
@@ -140,11 +143,28 @@ impl<R> FragmentDraw<R>
                                                                   data.len() as u32);
         let fan_slice = abagames_util::slice_for_fan::<R, F>(factory, data.len() as u32);
 
-        let pso = factory.create_pipeline_simple(
+        let program = factory.link_program(
             include_bytes!("shader/fragment.glslv"),
-            include_bytes!("shader/fragment.glslf"),
+            include_bytes!("shader/fragment.glslf"))
+            .expect("could not link the fragment shader");
+        let outline_pso = factory.create_pipeline_from_program(
+            &program,
+            gfx::Primitive::LineStrip,
+            gfx::state::Rasterizer {
+                front_face: gfx::state::FrontFace::CounterClockwise,
+                cull_face: gfx::state::CullFace::Nothing,
+                method: gfx::state::RasterMethod::Line(1),
+                offset: None,
+                samples: None,
+            },
             pipe::new())
-            .expect("failed to create the pipeline for fragment");
+            .expect("failed to create the outline pipeline for letter");
+        let fan_pso = factory.create_pipeline_from_program(
+            &program,
+            gfx::Primitive::TriangleList,
+            gfx::state::Rasterizer::new_fill(),
+            pipe::new())
+            .expect("failed to create the fill pipeline for letter");
 
         let data = pipe::Data {
             vbuf: vbuf,
@@ -157,8 +177,11 @@ impl<R> FragmentDraw<R>
 
         FragmentDraw {
             fan_slice: fan_slice,
+            fan_pso: fan_pso,
+
             outline_slice: outline_slice,
-            pso: pso,
+            outline_pso: outline_pso,
+
             data: data,
         }
     }
@@ -177,13 +200,13 @@ impl<R> FragmentDraw<R>
                     alpha: 0.5,
                 };
                 context.encoder.update_constant_buffer(&self.data.alpha, &alpha);
-                context.encoder.draw(&self.fan_slice, &self.pso, &self.data);
+                context.encoder.draw(&self.fan_slice, &self.fan_pso, &self.data);
 
                 let alpha = Alpha {
-                    alpha: 0.5,
+                    alpha: 0.9,
                 };
                 context.encoder.update_constant_buffer(&self.data.alpha, &alpha);
-                context.encoder.draw(&self.outline_slice, &self.pso, &self.data);
+                context.encoder.draw(&self.outline_slice, &self.outline_pso, &self.data);
             });
     }
 }

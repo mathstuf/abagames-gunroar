@@ -10,15 +10,14 @@ use game::entities::letter::{self, Letter};
 use game::render::EncoderContext;
 
 use std::f32;
-use std::mem;
-use std::ptr;
 
 const MAX_DIGIT: usize = 16;
 
+#[derive(Debug, Clone, Copy)]
 pub struct ScoreReel {
-    score: u64,
-    target_score: u64,
-    actual_score: u64,
+    score: u32,
+    target_score: u32,
+    actual_score: u32,
     digits: usize,
 
     reels: [NumberReel; MAX_DIGIT],
@@ -26,33 +25,17 @@ pub struct ScoreReel {
 
 impl ScoreReel {
     pub fn new() -> Self {
-        let mut reels: [NumberReel; MAX_DIGIT];
-
-        unsafe {
-            reels = mem::uninitialized();
-
-            for reel in &mut reels[..] {
-                ptr::write(reel, NumberReel::new());
-            }
-        }
-
         ScoreReel {
             score: 0,
             target_score: 0,
             actual_score: 0,
             digits: 1,
 
-            reels: reels,
+            reels: [NumberReel::new(); MAX_DIGIT],
         }
     }
 
-    pub fn init(&mut self) {
-        self.reels
-            .iter_mut()
-            .foreach(NumberReel::init)
-    }
-
-    pub fn clear(&mut self, digits: usize) {
+    pub fn init(&mut self, digits: usize) {
         self.score = 0;
         self.target_score = 0;
         self.actual_score = 0;
@@ -88,7 +71,7 @@ impl ScoreReel {
             })
     }
 
-    pub fn add_score(&mut self, score: u64) {
+    pub fn add_score(&mut self, score: u32) {
         self.target_score += score;
         self.reels
             .iter_mut()
@@ -106,17 +89,18 @@ impl ScoreReel {
             .foreach(|reel| reel.accelerate())
     }
 
-    pub fn set_score(&mut self, score: u64) {
-        self.actual_score = score;
+    pub fn add_actual_score(&mut self, score: u32) {
+        self.actual_score += score;
     }
 
-    pub fn score(&self) -> u64 {
+    pub fn score(&self) -> u32 {
         self.actual_score
     }
 }
 
 const MIN_VELOCITY: f32 = 5.;
 
+#[derive(Debug, Clone, Copy)]
 struct NumberReel {
     degrees: Deg<f32>,
     target_degrees: Deg<f32>,
@@ -132,10 +116,6 @@ impl NumberReel {
             ofs: 0.,
             velocity_ratio: 1.,
         }
-    }
-
-    fn init(&mut self) {
-        self.clear();
     }
 
     fn clear(&mut self) {
@@ -159,7 +139,7 @@ impl NumberReel {
         where R: gfx::Resources,
               C: gfx::CommandBuffer<R>,
     {
-        let number = abagames_util::wrap_inc((self.degrees.0 * 10. / 360. + 0.99) as u64, 10);
+        let number = abagames_util::wrap_inc((self.degrees.0 * 10. / 360. + 0.99) as u32, 10);
         let norm_degrees = self.degrees.normalize();
         let rotation_base = Deg((norm_degrees.0 - (number as f32) * 360. / 10.) - 15.)
             .normalize() * 1.5;
@@ -224,7 +204,7 @@ impl NumberReel {
         self.velocity_ratio = 4.;
     }
 
-    fn for_digit(digit: u64) -> char {
+    fn for_digit(digit: u32) -> char {
         match digit % 10 {
             0 => '0',
             1 => '1',

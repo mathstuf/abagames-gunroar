@@ -6,7 +6,7 @@ use crates::cgmath::{Angle, Rad, Vector2, Vector3, Matrix4};
 use crates::gfx;
 use crates::gfx::traits::FactoryExt;
 
-use game::entities::field::{Block, Field};
+use game::entities::field::Field;
 use game::entities::particles::{Smoke, SmokeKind};
 use game::render::{EncoderContext, RenderContext};
 use game::render::{Brightness, ScreenTransform};
@@ -60,10 +60,10 @@ impl SparkFragment {
         self.pos += self.vel;
 
         if self.pos.z < 0. {
-            let (kind, size_factor) = if field.block(self.pos.truncate()) <= Block::Beach {
-                (SmokeKind::Wake, 0.66)
-            } else {
+            let (kind, size_factor) = if field.block(self.pos.truncate()).is_dry() {
                 (SmokeKind::Sand, 0.75)
+            } else {
+                (SmokeKind::Wake, 0.66)
             };
 
             smokes.get_force()

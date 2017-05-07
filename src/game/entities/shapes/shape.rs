@@ -10,8 +10,8 @@
 //! This causes the code to be quite tangled, but the logic is also quite tangled.
 
 use crates::abagames_util;
-use crates::cgmath::{Angle, Matrix4, Rad, SquareMatrix, Vector2, Vector3};
-use crates::gfx::{self, IntoIndexBuffer};
+use crates::cgmath::{Angle, Matrix4, Rad, Vector2, Vector3};
+use crates::gfx;
 use crates::gfx::traits::FactoryExt;
 use crates::itertools::Itertools;
 
@@ -19,6 +19,7 @@ use game::render::{EncoderContext, RenderContext};
 use game::render::{Brightness, ScreenTransform};
 
 use std::collections::hash_map::HashMap;
+use std::ops::Deref;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 /// The kinds of shapes used by other entities in the game.
@@ -86,16 +87,23 @@ enum Closure {
 }
 
 impl Closure {
-    /// The maximum offset used by any closure method.
-    fn max_offset() -> usize {
-        1
+    fn make_slice<R, F>(&self, factory: &mut F, size: u32) -> gfx::Slice<R>
+        where R: gfx::Resources,
+              F: gfx::Factory<R>,
+    {
+        match *self {
+            Closure::Open => abagames_util::slice_for_loop(factory, size),
+            Closure::Closed => abagames_util::slice_for_fan(factory, size),
+        }
     }
 
-    /// The offset against the base length for the closure method.
-    fn offset(&self) -> usize {
+    fn make_slice_with<R, F>(&self, factory: &mut F, data: Vec<u16>) -> gfx::Slice<R>
+        where R: gfx::Resources,
+              F: gfx::Factory<R>,
+    {
         match *self {
-            Closure::Open => 0,
-            Closure::Closed => 1,
+            Closure::Open => abagames_util::slice_for_loop_with(factory, &data),
+            Closure::Closed => abagames_util::slice_for_fan_with(factory, &data),
         }
     }
 }
@@ -116,20 +124,15 @@ enum SliceKind {
 /// This is used to set up the buffers for use by the element arrays.
 enum SliceBuffer {
     /// Create a new buffer associated with the given category.
-    New {
-        category: LoopCategory,
-        data: Vec<u16>,
-    },
-    /// Use the same buffer already generated for the same category.
-    Share(LoopCategory),
+    Loop(Vec<u16>),
     /// Element indices are not used.
     All,
 }
 
 impl SliceKind {
     /// The indicies to use for a given loop category.
-    fn loop_index_buffer(category: LoopCategory) -> Vec<u16> {
-        let mut indices = (0..POINT_NUM)
+    fn loop_index_buffer(&self, category: LoopCategory) -> Vec<u16> {
+        (0..POINT_NUM)
             .filter_map(|i| {
                 if category.uses_index(i) {
                     Some(i as u16)
@@ -137,15 +140,7 @@ impl SliceKind {
                     None
                 }
             })
-            .collect::<Vec<_>>();
-
-        // Closed loops need the first index listed again, so add it to the array.
-        {
-            let first = indices[0];
-            indices.push(first);
-        }
-
-        indices
+            .collect()
     }
 
     /// The closure used by the slice.
@@ -173,15 +168,7 @@ impl SliceKind {
     fn index_buffer(&self) -> SliceBuffer {
         self.loop_category()
             .map_or(SliceBuffer::All, |category| {
-                match self.closure() {
-                    Closure::Open => SliceBuffer::Share(category),
-                    Closure::Closed => {
-                        SliceBuffer::New {
-                            category: category,
-                            data: Self::loop_index_buffer(category),
-                        }
-                    },
-                }
+                SliceBuffer::Loop(self.loop_index_buffer(category))
             })
     }
 
@@ -193,8 +180,7 @@ impl SliceKind {
         where R: gfx::Resources,
               F: gfx::Factory<R>,
     {
-        let mut buffer_cache = HashMap::new();
-        // Closed versions must be occur before open versions because they create the index array
+        // Open versions must be occur before closed versions because they create the index array
         // since they have an additional element in their element arrays. The open versions then
         // use the same buffer, but use one fewer element.
         let slice_kinds = [
@@ -212,46 +198,19 @@ impl SliceKind {
         slice_kinds.into_iter()
             .map(|&kind| {
                 let closure = kind.closure();
-                // Get the function to create the slice given the closure.
-                let make_slice = match closure {
-                    Closure::Closed => abagames_util::slice_for_fan,
-                    Closure::Open => abagames_util::slice_for_loop,
-                };
 
                 (kind, match kind.index_buffer() {
-                    SliceBuffer::New { category, data } => {
-                        let len = data.len();
-                        // Create a new buffer.
-                        let buffer = data.into_index_buffer(factory);
-
-                        // Insert it into the cache. The length also needs to be stored because
-                        // index buffers cannot be queried for their length.
-                        buffer_cache.insert(category, (len, buffer.clone()));
-                        let mut slice = make_slice(factory, len as u32);
-                        slice.buffer = buffer;
-                        slice
-                    },
-                    SliceBuffer::Share(category) => {
-                        let (len, buffer) = buffer_cache.get(&category)
-                            .expect("expected there to be a cached buffer")
-                            .clone();
-
-                        // Calculate number of indices to use.
-                        let elem_len = len - Closure::max_offset() + closure.offset();
-                        let mut slice = make_slice(factory, elem_len as u32);
-                        slice.buffer = buffer.clone();
-                        slice
-                    },
+                    SliceBuffer::Loop(data) => closure.make_slice_with(factory, data),
                     SliceBuffer::All => {
                         // Get the number of vertices for the slice.
                         let size = match kind {
-                            SliceKind::SquareLoop(closure) => SQUARE_LOOP_SIZE + closure.offset(),
+                            SliceKind::SquareLoop(_) => SQUARE_LOOP_SIZE,
                             SliceKind::Pillar => PILLAR_POINT_NUM,
                             // Loops always use buffers.
                             _ => unreachable!(),
                         };
 
-                        make_slice(factory, size as u32)
+                        closure.make_slice(factory, size as u32)
                     },
                 })
             })
@@ -348,7 +307,7 @@ impl LoopData {
                 let angle = Rad::full_turn() * (i as f32) / POINT_NUM_F32;
                 let sy = if i == POINT_NUM_Q14 || i == POINT_NUM_Q34 {
                     0.
-                } else if POINT_NUM_Q14 < i && i < POINT_NUM_Q34 {
+                } else if POINT_NUM_Q14 <= i && i <= POINT_NUM_Q34 {
                     -1. / (1. + angle.tan().abs())
                 } else {
                     1. / (1. + angle.tan().abs())
@@ -467,12 +426,30 @@ impl BaseShape {
 }
 
 #[derive(Debug, Clone, Copy)]
+enum Collision {
+    Transparent,
+    Collidable(Vector2<f32>),
+}
+
+impl Collision {
+    fn collides(&self, hit: Vector2<f32>, collision: Vector2<f32>) -> bool {
+        if let Collision::Collidable(target) = *self {
+            let bounds = target + collision;
+
+            hit.x <= bounds.x && hit.y <= bounds.y
+        } else {
+            false
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
 /// A generic shape.
 pub struct Shape {
     base: &'static BaseShape,
     size: f32,
     color: Vector3<f32>,
-    modelmat: Matrix4<f32>,
+    collision: Collision,
 
     commands: [ShapeCommand; MAX_SHAPE_COMMANDS],
     num_commands: usize,
@@ -480,92 +457,106 @@ pub struct Shape {
 
 impl Shape {
     pub fn new(base: &'static BaseShape) -> Self {
-        Shape {
+        Self::new_impl(base, Collision::Transparent)
+    }
+
+    pub fn new_collidable(base: &'static BaseShape) -> Self {
+        let collision = base.size / 2.;
+        Self::new_impl(base, Collision::Collidable((collision, collision).into()))
+    }
+
+    fn new_impl(base: &'static BaseShape, collision: Collision) -> Self {
+        let mut shape = Shape {
             base: base,
             size: base.size,
             color: base.color,
-            modelmat: Matrix4::identity(),
+            collision: collision,
 
             commands: [ShapeCommand::new(); MAX_SHAPE_COMMANDS],
             num_commands: 0,
-        }
+        };
+
+        shape.prep_draw();
+
+        shape
     }
 
-    pub fn prep_draw(&mut self) {
+    pub fn size(&self) -> f32 {
+        self.size
+    }
+
+    pub fn set_color(&mut self, color: Vector3<f32>) {
+        self.color = color;
+        self.prep_draw();
+    }
+
+    pub fn collides(&self, hit: Vector2<f32>, collision: Vector2<f32>) -> bool {
+        self.collision.collides(hit, collision)
+    }
+
+    fn prep_draw(&mut self) {
         self.num_commands = 0;
 
         let height = self.size * 0.5;
-        let mut z = 0.;
-        let mut sf = 1.;
 
+        let color = self.color;
         if self.base.kind == ShapeKind::Bridge {
-            z += height;
-        }
-
-        let mut color = if self.base.kind == ShapeKind::ShipDestroyed {
-            self.color
+            self.add_square_loop(1., 0., color, Closure::Open, 1.)
         } else {
-            self.base.color
-        };
-
-        if self.base.kind == ShapeKind::Bridge {
-            self.add_square_loop(sf, z, color, Closure::Open, 1.)
-        } else {
-            self.add_loop(sf, z, color, Closure::Open)
+            self.add_loop(1., 0., color, Closure::Open)
         }
 
         if self.base.kind != ShapeKind::ShipShadow && !self.base.kind.is_destroyed() {
-            color = 0.4 * self.base.color;
-            self.add_loop(sf, z, color, Closure::Closed)
+            let color = 0.4 * self.base.color;
+            self.add_loop(1., 0., color, Closure::Closed)
         }
 
         match self.base.kind {
             ShapeKind::Ship | ShapeKind::ShipRoundTail | ShapeKind::ShipShadow |
             ShapeKind::ShipDamaged | ShapeKind::ShipDestroyed => {
-                if self.base.kind != ShapeKind::ShipDestroyed {
-                    color = 0.4 * self.base.color;
-                }
-                (0..3).foreach(|_| {
-                    z -= height / 4.;
-                    sf -= 0.2;
-                    self.add_loop(sf, z, color, Closure::Open)
-                })
+                let color = if self.base.kind.is_destroyed() {
+                    self.color
+                } else {
+                    0.4 * self.base.color
+                };
+                (0..3).fold((1., 0.), |(sf, z), _| {
+                    let new_sf = sf - 0.2;
+                    let new_z = z - height / 4.;
+                    self.add_loop(new_sf, new_z, color, Closure::Open);
+                    (new_sf, new_z)
+                });
             },
             ShapeKind::Platform | ShapeKind::PlatformDamaged | ShapeKind::PlatformDestroyed => {
-                color = 0.4 * self.base.color;
-                (0..3).foreach(|_| {
-                    z -= height / 3.;
+                let color = 0.4 * self.base.color;
+                let size = self.size * 0.2;
+                (0..3).fold(0., |z, _| {
+                    let new_z = z - height / 3.;
                     for pillar in 0..self.base.num_pillars {
                         let pos = self.base.pillars[pillar];
-                        self.add_pillar(sf * 0.2, z, color, pos)
+                        self.add_pillar(size, new_z, color, pos)
                     }
-                })
+                    new_z
+                });
             },
             ShapeKind::Bridge | ShapeKind::Turret | ShapeKind::TurretDamaged => {
-                color = 0.6 * self.base.color;
-                z += height;
-                sf -= 0.33;
-                if self.base.kind == ShapeKind::Bridge {
-                    self.add_square_loop(sf, z, color, Closure::Open, 1.)
+                let outline_color = 0.6 * self.base.color;
+                let fill_color = 0.25 * self.base.color;
+                let (size, y_ratio) = if self.base.kind == ShapeKind::Bridge {
+                    (self.size, 1.)
                 } else {
-                    self.add_square_loop(sf, z / 2., color, Closure::Open, 3.)
-                }
-                color = 0.6 * self.base.color;
-                if self.base.kind == ShapeKind::Bridge {
-                    self.add_square_loop(sf, z, color, Closure::Closed, 1.)
-                } else {
-                    self.add_square_loop(sf, z / 2., color, Closure::Closed, 3.)
-                }
+                    (self.size / 4., 3.)
+                };
+                self.add_square_loop(0.67, size, outline_color, Closure::Open, y_ratio);
+                self.add_square_loop(0.67, size, fill_color, Closure::Closed, y_ratio);
             },
             ShapeKind::TurretDestroyed => (),
         }
     }
 
     fn add_loop(&mut self, size_factor: f32, z: f32, color: Vector3<f32>, closure: Closure) {
-        let loop_category = self.base.kind.loop_category();
         self.add_command(ShapeCommand {
             category: ShapeCategory::Loop {
-                category: loop_category,
+                category: self.base.kind.loop_category(),
                 closure: closure,
             },
             color: color,
@@ -601,6 +592,14 @@ impl Shape {
     fn add_command(&mut self, command: ShapeCommand) {
         self.commands[self.num_commands] = command;
         self.num_commands += 1;
+    }
+}
+
+impl Deref for Shape {
+    type Target = BaseShape;
+
+    fn deref(&self) -> &BaseShape {
+        &self.base
     }
 }
 
@@ -734,6 +733,9 @@ pub struct ShapeDraw<R>
     loop_data: loop_pipe::Data<R>,
     square_loop_data: square_loop_pipe::Data<R>,
     pillar_data: pillar_pipe::Data<R>,
+    loop_data_front: loop_pipe::Data<R>,
+    square_loop_data_front: square_loop_pipe::Data<R>,
+    pillar_data_front: pillar_pipe::Data<R>,
 }
 
 impl<R> ShapeDraw<R>
@@ -835,19 +837,20 @@ impl<R> ShapeDraw<R>
         let size = factory.create_constant_buffer(1);
         let shape = factory.create_constant_buffer(1);
         let color = factory.create_constant_buffer(1);
+        let loop_ = factory.create_constant_buffer(1);
         let loop_data = loop_pipe::Data {
-            vbuf: loop_vbuf,
+            vbuf: loop_vbuf.clone(),
             screen: context.perspective_screen_buffer.clone(),
             brightness: context.brightness_buffer.clone(),
             modelmat: modelmat.clone(),
             size: size.clone(),
             shape: shape.clone(),
-            loop_: factory.create_constant_buffer(1),
+            loop_: loop_.clone(),
             color: color.clone(),
             out_color: view.clone(),
         };
         let square_loop_data = square_loop_pipe::Data {
-            vbuf: square_loop_vbuf,
+            vbuf: square_loop_vbuf.clone(),
             screen: context.perspective_screen_buffer.clone(),
             brightness: context.brightness_buffer.clone(),
             modelmat: modelmat.clone(),
@@ -858,8 +861,41 @@ impl<R> ShapeDraw<R>
             out_color: view.clone(),
         };
         let pillar_data = pillar_pipe::Data {
-            vbuf: pillar_vbuf,
+            vbuf: pillar_vbuf.clone(),
             screen: context.perspective_screen_buffer.clone(),
+            brightness: context.brightness_buffer.clone(),
+            modelmat: modelmat.clone(),
+            size: size.clone(),
+            shape: shape.clone(),
+            pillar: factory.create_constant_buffer(1),
+            color: color.clone(),
+            out_color: view.clone(),
+        };
+        let loop_data_front = loop_pipe::Data {
+            vbuf: loop_vbuf,
+            screen: context.orthographic_screen_buffer.clone(),
+            brightness: context.brightness_buffer.clone(),
+            modelmat: modelmat.clone(),
+            size: size.clone(),
+            shape: shape.clone(),
+            loop_: loop_.clone(),
+            color: color.clone(),
+            out_color: view.clone(),
+        };
+        let square_loop_data_front = square_loop_pipe::Data {
+            vbuf: square_loop_vbuf,
+            screen: context.orthographic_screen_buffer.clone(),
+            brightness: context.brightness_buffer.clone(),
+            modelmat: modelmat.clone(),
+            size: size.clone(),
+            shape: shape.clone(),
+            square_loop: factory.create_constant_buffer(1),
+            color: color.clone(),
+            out_color: view.clone(),
+        };
+        let pillar_data_front = pillar_pipe::Data {
+            vbuf: pillar_vbuf,
+            screen: context.orthographic_screen_buffer.clone(),
             brightness: context.brightness_buffer.clone(),
             modelmat: modelmat.clone(),
             size: size.clone(),
@@ -888,10 +924,13 @@ impl<R> ShapeDraw<R>
             loop_data: loop_data,
             square_loop_data: square_loop_data,
             pillar_data: pillar_data,
+            loop_data_front: loop_data_front,
+            square_loop_data_front: square_loop_data_front,
+            pillar_data_front: pillar_data_front,
         }
     }
 
-    fn draw_command<C>(&self, encoder: &mut gfx::Encoder<R, C>, command: &ShapeCommand)
+    fn draw_command<C>(&self, encoder: &mut gfx::Encoder<R, C>, command: &ShapeCommand, front: bool)
         where C: gfx::CommandBuffer<R>,
     {
         let color = Color {
@@ -913,7 +952,13 @@ impl<R> ShapeDraw<R>
                     Closure::Open => &self.loop_outline_pso,
                     Closure::Closed => &self.loop_fan_pso,
                 };
-                encoder.draw(slice, pso, &self.loop_data);
+                let data = if front {
+                    &self.loop_data_front
+                } else {
+                    &self.loop_data
+                };
+
+                encoder.draw(slice, pso, data)
             },
             ShapeCategory::SquareLoop { y_ratio, closure } => {
                 let square_loop = SquareLoop {
@@ -925,7 +970,13 @@ impl<R> ShapeDraw<R>
                     Closure::Open => &self.square_loop_outline_pso,
                     Closure::Closed => &self.square_loop_fan_pso,
                 };
-                encoder.draw(slice, pso, &self.square_loop_data);
+                let data = if front {
+                    &self.square_loop_data_front
+                } else {
+                    &self.square_loop_data
+                };
+
+                encoder.draw(slice, pso, data)
             },
             ShapeCategory::Pillar { pos } => {
                 let pillar = Pillar {
@@ -933,16 +984,22 @@ impl<R> ShapeDraw<R>
                 };
                 encoder.update_constant_buffer(&self.pillar_data.pillar, &pillar);
 
-                encoder.draw(slice, &self.pillar_pso, &self.pillar_data);
+                let data = if front {
+                    &self.pillar_data_front
+                } else {
+                    &self.pillar_data
+                };
+
+                encoder.draw(slice, &self.pillar_pso, data)
             },
         }
     }
 
-    pub fn draw<C>(&self, context: &mut EncoderContext<R, C>, shape: &Shape)
+    fn draw_shape<C>(&self, context: &mut EncoderContext<R, C>, shape: &Shape, modelmat: Matrix4<f32>, front: bool)
         where C: gfx::CommandBuffer<R>,
     {
         let modelmat = ModelMat {
-            modelmat: shape.modelmat.into(),
+            modelmat: modelmat.into(),
         };
         let size = Size {
             size: shape.size,
@@ -958,6 +1015,18 @@ impl<R> ShapeDraw<R>
         shape.commands
             .iter()
             .take(shape.num_commands)
-            .foreach(|command| self.draw_command(context.encoder, command))
+            .foreach(|command| self.draw_command(context.encoder, command, front))
+    }
+
+    pub fn draw<C>(&self, context: &mut EncoderContext<R, C>, shape: &Shape, modelmat: Matrix4<f32>)
+        where C: gfx::CommandBuffer<R>,
+    {
+        self.draw_shape(context, shape, modelmat, false)
+    }
+
+    pub fn draw_front<C>(&self, context: &mut EncoderContext<R, C>, shape: &Shape, modelmat: Matrix4<f32>)
+        where C: gfx::CommandBuffer<R>,
+    {
+        self.draw_shape(context, shape, modelmat, true)
     }
 }

@@ -38,7 +38,7 @@ impl<'a, 'b> Gunroar<'a, 'b> {
 
             backgrounded: false,
 
-            data: Default::default(),
+            data: GameData::default(),
         })
     }
 }

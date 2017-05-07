@@ -1,8 +1,10 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
-use crates::abagames_util::{Pool, PoolRemoval};
+use crates::abagames_util::{self, Pool, PoolRemoval};
 use crates::cgmath::{Angle, Matrix4, Rad, Vector2};
+
+use game::entities::ship::Ship;
 
 const COUNT: u32 = 60;
 const PULLIN_COUNT: u32 = COUNT * 4 / 5;
@@ -34,14 +36,14 @@ impl Crystal {
         self.vel = (0., 0.1).into();
     }
 
-    pub fn step(&mut self, /*ship: &Ship*/) -> PoolRemoval {
-        self.count -= 1;
+    pub fn step(&mut self, ship: &Ship) -> PoolRemoval {
+        self.count = self.count.saturating_sub(1);
         if self.count < PULLIN_COUNT {
-            // let dist = f32::max(0.1, abagames_util::fast_distance(self.dist, ship.mid_pos()));
-            // self.vel += (ship.mid_pos() - self.pos) / dist * 0.07;
-            // if self.count < 0 || dist < 2. {
-                // return PoolRemoval::Remove;
-            // }
+            let dist = f32::max(0.1, abagames_util::fast_distance(self.pos, ship.mid_pos()));
+            self.vel += (ship.mid_pos() - self.pos) / dist * 0.07;
+            if self.count == 0 || dist < 2. {
+                return PoolRemoval::Remove;
+            }
         }
 
         self.vel *= 0.95;

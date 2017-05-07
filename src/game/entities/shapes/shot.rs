@@ -15,11 +15,9 @@ use game::render::{EncoderContext, RenderContext};
 use game::render::{Brightness, ScreenTransform};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum BulletShapeKind {
+pub enum ShotShapeKind {
     Normal,
-    Small,
-    MovingTurret,
-    Destructible,
+    Lance,
 }
 
 impl BulletShapeKind {
@@ -39,10 +37,6 @@ impl BulletShapeKind {
             BulletShapeKind::MovingTurret => [0.2, 0.2, 0.3],
             BulletShapeKind::Destructible => [0.7, 0.5, 0.4],
         }
-    }
-
-    pub fn is_destructible(&self) -> bool {
-        *self == BulletShapeKind::Destructible
     }
 }
 
@@ -536,7 +530,7 @@ impl<R> BulletDraw<R>
         }
     }
 
-    pub fn draw_bullets<C>(&self, context: &mut EncoderContext<R, C>, field: &Field, bullets: &Pool<Bullet>)
+    fn draw_bullets<C>(&self, context: &mut EncoderContext<R, C>, field: &Field, bullets: &Pool<Bullet>)
         where C: gfx::CommandBuffer<R>,
     {
         bullets.iter()
@@ -587,7 +581,7 @@ impl<R> BulletDraw<R>
 
         let count = crystals.iter()
             .enumerate()
-            .fold(0, |count, (i, crystal)| {
+            .fold(0, |count, (i, crystal) {
                 let modelmats = crystal.modelmats();
                 writer[4 * i] = modelmats[0].into();
                 writer[4 * i + 1] = modelmats[1].into();

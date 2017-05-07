@@ -1,28 +1,33 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
-use crates::abagames_util::{self, Rand};
+use crates::abagames_util::{self, Pool, Rand};
 use crates::cgmath::{Angle, ElementWise, Rad, Vector2, Vector3};
 use crates::gfx;
 use crates::gfx::traits::FactoryExt;
 use crates::itertools::Itertools;
 
+use game::entities::enemy::Enemy;
+use game::entities::ship::Ship;
+use game::entities::stage::Stage;
 use game::render::{EncoderContext, RenderContext};
-pub use game::render::{Brightness, ScreenTransform};
+use game::render::{Brightness, ScreenTransform};
+use game::state::GameStateContext;
 
 use std::f32;
 
 const BLOCK_SIZE_X: usize = 20;
 const BLOCK_SIZE_Y: usize = 64;
 const BLOCK_SIZE_X_F32: f32 = BLOCK_SIZE_X as f32;
+const BLOCK_SIZE_Y_F32: f32 = BLOCK_SIZE_Y as f32;
 const NEXT_BLOCK_AREA_SIZE: usize = 16;
-const NEXT_BLOCK_AREA_SIZE_F32: f32 = NEXT_BLOCK_AREA_SIZE as f32;
+pub const NEXT_BLOCK_AREA_SIZE_F32: f32 = NEXT_BLOCK_AREA_SIZE as f32;
 
-const FIELD_SIZE: Vector2<f32> = Vector2 {
+pub const FIELD_SIZE: Vector2<f32> = Vector2 {
     x: ((SCREEN_BLOCK_SIZE_X / 2) as f32) * 0.9,
     y: ((SCREEN_BLOCK_SIZE_Y / 2) as f32) * 0.8,
 };
-const FIELD_OUTER_SIZE: Vector2<f32> = Vector2 {
+pub const FIELD_OUTER_SIZE: Vector2<f32> = Vector2 {
     x: (SCREEN_BLOCK_SIZE_X / 2) as f32,
     y: (SCREEN_BLOCK_SIZE_Y / 2) as f32,
 };
@@ -37,6 +42,8 @@ static TIME_CHANGE_RATIO: f32 = 0.00033;
 const SCREEN_BLOCK_SIZE_X: usize = 20;
 const SCREEN_BLOCK_SIZE_Y: usize = 24;
 static BLOCK_WIDTH: f32 = 1.;
+
+const MAX_PLATFORMS: usize = SCREEN_BLOCK_SIZE_X * NEXT_BLOCK_AREA_SIZE;
 
 static PANEL_WIDTH: f32 = 1.8;
 static PANEL_HEIGHT_BASE: f32 = 0.66;
@@ -146,7 +153,18 @@ impl Block {
         }
     }
 
-    fn is_land(&self) -> bool {
+    pub fn is_dry(&self) -> bool {
+        match *self {
+            Block::DeepWater |
+            Block::Water |
+            Block::Shore |
+            Block::Beach => false,
+            Block::Inland |
+            Block::DeepInland => true,
+        }
+    }
+
+    pub fn is_land(&self) -> bool {
         match *self {
             Block::DeepWater |
             Block::Water |
@@ -200,9 +218,61 @@ fn between<T>(low: T, expect: T, high: T) -> bool
     low <= expect && expect < high
 }
 
-struct Platform {
+#[derive(Debug, Clone, Copy)]
+pub struct Platform {
     position: Vector2<usize>,
     angle: Rad<f32>,
+    in_use: bool,
+}
+
+impl Platform {
+    fn new() -> Self {
+        Platform {
+            position: (0, 0).into(),
+            angle: Rad(0.),
+            in_use: false,
+        }
+    }
+
+    fn init(&mut self, pos: Vector2<usize>, angle: Rad<f32>) {
+        self.position = pos;
+        self.angle = angle;
+        self.in_use = false;
+    }
+
+    pub fn in_use(&self) -> bool {
+        self.in_use
+    }
+
+    pub fn too_close(&self, other: Vector2<usize>) -> bool {
+        if self.in_use {
+            let x = if self.position.x < other.x {
+                other.x - self.position.x
+            } else {
+                self.position.x - other.x
+            };
+            let y = if self.position.y < other.y {
+                other.y - self.position.y
+            } else {
+                self.position.y - other.y
+            };
+            if x <= 1 && y <= 1 {
+                true
+            } else {
+                false
+            }
+        } else {
+            false
+        }
+    }
+
+    pub fn peek(&self) -> (Vector2<usize>, Rad<f32>) {
+        (self.position, self.angle)
+    }
+
+    pub fn spawned(&mut self) {
+        self.in_use = true;
+    }
 }
 
 pub struct Field {
@@ -214,6 +284,9 @@ pub struct Field {
 
     blocks: [[Block; BLOCK_SIZE_Y]; BLOCK_SIZE_X],
     panels: [[Panel; BLOCK_SIZE_Y]; BLOCK_SIZE_X],
+
+    platforms: [Platform; MAX_PLATFORMS],
+    num_platforms: usize,
 }
 
 impl Field {
@@ -227,6 +300,9 @@ impl Field {
 
             blocks: [[Block::DeepWater; BLOCK_SIZE_Y]; BLOCK_SIZE_X],
             panels: [[Panel::new(); BLOCK_SIZE_Y]; BLOCK_SIZE_X],
+
+            platforms: [Platform::new(); MAX_PLATFORMS],
+            num_platforms: 0,
         }
     }
 
@@ -283,6 +359,14 @@ impl Field {
         self.blocks[block_x as usize][block_y as usize]
     }
 
+    pub fn screen_pos(&self, block_pos: Vector2<usize>) -> Vector2<f32> {
+        let y = self.screen_y.fract();
+        let block_y = abagames_util::wrap_dec_by(block_pos.y, BLOCK_SIZE_Y, self.screen_y.trunc() as usize);
+
+        Vector2::new((block_pos.x as f32) * BLOCK_WIDTH - BLOCK_WIDTH * ((SCREEN_BLOCK_SIZE_X / 2) as f32) + BLOCK_WIDTH / 2.,
+                     ((block_y as f32) - BLOCK_SIZE_Y_F32) * -BLOCK_WIDTH + BLOCK_WIDTH * ((SCREEN_BLOCK_SIZE_Y / 2) as f32) + y - BLOCK_WIDTH / 2.)
+    }
+
     pub fn is_in_field(&self, pos: Vector2<f32>) -> bool {
         abagames_util::contains(FIELD_SIZE, pos, 1.)
     }
@@ -322,27 +406,35 @@ impl Field {
             abagames_util::wrap_inc_by(self.color_step, TIME_COLOR_SIZE as f32, TIME_CHANGE_RATIO);
     }
 
-    pub fn scroll(&mut self, speed: f32, mode: FieldMode, rand: &mut Rand) {
+    pub fn scroll(&mut self, speed: f32, mode: FieldMode, stage: &mut Stage, enemies: &mut Pool<Enemy>, ship: &Ship, context: &mut GameStateContext, rand: &mut Rand) {
         self.last_scroll_y = speed;
         self.screen_y = abagames_util::wrap_dec_by(self.screen_y, BLOCK_SIZE_Y as f32, speed);
         self.block_count -= speed;
         if self.block_count < 0. {
-            // TODO: Implement stage interaction.
-            //stageManager.gotoNextBlockArea();
-            //let density = if stageManager.bossMode {
-                //0.
-            //} else {
-                //stageManager.blockDensity
-            //};
-            let platforms = self.create_blocks(2, rand);
+            let density = stage.next_block_area(self, ship, enemies, context, rand);
+            self.create_blocks(density as usize, rand);
             if let FieldMode::Live = mode {
-                //stageManager.addBatteries(platformPos, platformPosNum);
+                stage.add_batteries(self, enemies, rand);
             }
             self.next_block_area();
         }
     }
 
-    fn create_blocks(&mut self, density: usize, rand: &mut Rand) -> Vec<Platform> {
+    pub fn platform(&self, i: usize) -> &Platform {
+        assert!(i < self.num_platforms);
+        &self.platforms[i]
+    }
+
+    pub fn platform_mut(&mut self, i: usize) -> &mut Platform {
+        assert!(i < self.num_platforms);
+        &mut self.platforms[i]
+    }
+
+    pub fn num_platforms(&self) -> usize {
+        self.num_platforms
+    }
+
+    fn create_blocks(&mut self, density: usize, rand: &mut Rand) {
         let nby = self.next_block_y;
         let rows = (0..NEXT_BLOCK_AREA_SIZE)
             .map(|y| abagames_util::wrap_inc_by(y, BLOCK_SIZE_Y, nby))
@@ -365,8 +457,9 @@ impl Field {
             .filter(|&&(y, _)| y == nby || y == nby + NEXT_BLOCK_AREA_SIZE - 1)
             .foreach(|&(y, x)| self.blocks[x][y] = Block::DeepWater);
 
-        let platforms = rows.into_iter()
-            .map(|y| {
+        self.num_platforms = 0;
+        rows.into_iter()
+            .foreach(|y| {
                 for x in 0..BLOCK_SIZE_X {
                     if self.blocks[x][y] == Block::Beach &&
                        self.count_around_block(x, y, Block::Beach) <= 1 {
@@ -381,28 +474,20 @@ impl Field {
                 }
 
                 (0..BLOCK_SIZE_X)
-                    .filter_map(|x| {
+                    .foreach(|x| {
                         let count = self.count_around_block(x, y, Block::Beach);
                         let new_block = self.blocks[x][y].transform_for_count(count);
 
                         // FIXME: Use (2..BLOCK_SIZE_X - 2).contains(x)
                         if new_block == Block::Shore && between(2, x, BLOCK_SIZE_X - 2) {
-                            if let Some(angle) = self.platform_angle(x, y, rand) {
-                                Some(Platform {
-                                    position: Vector2::new(x, y),
-                                    angle: angle,
-                                })
-                            } else {
-                                None
+                            let pos = Vector2::new(x, y);
+                            if let Some(angle) = self.platform_angle(pos, rand) {
+                                self.platforms[self.num_platforms].init(pos, angle);
+                                self.num_platforms += 1;
                             }
-                        } else {
-                            None
                         }
                     })
-                    .collect::<Vec<_>>()
-            })
-            .flatten()
-            .collect();
+            });
 
         indices.iter()
             .foreach(|&(y, x)| {
@@ -415,17 +500,16 @@ impl Field {
                 }
                 self.create_panel(x, y, rand);
             });
-
-        platforms
     }
 
-    fn platform_angle(&mut self, x: usize, y: usize, rand: &mut Rand) -> Option<Rad<f32>> {
+    fn platform_angle(&mut self, pos: Vector2<usize>, rand: &mut Rand) -> Option<Rad<f32>> {
         let d = rand.next_int(4) as usize;
         (0..4)
             .into_iter()
             .filter_map(|i| {
                 let new_i = abagames_util::wrap_inc_by(i, 4, d);
-                let (ox, oy) = ((x as i32) + ANGLE_BLOCK_OFFSET[new_i][0], (y as i32) + ANGLE_BLOCK_OFFSET[new_i][1]);
+                let (ox, oy) = ((pos.x as i32) + ANGLE_BLOCK_OFFSET[new_i][0],
+                                (pos.y as i32) + ANGLE_BLOCK_OFFSET[new_i][1]);
                 if self.check_block(ox, oy, Block::Shore).unwrap_or(true) {
                     let prev = abagames_util::wrap_dec(new_i, 4);
                     let next = abagames_util::wrap_inc(new_i, 4);

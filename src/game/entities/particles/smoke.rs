@@ -126,7 +126,7 @@ impl Smoke {
     }
 
     pub fn step(&mut self, field: &Field, wakes: &mut Pool<Wake>, rand: &mut Rand) -> PoolRemoval {
-        self.count.saturating_sub(1);
+        self.count = self.count.saturating_sub(1);
         if self.count == 0 || !field.is_in_outer_field(self.pos.truncate()) {
             return PoolRemoval::Remove;
         }

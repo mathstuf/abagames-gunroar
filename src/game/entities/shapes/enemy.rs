@@ -1,13 +1,15 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
+use crates::abagames_util::{Pool, Rand};
+use crates::cgmath::{Angle, Rad, Vector2, Vector3};
+
+use game::entities::enemy::EnemyKind;
+use game::entities::field::Field;
+use game::entities::particles::{Wake, WakeDirection};
 use game::entities::shapes::{BaseShape, Shape, ShapeKind};
 
-use std::ops::{Deref, DerefMut};
-
-const MIDDLE_COLOR_R: f32 = 1.;
-const MIDDLE_COLOR_G: f32 = 0.6;
-const MIDDLE_COLOR_B: f32 = 0.5;
+const MIDDLE_COLOR: Vector3<f32> = Vector3 { x: 1., y: 0.6, z: 0.5, };
 
 lazy_static! {
     static ref SMALL: BaseShape =
@@ -17,7 +19,7 @@ lazy_static! {
     static ref SMALL_BRIDGE: BaseShape =
         BaseShape::new(ShapeKind::Bridge, 0.66, 0., 0., (1., 0.2, 0.3).into());
     static ref MIDDLE: BaseShape =
-        BaseShape::new(ShapeKind::Ship, 1., 0.7, 0.33, (MIDDLE_COLOR_R, MIDDLE_COLOR_G, MIDDLE_COLOR_B).into());
+        BaseShape::new(ShapeKind::Ship, 1., 0.7, 0.33, MIDDLE_COLOR);
     static ref MIDDLE_DAMAGED: BaseShape =
         BaseShape::new(ShapeKind::ShipDamaged, 1., 0.7, 0.33, (0.5, 0.5, 0.9).into());
     static ref MIDDLE_DESTROYED: BaseShape =
@@ -34,94 +36,87 @@ lazy_static! {
         BaseShape::new(ShapeKind::Bridge, 0.5, 0., 0., (1., 0.2, 0.3).into());
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum EnemyShapeKind {
-    Small,
-    SmallDamaged,
-    SmallBridge,
-    Middle,
-    MiddleDamaged,
-    MiddleDestroyed,
-    MiddleBridge,
-    Platform,
-    PlatformDamaged,
-    PlatformDestroyed,
-    PlatformBridge,
-}
-
 #[derive(Debug, Clone, Copy)]
-pub struct EnemyShape {
-    kind: EnemyShapeKind,
-    small: Shape,
-    small_damaged: Shape,
-    small_bridge: Shape,
-    middle: Shape,
-    middle_damaged: Shape,
-    middle_destroyed: Shape,
-    middle_bridge: Shape,
-    platform: Shape,
-    platform_damaged: Shape,
-    platform_destroyed: Shape,
-    platform_bridge: Shape,
+pub struct EnemyShapes {
+    normal: Shape,
+    damaged: Shape,
+    destroyed: Option<Shape>,
+    bridge: Shape,
 }
 
-impl EnemyShape {
-    pub fn new(kind: EnemyShapeKind) -> Self {
-        EnemyShape {
-            kind: kind,
-            small: Shape::new(&SMALL),
-            small_damaged: Shape::new(&SMALL_DAMAGED),
-            small_bridge: Shape::new_collidable(&SMALL_BRIDGE),
-            middle: Shape::new(&MIDDLE),
-            middle_damaged: Shape::new(&MIDDLE_DAMAGED),
-            middle_destroyed: Shape::new(&MIDDLE_DESTROYED),
-            middle_bridge: Shape::new_collidable(&MIDDLE_BRIDGE),
-            platform: Shape::new(&PLATFORM),
-            platform_damaged: Shape::new(&PLATFORM_DAMAGED),
-            platform_destroyed: Shape::new(&PLATFORM_DESTROYED),
-            platform_bridge: Shape::new_collidable(&PLATFORM_BRIDGE),
+impl EnemyShapes {
+    pub fn new(kind: EnemyKind) -> Self {
+        match kind {
+            EnemyKind::SmallShip => {
+                EnemyShapes {
+                    normal: Shape::new(&SMALL),
+                    damaged: Shape::new(&SMALL_DAMAGED),
+                    destroyed: None,
+                    bridge: Shape::new_collidable(&SMALL_BRIDGE),
+                }
+            },
+            EnemyKind::Ship => {
+                EnemyShapes {
+                    normal: Shape::new(&MIDDLE),
+                    damaged: Shape::new(&MIDDLE_DAMAGED),
+                    destroyed: Some(Shape::new(&MIDDLE_DESTROYED)),
+                    bridge: Shape::new_collidable(&MIDDLE_BRIDGE),
+                }
+            },
+            EnemyKind::Platform => {
+                EnemyShapes {
+                    normal: Shape::new(&PLATFORM),
+                    damaged: Shape::new(&PLATFORM_DAMAGED),
+                    destroyed: Some(Shape::new(&PLATFORM_DESTROYED)),
+                    bridge: Shape::new_collidable(&PLATFORM_BRIDGE),
+                }
+            },
         }
     }
 
-    pub fn update(&mut self, kind: EnemyShapeKind) {
-        self.kind = kind;
+    pub fn normal(&self) -> &Shape {
+        &self.normal
     }
-}
 
-impl Deref for EnemyShape {
-    type Target = Shape;
-
-    fn deref(&self) -> &Shape {
-        match self.kind {
-            EnemyShapeKind::Small => &self.small,
-            EnemyShapeKind::SmallDamaged => &self.small_damaged,
-            EnemyShapeKind::SmallBridge => &self.small_bridge,
-            EnemyShapeKind::Middle => &self.middle,
-            EnemyShapeKind::MiddleDamaged => &self.middle_damaged,
-            EnemyShapeKind::MiddleDestroyed => &self.middle_destroyed,
-            EnemyShapeKind::MiddleBridge => &self.middle_bridge,
-            EnemyShapeKind::Platform => &self.platform,
-            EnemyShapeKind::PlatformDamaged => &self.platform_damaged,
-            EnemyShapeKind::PlatformDestroyed => &self.platform_destroyed,
-            EnemyShapeKind::PlatformBridge => &self.platform_bridge,
-        }
+    pub fn damaged(&self) -> &Shape {
+        &self.damaged
     }
-}
 
-impl DerefMut for EnemyShape {
-    fn deref_mut(&mut self) -> &mut Shape {
-        match self.kind {
-            EnemyShapeKind::Small => &mut self.             small,
-            EnemyShapeKind::SmallDamaged => &mut self.small_damaged,
-            EnemyShapeKind::SmallBridge => &mut self.small_bridge,
-            EnemyShapeKind::Middle => &mut self.middle,
-            EnemyShapeKind::MiddleDamaged => &mut self.middle_damaged,
-            EnemyShapeKind::MiddleDestroyed => &mut self.middle_destroyed,
-            EnemyShapeKind::MiddleBridge => &mut self.middle_bridge,
-            EnemyShapeKind::Platform => &mut self.platform,
-            EnemyShapeKind::PlatformDamaged => &mut self.platform_damaged,
-            EnemyShapeKind::PlatformDestroyed => &mut self.platform_destroyed,
-            EnemyShapeKind::PlatformBridge => &mut self.platform_bridge,
-        }
+    pub fn destroyed(&self) -> Option<&Shape> {
+        self.destroyed.as_ref()
+    }
+
+    pub fn bridge(&self) -> &Shape {
+        &self.bridge
+    }
+
+    pub fn color(factor: f32) -> Vector3<f32> {
+        MIDDLE_COLOR * factor * 0.5
+    }
+
+    pub fn set_color(&mut self, color: Vector3<f32>) {
+        self.destroyed.as_mut().map(|shape| shape.set_color(color));
+    }
+
+    pub fn collides(&self, hit: Vector2<f32>, collision: Vector2<f32>) -> bool {
+        self.bridge.collides(hit, collision)
+    }
+
+    pub fn add_wake(&self, field: &Field, pos: Vector2<f32>, angle: Rad<f32>, speed: f32, size_factor: f32, wakes: &mut Pool<Wake>, rand: &mut Rand) {
+        let speed = f32::min(0.1, speed);
+        let size = f32::min(10., self.normal.size());
+
+        let inner_angle = Rad::turn_div_4() + Rad(0.7);
+        let pos_size = size * 0.5 * size_factor;
+
+        let angle_comps: Vector2<f32> = (angle + inner_angle).sin_cos().into();
+        let wake_pos = pos + angle_comps * pos_size;
+        wakes.get_force()
+            .init(field, wake_pos, angle + Rad::turn_div_2() - Rad(0.2 + rand.next_float_signed(0.1)), speed, 40, size * 32. * size_factor, WakeDirection::Forward);
+
+        let angle_comps: Vector2<f32> = (angle - inner_angle).sin_cos().into();
+        let wake_pos = pos + angle_comps * pos_size;
+        wakes.get_force()
+            .init(field, wake_pos, angle + Rad::turn_div_2() + Rad(0.2 + rand.next_float_signed(0.1)), speed, 40, size * 32. * size_factor, WakeDirection::Forward);
     }
 }

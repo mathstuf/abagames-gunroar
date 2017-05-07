@@ -41,7 +41,7 @@ impl Spark {
     }
 
     pub fn step(&mut self) -> PoolRemoval {
-        self.count.saturating_sub(1);
+        self.count = self.count.saturating_sub(1);
         if self.count == 0 || abagames_util::fast_distance_origin(self.vel) < 0.005 {
             PoolRemoval::Remove
         } else {

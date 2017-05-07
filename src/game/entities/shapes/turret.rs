@@ -1,9 +1,9 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
-use game::entities::shapes::{BaseShape, Shape, ShapeKind};
+use crates::cgmath::{Vector2, Vector3};
 
-use std::ops::{Deref, DerefMut};
+use game::entities::shapes::{BaseShape, Shape, ShapeKind};
 
 lazy_static! {
     static ref NORMAL: BaseShape =
@@ -14,54 +14,39 @@ lazy_static! {
         BaseShape::new(ShapeKind::TurretDestroyed, 1., 0., 0., (0.8, 0.33, 0.66).into());
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum TurretShapeKind {
-    Normal,
-    Damaged,
-    Destroyed,
-}
-
 #[derive(Debug, Clone, Copy)]
-pub struct TurretShape {
-    kind: TurretShapeKind,
+pub struct TurretShapes {
     normal: Shape,
     damaged: Shape,
     destroyed: Shape,
 }
 
-impl TurretShape {
-    pub fn new(kind: TurretShapeKind) -> Self {
-        TurretShape {
-            kind: kind,
+impl TurretShapes {
+    pub fn new() -> Self {
+        TurretShapes {
             normal: Shape::new_collidable(&NORMAL),
             damaged: Shape::new(&DAMAGED),
             destroyed: Shape::new(&DESTROYED),
         }
     }
 
-    pub fn update(&mut self, kind: TurretShapeKind) {
-        self.kind = kind;
+    pub fn normal(&self) -> &Shape {
+        &self.normal
     }
-}
 
-impl Deref for TurretShape {
-    type Target = Shape;
-
-    fn deref(&self) -> &Shape {
-        match self.kind {
-            TurretShapeKind::Normal => &self.normal,
-            TurretShapeKind::Damaged => &self.damaged,
-            TurretShapeKind::Destroyed => &self.destroyed,
-        }
+    pub fn damaged(&self) -> &Shape {
+        &self.damaged
     }
-}
 
-impl DerefMut for TurretShape {
-    fn deref_mut(&mut self) -> &mut Shape {
-        match self.kind {
-            TurretShapeKind::Normal => &mut self.normal,
-            TurretShapeKind::Damaged => &mut self.damaged,
-            TurretShapeKind::Destroyed => &mut self.destroyed,
-        }
+    pub fn destroyed(&self) -> &Shape {
+        &self.destroyed
+    }
+
+    pub fn set_color(&mut self, color: Vector3<f32>) {
+        self.destroyed.set_color(color);
+    }
+
+    pub fn collides(&self, hit: Vector2<f32>, collision: Vector2<f32>) -> bool {
+        self.normal.collides(hit, collision)
     }
 }
