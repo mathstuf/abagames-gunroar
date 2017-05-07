@@ -607,7 +607,7 @@ public class TurretSpec {
       burstNum = cast(int) br * 2 + 1;
       nway = cast(int) (nr * 0.66f + 1);
       interval = cast(int) (60.0f / (ir * 2 + 1)) + 1;
-      burstInterval *= 0.88f;
+      burstInterval = cast(int)(burstInterval * 0.88f);
       bulletShape = BulletShape.BulletShapeType.DESTRUCTIVE;
       bulletDestructive = true;
       float sr = rk - (burstNum - 1) / 2 - (nway - 1) / 0.66f - ir;
@@ -658,7 +658,7 @@ public class TurretSpec {
     if (burstNum > 2) {
       if (rand.nextInt(4) == 0) {
         speed *= 0.8f;
-        burstInterval *= 0.7f;
+        burstInterval = cast(int)(burstInterval * 0.7f);
         speedAccel = (speed * (0.4f + rand.nextFloat(0.3f))) / burstNum;
         if (rand.nextInt(2) == 0)
           speedAccel *= -1;
@@ -675,7 +675,7 @@ public class TurretSpec {
   public void setBossSpec() {
     minRange = 0;
     maxRange *= 1.5f;
-    shield *= 2.1f;
+    shield = cast(int)(shield * 2.1f);
   }
 
   public float size() {

@@ -1085,7 +1085,7 @@ public class ShipEnemySpec: EnemySpec, HasAppearType {
     }
     shield = cast(int) (size * 10);
     if (cls == ShipClass.BOSS)
-      shield *= 2.4f;
+      shield = cast(int)(shield * 2.4f);
     if (mainTurretNum + subTurretNum <= 0) {
       TurretGroupSpec tgs = getTurretGroupSpec();
       tgs.turretSpec.setParam(0, TurretSpec.TurretType.DUMMY, rand);

@@ -185,9 +185,9 @@ public class StageManager {
     float tr = rank;
     int largeShipNum = cast(int) ((2 - _blockDensity + rand.nextSignedFloat(1)) * 0.5f);
     if (noSmallShip)
-      largeShipNum *= 1.5f;
+      largeShipNum = cast(int)(largeShipNum * 1.5f);
     else
-      largeShipNum *= 0.5f;
+      largeShipNum = cast(int)(largeShipNum * 0.5f);
     int appType = rand.nextInt(2);
     if (largeShipNum > 0) {
       float lr = tr * (0.25f + rand.nextFloat(0.15f));
