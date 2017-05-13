@@ -112,7 +112,7 @@ impl Shot {
         if remove_enemy {
             context.audio
                 .as_mut()
-                .map(|audio| audio.mark_sfx("hit.wav"));
+                .map(|audio| audio.mark_sfx("hit"));
         }
 
         if remove {

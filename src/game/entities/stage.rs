@@ -139,7 +139,7 @@ impl Stage {
         self.background_timer = self.background_timer.saturating_sub(1);
         if self.background_timer == 0 {
             if self.boss_mode() {
-                context.audio.as_mut().map(|audio| audio.play_music("gr0.ogg"));
+                context.audio.as_mut().map(|audio| audio.play_music("gr0"));
             } else {
                 // context.audio.as_mut().map(|audio| audio.play_next());
             }

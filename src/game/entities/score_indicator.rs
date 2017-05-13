@@ -178,7 +178,7 @@ impl ScoreIndicator {
     fn next_target(&mut self, reel: &mut ScoreReel, context: &mut GameStateContext, rand: &mut Rand) -> PoolRemoval {
         if self.target_index > 0 {
             if let Some(ref mut audio) = context.audio {
-                audio.mark_sfx("score_up.wav");
+                audio.mark_sfx("score_up");
             }
         }
 

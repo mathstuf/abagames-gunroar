@@ -1371,7 +1371,7 @@ impl EnemyState {
             .and_then(|destroy| destroy.step(rand));
 
         if let Some(interval) = interval {
-            context.audio.as_mut().map(|audio| audio.mark_sfx("explode.wav"));
+            context.audio.as_mut().map(|audio| audio.mark_sfx("explode"));
 
             let n = cmp::min(48, (spec.size.sqrt() * 27. / ((interval as f32) * 0.1 + 1.)) as usize);
             let points = spec.spec.shapes.normal().points();

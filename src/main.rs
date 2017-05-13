@@ -102,11 +102,13 @@ fn try_main() -> Result<(), Box<Error>> {
     let brightness = matches.value_of("BRIGHTNESS")
         .map_or(100., |s| s.parse().expect("could not parse brightness as an integer"));
 
-    let mut builder = try!(SdlBuilder::new("gunroar", env!("CARGO_MANIFEST_DIR")));
+    let mut builder = try!(SdlBuilder::new("gunroar"));
     let (mut info, mainloop) = try!(builder
         .with_audio(!matches.is_present("NO_SOUND"))
         //.windowed_mode(matches.is_present("WINDOWED"))
         .windowed_mode(true)
+        .with_music(game::data::MUSIC_DATA.iter())
+        .with_sfx(game::data::SFX_DATA.iter())
         .build());
     let game = try!(Gunroar::new(&mut info, brightness / 100.));
     try!(mainloop.run(game));
