@@ -75,7 +75,7 @@ impl<'a, 'b> Game for Gunroar<'a, 'b> {
                 false
             },
             Event::Window { win_event: WindowEvent::Resized(width, height), .. } => {
-                self.info.video.resize(width as u32, height as u32);
+                self.info.video.resize((width as u32, height as u32).into());
                 false
             },
             _ => false,
