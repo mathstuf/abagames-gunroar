@@ -348,7 +348,7 @@ impl<R> GameState<R>
         self.wakes_draw.prep_draw(factory, &self.wakes);
         self.sparks_draw.prep_draw(factory, &self.sparks);
         self.smokes_draw.prep_draw(factory, &self.smokes);
-        self.fragments_draw.prep_draw(factory, &self.fragments);
+        // self.fragments_draw.prep_draw(factory, &self.fragments);
         self.spark_fragments_draw.prep_draw(factory, &self.spark_fragments, &mut self.rand);
         self.bullet_draw.prep_draw_crystals(factory, &self.crystals);
         {
@@ -357,7 +357,7 @@ impl<R> GameState<R>
         }
         self.bullet_draw.prep_draw_shots(factory, &self.shots);
         self.ship_draw.prep_draw(factory, None, &self.ship);
-        self.bullet_draw.prep_draw(factory, &self.bullets);
+        // self.bullet_draw.prep_draw(factory, &self.bullets);
     }
 
     pub fn draw<C>(&self, encoder: &mut EncoderContext<R, C>)
