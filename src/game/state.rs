@@ -414,7 +414,7 @@ impl<R> GameState<R>
     pub fn draw_sidebars<C>(&self, encoder: &mut EncoderContext<R, C>)
         where C: gfx::CommandBuffer<R>,
     {
-        // self.field_draw.draw_sidebars(encoder);
+        self.field_draw.draw_sidebars(encoder);
     }
 
     pub fn draw_front<C>(&mut self, encoder: &mut EncoderContext<R, C>, data: &GameData)
