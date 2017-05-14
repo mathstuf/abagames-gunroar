@@ -515,7 +515,7 @@ impl<R> ShipDraw<R>
     {
         let scale = Matrix4::from_scale(0.7);
         (0..lives)
-            .fold(-12., |x, i| {
+            .fold(-12., |x, _| {
                 let translate = Matrix4::from_translation(Vector3::new(x, -9., 0.));
                 shape_draw.draw_front(context, &ship.boats[0].shape, scale * translate);
                 x + 0.7

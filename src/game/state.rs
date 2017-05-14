@@ -267,9 +267,9 @@ impl<R> GameState<R>
             enemies.run_ref(|ref mut enemy, other| enemy.step(field, bullets, ship, smokes, sparks, spark_fragments, wakes, other, context, rand));
         }
         {
-            let (shots, field, stage, bullets, enemies, crystals, fragments, smokes, sparks, spark_fragments, indicators, reel, rand) =
-                (&mut self.shots, &self.field, &self.stage, &mut self.bullets, &mut self.enemies, &mut self.crystals, &mut self.fragments, &mut self.smokes, &mut self.sparks, &mut self.spark_fragments, &mut self.indicators, &mut self.reel, &mut self.rand);
-            shots.run(|ref mut shot| shot.step(field, stage, bullets, enemies, crystals, fragments, smokes, sparks, spark_fragments, indicators, reel, context, rand));
+            let (shots, field, stage, bullets, enemies, crystals, fragments, smokes, sparks, indicators, reel, rand) =
+                (&mut self.shots, &self.field, &self.stage, &mut self.bullets, &mut self.enemies, &mut self.crystals, &mut self.fragments, &mut self.smokes, &mut self.sparks, &mut self.indicators, &mut self.reel, &mut self.rand);
+            shots.run(|ref mut shot| shot.step(field, stage, bullets, enemies, crystals, fragments, smokes, sparks, indicators, reel, context, rand));
         }
         {
             let (bullets, field, ship, smokes, wakes, rand) = (&mut self.bullets,

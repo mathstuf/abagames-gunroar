@@ -947,7 +947,7 @@ impl<R> ShapeDraw<R>
         let slice = self.slice_map.get(&cmd_category.slice_kind())
             .expect("expected to have a slice for a command");
         match *cmd_category {
-            ShapeCategory::Loop { category, closure } => {
+            ShapeCategory::Loop { closure, .. } => {
                 let pso = match closure {
                     Closure::Open => &self.loop_outline_pso,
                     Closure::Closed => &self.loop_fan_pso,

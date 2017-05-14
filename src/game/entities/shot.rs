@@ -9,7 +9,7 @@ use game::entities::bullet::Bullet;
 use game::entities::crystal::Crystal;
 use game::entities::enemy::Enemy;
 use game::entities::field::{Field, FIELD_SIZE};
-use game::entities::particles::{Fragment, Smoke, SmokeKind, Spark, SparkFragment};
+use game::entities::particles::{Fragment, Smoke, SmokeKind, Spark};
 use game::entities::reel::ScoreReel;
 use game::entities::score_indicator::ScoreIndicator;
 use game::entities::stage::Stage;
@@ -68,7 +68,7 @@ impl Shot {
         }.into();
     }
 
-    pub fn step(&mut self, field: &Field, stage: &Stage, bullets: &mut Pool<Bullet>, enemies: &mut Pool<Enemy>, crystals: &mut Pool<Crystal>, fragments: &mut Pool<Fragment>, smokes: &mut Pool<Smoke>, sparks: &mut Pool<Spark>, spark_fragments: &mut Pool<SparkFragment>, indicators: &mut Pool<ScoreIndicator>, reel: &mut ScoreReel, context: &mut GameStateContext, rand: &mut Rand) -> PoolRemoval {
+    pub fn step(&mut self, field: &Field, stage: &Stage, bullets: &mut Pool<Bullet>, enemies: &mut Pool<Enemy>, crystals: &mut Pool<Crystal>, fragments: &mut Pool<Fragment>, smokes: &mut Pool<Smoke>, sparks: &mut Pool<Spark>, indicators: &mut Pool<ScoreIndicator>, reel: &mut ScoreReel, context: &mut GameStateContext, rand: &mut Rand) -> PoolRemoval {
         self.count = self.count.saturating_add(1);
         if self.hit_count > 0 {
             self.hit_count = self.hit_count.saturating_add(1);
@@ -107,7 +107,7 @@ impl Shot {
             });
         }
         let remove_enemy = enemies.iter_mut()
-            .any(|enemy| enemy.check_shot_hit(self, stage, bullets, crystals, fragments, smokes, sparks, spark_fragments, indicators, reel, context, rand) == PoolRemoval::Remove);
+            .any(|enemy| enemy.check_shot_hit(self, stage, bullets, crystals, fragments, smokes, sparks, indicators, reel, context, rand) == PoolRemoval::Remove);
 
         if remove_enemy {
             context.audio

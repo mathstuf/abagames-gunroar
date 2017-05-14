@@ -49,12 +49,12 @@ impl Appearance {
         self.spec = None;
     }
 
-    fn step(&mut self, field: &Field, ship: &Ship, enemies: &mut Pool<Enemy>, rand: &mut Rand) {
+    fn step(&mut self, field: &Field, enemies: &mut Pool<Enemy>, rand: &mut Rand) {
         if let Some(spec) = self.spec {
             self.next_dist -= field.last_scroll_y();
             if self.next_dist <= 0. {
                 self.next_dist += self.next_dist_interval;
-                if let Some(state) = EnemyState::for_ship(&spec, self.kind, field, ship, enemies, rand) {
+                if let Some(state) = EnemyState::appear(&spec, self.kind, field, enemies, rand) {
                     enemies.get()
                         .map(|enemy| enemy.init(spec, state));
                 }
@@ -155,7 +155,7 @@ impl Stage {
             .iter_mut()
             .filter(|appear| appear.spec.is_some())
             .foreach(|appearances| {
-                appearances.step(field, ship, enemies, rand)
+                appearances.step(field, enemies, rand)
             })
     }
 
@@ -202,7 +202,7 @@ impl Stage {
         self.boss_app_count = self.boss_app_count.saturating_sub(1);
         if self.boss_app_count == 0 {
             let spec = EnemySpec::ship(self.rank, ShipClass::Boss, ship, rand);
-            if let Some(state) = EnemyState::for_ship(&spec, EnemyAppearance::Center, field, ship, enemies, rand) {
+            if let Some(state) = EnemyState::appear(&spec, EnemyAppearance::Center, field, enemies, rand) {
                 if let Some(enemy) = enemies.get() {
                     enemy.init(spec, state);
                 } else {
