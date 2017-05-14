@@ -340,9 +340,9 @@ impl Field {
     }
 
     pub fn block(&self, pos: Vector2<f32>) -> Block {
-        let y = self.screen_y.fract();
+        let y = pos.y - self.screen_y.fract();
         let block_x = ((pos.x + (BLOCK_WIDTH * (SCREEN_BLOCK_SIZE_X as f32) / 2.)) / BLOCK_WIDTH) as i32;
-        let block_y = (self.screen_y + (-pos.y + (BLOCK_WIDTH * (SCREEN_BLOCK_SIZE_Y as f32) / 2.)) / BLOCK_WIDTH) as i32;
+        let block_y = (self.screen_y + (-y + (BLOCK_WIDTH * (SCREEN_BLOCK_SIZE_Y as f32) / 2.)) / BLOCK_WIDTH) as i32;
 
         if !between(0, block_x, BLOCK_SIZE_X as i32) {
             return Block::Shore;
