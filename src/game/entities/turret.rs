@@ -826,7 +826,7 @@ impl TurretGroup {
                     };
 
                     let pos = Vector2::new(self.spec.offset.x, new_y);
-                    (data, pos, Rad::atan2(pos.y, pos.x))
+                    (new_data, pos, Rad::atan2(pos.y, pos.x))
                 },
             };
             let base_pos = Vector2::new(base_pos.x * (1. - self.spec.distance_ratio), base_pos.y);
