@@ -12,7 +12,7 @@ homepage = "https://github.com/mathstuf/abagames-gunroar/tree/rust"
 cgmath = "~0.14"
 clap = "~2.20"
 error-chain = "~0.10"
-gfx = "~0.15"
+gfx = "~0.16"
 image = { version = "~0.13", default-features = false, features = ["bmp"] }
 itertools = "~0.6"
 lazy_static = "~0.2"
