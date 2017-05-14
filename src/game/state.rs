@@ -476,6 +476,6 @@ impl<R> GameState<R>
     pub fn draw_ortho_game<C>(&self, encoder: &mut EncoderContext<R, C>)
         where C: gfx::CommandBuffer<R>,
     {
-        // self.stage.draw(encoder, &self.letter);
+        self.stage.draw(encoder, &self.letter);
     }
 }
