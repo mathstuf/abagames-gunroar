@@ -14,6 +14,7 @@ use crates::cgmath::{Angle, Matrix4, Rad, Vector2, Vector3};
 use crates::gfx;
 use crates::gfx::traits::FactoryExt;
 use crates::itertools::Itertools;
+use crates::rayon::prelude::*;
 
 use game::render::{EncoderContext, RenderContext};
 use game::render::{Brightness, ScreenTransform};
@@ -746,7 +747,7 @@ impl<R> ShapeDraw<R>
                   -> Self
         where F: gfx::Factory<R>,
     {
-        let loop_vertex_data = LOOP_DATA.iter()
+        let loop_vertex_data = LOOP_DATA.par_iter()
             .map(|data| {
                 Sweep {
                     angle: data.angle.0,

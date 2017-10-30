@@ -21,6 +21,7 @@ mod crates {
     pub extern crate image;
     pub extern crate itertools;
     pub extern crate log;
+    pub extern crate rayon;
     pub extern crate sdl2;
 }
 

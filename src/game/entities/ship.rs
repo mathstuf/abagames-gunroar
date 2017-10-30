@@ -6,6 +6,7 @@ use crates::cgmath::{Angle, Deg, InnerSpace, Matrix4, MetricSpace, Rad, Vector2,
 use crates::gfx;
 use crates::gfx::traits::FactoryExt;
 use crates::itertools::Itertools;
+use crates::rayon::prelude::*;
 
 use game::entities::shapes::{BaseShape, Shape, ShapeDraw, ShapeKind};
 use game::entities::shapes::shield::ShieldDraw;
@@ -60,7 +61,7 @@ impl Ship {
 
     pub fn nearest_boat(&self, pos: Vector2<f32>) -> &Boat {
         self.boats[0..self.num_boats]
-            .iter()
+            .par_iter()
             .map(|boat| {
                 (boat, abagames_util::fast_distance(boat.pos, pos))
             })
@@ -71,7 +72,7 @@ impl Ship {
 
     pub fn highest_y(&self) -> f32 {
         self.boats[0..self.num_boats]
-            .iter()
+            .par_iter()
             .map(|boat| boat.pos.y)
             .max_by(|&y_a, &y_b| y_a.partial_cmp(&y_b).expect("positions should not be NaN"))
             .expect("expected there to be at least one position")
@@ -79,7 +80,7 @@ impl Ship {
 
     pub fn mid_pos(&self) -> Vector2<f32> {
         let sum: Vector2<f32> = self.boats[0..self.num_boats]
-            .iter()
+            .par_iter()
             .map(|boat| boat.pos)
             .sum();
 
@@ -88,7 +89,7 @@ impl Ship {
 
     pub fn is_hit(&self, pos: Vector2<f32>, prev_pos: Vector2<f32>) -> bool {
         self.boats[0..self.num_boats]
-            .iter()
+            .par_iter()
             .any(|boat| boat.is_hit(pos, prev_pos))
     }
 }

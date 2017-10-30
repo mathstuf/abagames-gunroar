@@ -5,6 +5,7 @@ use crates::abagames_util::{self, Rand};
 use crates::cgmath::{Angle, Deg, Matrix4, Vector2, Vector3};
 use crates::gfx;
 use crates::itertools::Itertools;
+use crates::rayon::prelude::*;
 
 use game::entities::letter::{self, Letter};
 use game::render::EncoderContext;
@@ -41,16 +42,16 @@ impl ScoreReel {
         self.actual_score = 0;
         self.digits = digits;
         self.reels
-            .iter_mut()
+            .par_iter_mut()
             .take(self.digits)
-            .foreach(NumberReel::clear)
+            .for_each(NumberReel::clear)
     }
 
     pub fn step(&mut self) {
         self.reels
-            .iter_mut()
+            .par_iter_mut()
             .take(self.digits)
-            .foreach(NumberReel::step)
+            .for_each(NumberReel::step)
     }
 
     pub fn draw<R, C>(&mut self, context: &mut EncoderContext<R, C>, letter: &Letter<R>,
@@ -84,9 +85,9 @@ impl ScoreReel {
 
     pub fn accelerate(&mut self) {
         self.reels
-            .iter_mut()
+            .par_iter_mut()
             .take(self.digits)
-            .foreach(|reel| reel.accelerate())
+            .for_each(NumberReel::accelerate)
     }
 
     pub fn add_actual_score(&mut self, score: u32) {

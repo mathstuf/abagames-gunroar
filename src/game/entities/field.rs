@@ -6,6 +6,7 @@ use crates::cgmath::{Angle, ElementWise, Rad, Vector2, Vector3};
 use crates::gfx;
 use crates::gfx::traits::FactoryExt;
 use crates::itertools::Itertools;
+use crates::rayon::prelude::*;
 
 use game::entities::enemy::Enemy;
 use game::entities::ship::Ship;
@@ -770,8 +771,8 @@ impl<R> FieldDraw<R>
         let blend = field.color_step.fract();
 
         let colors = BASE_COLOR_TIME[color_index]
-            .iter()
-            .zip(BASE_COLOR_TIME[next_color_index].iter())
+            .par_iter()
+            .zip(BASE_COLOR_TIME[next_color_index].par_iter())
             .map(|(color_0, color_1)| color_0 * (1. - blend) + color_1 * blend)
             .collect::<Vec<_>>();
 

@@ -6,6 +6,7 @@ use crates::cgmath::{Angle, ElementWise, Rad, Matrix4, MetricSpace, Vector2, Vec
 use crates::gfx;
 use crates::gfx::traits::FactoryExt;
 use crates::itertools::Itertools;
+use crates::rayon::prelude::*;
 
 use game::entities::bullet::Bullet;
 use game::entities::field::Field;
@@ -779,8 +780,8 @@ impl TurretGroup {
     pub fn init(&mut self, spec: TurretGroupSpec, is_boss: bool, index: u32) {
         self.spec = spec;
         self.turrets_mut()
-            .iter_mut()
-            .foreach(|turret| turret.init(spec.spec.clone(), is_boss, index));
+            .par_iter_mut()
+            .for_each(|turret| turret.init(spec.spec.clone(), is_boss, index));
     }
 
     pub fn step(&mut self, pos: Vector2<f32>, step_angle: Rad<f32>, field: &Field, bullets: &mut Pool<Bullet>, smokes: &mut Pool<Smoke>, ship: &Ship, rand: &mut Rand) -> TurretState {
@@ -858,8 +859,8 @@ impl TurretGroup {
 
     pub fn destroy(&mut self) {
         self.turrets_mut()
-            .iter_mut()
-            .foreach(|turret| turret.destroy())
+            .par_iter_mut()
+            .for_each(|turret| turret.destroy())
     }
 
     pub fn prep_draw(&mut self, rand: &mut Rand) {
@@ -1121,8 +1122,8 @@ impl MovingTurretGroup {
         };
 
         self.turrets_mut()
-            .iter_mut()
-            .foreach(|turret| turret.init(spec.spec.clone(), is_boss, index));
+            .par_iter_mut()
+            .for_each(|turret| turret.init(spec.spec.clone(), is_boss, index));
     }
 
     pub fn step(&mut self, pos: Vector2<f32>, step_angle: Rad<f32>, field: &Field, bullets: &mut Pool<Bullet>, smokes: &mut Pool<Smoke>, ship: &Ship, rand: &mut Rand) {
@@ -1204,8 +1205,8 @@ impl MovingTurretGroup {
 
     pub fn destroy(&mut self) {
         self.turrets_mut()
-            .iter_mut()
-            .foreach(|turret| turret.destroy())
+            .par_iter_mut()
+            .for_each(|turret| turret.destroy())
     }
 }
 

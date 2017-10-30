@@ -17,6 +17,7 @@ image = { version = "~0.17", default-features = false, features = ["bmp"] }
 itertools = "~0.7"
 lazy_static = "~0.2"
 log = "~0.3"
+rayon = "~0.8"
 sdl2 = "~0.30"
 
 [dependencies.abagames-util]

@@ -5,6 +5,7 @@ use crates::abagames_util::{self, Pool, Rand};
 use crates::cgmath::Vector2;
 use crates::gfx;
 use crates::itertools::Itertools;
+use crates::rayon::prelude::*;
 
 use game::entities::enemy::{Enemy, EnemyAppearance, EnemySpec, EnemyState, ShipClass};
 use game::entities::field::{Field, NEXT_BLOCK_AREA_SIZE_F32};
@@ -161,7 +162,7 @@ impl Stage {
 
     fn boss_step(&mut self, enemies: &Pool<Enemy>, context: &mut GameStateContext) {
         self.rank_add *= 0.999;
-        if self.boss_app_count == 0 && enemies.iter().any(Enemy::is_boss) {
+        if self.boss_app_count == 0 && enemies.par_iter().any(Enemy::is_boss) {
             self.reset_boss(context);
         }
     }
@@ -211,8 +212,8 @@ impl Stage {
             }
         }
         self.appearances
-            .iter_mut()
-            .foreach(Appearance::reset);
+            .par_iter_mut()
+            .for_each(Appearance::reset);
     }
 
     fn next_block_area_regular(&mut self, ship: &Ship, rand: &mut Rand) {

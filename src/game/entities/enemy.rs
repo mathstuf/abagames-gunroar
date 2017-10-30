@@ -5,6 +5,7 @@ use crates::abagames_util::{self, Pool, PoolChainIter, PoolRemoval, Rand};
 use crates::cgmath::{Angle, Matrix4, Rad, Vector2, Vector3};
 use crates::gfx;
 use crates::itertools::{FoldWhile, Itertools};
+use crates::rayon::prelude::*;
 
 use game::entities::bullet::Bullet;
 use game::entities::crystal::Crystal;
@@ -260,8 +261,8 @@ impl BaseEnemySpec {
         let color = EnemyShapes::color(color_factor);
         self.shapes.set_color(color);
         self.turret_groups[0..self.num_turret_groups]
-            .iter_mut()
-            .foreach(|group| group.set_color(color));
+            .par_iter_mut()
+            .for_each(|group| group.set_color(color));
     }
 
     fn add_turret_group(&mut self, spec: TurretGroupSpec) {
@@ -1214,17 +1215,17 @@ impl EnemyState {
         self.index = index;
 
         let group_specs = spec.turret_group_specs();
-        group_specs.iter()
+        group_specs.par_iter()
             .cloned()
-            .zip(self.turret_groups.iter_mut())
-            .foreach(|(turret_spec, group)| group.init(turret_spec, spec.is_boss(), index));
+            .zip(self.turret_groups.par_iter_mut())
+            .for_each(|(turret_spec, group)| group.init(turret_spec, spec.is_boss(), index));
         self.num_turret_groups = group_specs.len();
 
         let moving_group_specs = spec.moving_turret_group_specs();
-        moving_group_specs.iter()
+        moving_group_specs.par_iter()
             .cloned()
-            .zip(self.moving_turret_groups.iter_mut())
-            .foreach(|(turret_spec, group)| group.init(turret_spec, spec.is_boss(), index));
+            .zip(self.moving_turret_groups.par_iter_mut())
+            .for_each(|(turret_spec, group)| group.init(turret_spec, spec.is_boss(), index));
         self.num_moving_turret_groups = moving_group_specs.len();
     }
 
@@ -1583,11 +1584,11 @@ impl EnemyState {
         });
 
         self.turret_groups[0..self.num_turret_groups]
-            .iter_mut()
-            .foreach(|group| group.destroy());
+            .par_iter_mut()
+            .for_each(|group| group.destroy());
         self.moving_turret_groups[0..self.num_moving_turret_groups]
-            .iter_mut()
-            .foreach(|group| group.destroy());
+            .par_iter_mut()
+            .for_each(|group| group.destroy());
 
         let sfx = if let EnemyKind::SmallShip = spec.spec.kind {
             "small_destroyed.wav"
