@@ -1,7 +1,7 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
-use crates::abagames_util::{self, Audio, Input, Pool, Rand, Scancode, StepResult};
+use crates::abagames_util::{self, Audio, Input, Pool, Rand, Scancode, StepResult, TargetFormat};
 use crates::cgmath::Vector2;
 use crates::itertools::Itertools;
 use crates::gfx;
@@ -157,7 +157,7 @@ static INDICATOR_Y_INTERVAL: f32 = 1.;
 impl<R> GameState<R>
     where R: gfx::Resources,
 {
-    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, gfx::format::Srgba8>,
+    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, TargetFormat>,
                   context: &RenderContext<R>)
                   -> Self
         where F: gfx::Factory<R>,

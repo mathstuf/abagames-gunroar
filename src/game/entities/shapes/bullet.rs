@@ -1,7 +1,7 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
-use crates::abagames_util::{self, Pool};
+use crates::abagames_util::{self, Pool, TargetFormat};
 use crates::cgmath::Matrix4;
 use crates::gfx;
 use crates::gfx::traits::FactoryExt;
@@ -76,7 +76,7 @@ gfx_defines! {
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
         modelmat: gfx::ConstantBuffer<ModelMat> = "ModelMat",
         color: gfx::ConstantBuffer<Color> = "Color",
-        out_color: gfx::BlendTarget<gfx::format::Srgba8> =
+        out_color: gfx::BlendTarget<TargetFormat> =
             ("Target0",
              gfx::state::MASK_ALL,
              gfx::state::Blend::new(gfx::state::Equation::Add,
@@ -90,7 +90,7 @@ gfx_defines! {
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
         modelmat: gfx::ConstantBuffer<ModelMat> = "ModelMat",
         color: gfx::ConstantBuffer<Color> = "Color",
-        out_color: gfx::RenderTarget<gfx::format::Srgba8> = "Target0",
+        out_color: gfx::RenderTarget<TargetFormat> = "Target0",
     }
 
     pipeline pipe3 {
@@ -99,7 +99,7 @@ gfx_defines! {
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
         modelmat: gfx::ConstantBuffer<ModelMat> = "ModelMat",
         color: gfx::ConstantBuffer<Color> = "Color",
-        out_color: gfx::BlendTarget<gfx::format::Srgba8> =
+        out_color: gfx::BlendTarget<TargetFormat> =
             ("Target0",
              gfx::state::MASK_ALL,
              gfx::state::Blend::new(gfx::state::Equation::Add,
@@ -113,7 +113,7 @@ gfx_defines! {
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
         modelmat: gfx::ConstantBuffer<ModelMat> = "ModelMat",
         color: gfx::ConstantBuffer<Color> = "Color",
-        out_color: gfx::RenderTarget<gfx::format::Srgba8> = "Target0",
+        out_color: gfx::RenderTarget<TargetFormat> = "Target0",
     }
 
     pipeline shot_pipe {
@@ -122,7 +122,7 @@ gfx_defines! {
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
         instances: gfx::InstanceBuffer<ShapeMat> = (),
         color: gfx::ConstantBuffer<Color> = "Color",
-        out_color: gfx::BlendTarget<gfx::format::Srgba8> =
+        out_color: gfx::BlendTarget<TargetFormat> =
             ("Target0",
              gfx::state::MASK_ALL,
              gfx::state::Blend::new(gfx::state::Equation::Add,
@@ -136,7 +136,7 @@ gfx_defines! {
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
         instances: gfx::InstanceBuffer<ShapeMat> = (),
         color: gfx::ConstantBuffer<Color> = "Color",
-        out_color: gfx::BlendTarget<gfx::format::Srgba8> =
+        out_color: gfx::BlendTarget<TargetFormat> =
             ("Target0",
              gfx::state::MASK_ALL,
              gfx::state::Blend::new(gfx::state::Equation::Add,
@@ -199,7 +199,7 @@ pub struct BulletDraw<R>
 impl<R> BulletDraw<R>
     where R: gfx::Resources,
 {
-    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, gfx::format::Srgba8>,
+    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, TargetFormat>,
                   context: &RenderContext<R>)
                   -> Self
         where F: gfx::Factory<R>,

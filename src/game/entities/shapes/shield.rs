@@ -1,7 +1,7 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
-use crates::abagames_util;
+use crates::abagames_util::{self, TargetFormat};
 use crates::cgmath::{Angle, Matrix4, Rad};
 use crates::gfx;
 use crates::gfx::traits::FactoryExt;
@@ -30,7 +30,7 @@ gfx_defines! {
         screen: gfx::ConstantBuffer<ScreenTransform> = "Screen",
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
         modelmat: gfx::ConstantBuffer<ModelMat> = "ModelMat",
-        out_color: gfx::BlendTarget<gfx::format::Srgba8> =
+        out_color: gfx::BlendTarget<TargetFormat> =
             ("Target0",
              gfx::state::MASK_ALL,
              gfx::state::Blend::new(gfx::state::Equation::Add,
@@ -51,7 +51,7 @@ pub struct ShieldDraw<R>
 impl<R> ShieldDraw<R>
     where R: gfx::Resources,
 {
-    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, gfx::format::Srgba8>,
+    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, TargetFormat>,
                   context: &RenderContext<R>)
                   -> Self
         where F: gfx::Factory<R>,

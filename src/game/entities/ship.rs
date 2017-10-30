@@ -1,7 +1,7 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
-use crates::abagames_util;
+use crates::abagames_util::{self, TargetFormat};
 use crates::cgmath::{Angle, Deg, InnerSpace, Matrix4, MetricSpace, Rad, Vector2, Vector3};
 use crates::gfx;
 use crates::gfx::traits::FactoryExt;
@@ -204,7 +204,7 @@ gfx_defines! {
         rotation: gfx::ConstantBuffer<Rotation> = "Rotation",
         screen: gfx::ConstantBuffer<ScreenTransform> = "Screen",
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
-        out_color: gfx::RenderTarget<gfx::format::Srgba8> = "Target0",
+        out_color: gfx::RenderTarget<TargetFormat> = "Target0",
     }
 
     pipeline line_pipe {
@@ -212,7 +212,7 @@ gfx_defines! {
         line: gfx::ConstantBuffer<LineData> = "LineData",
         screen: gfx::ConstantBuffer<ScreenTransform> = "Screen",
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
-        out_color: gfx::RenderTarget<gfx::format::Srgba8> = "Target0",
+        out_color: gfx::RenderTarget<TargetFormat> = "Target0",
     }
 
     pipeline sight_pipe {
@@ -220,7 +220,7 @@ gfx_defines! {
         instances: gfx::InstanceBuffer<PerSight> = (),
         screen: gfx::ConstantBuffer<ScreenTransform> = "Screen",
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
-        out_color: gfx::RenderTarget<gfx::format::Srgba8> = "Target0",
+        out_color: gfx::RenderTarget<TargetFormat> = "Target0",
     }
 }
 
@@ -249,7 +249,7 @@ pub struct ShipDraw<R>
 impl<R> ShipDraw<R>
     where R: gfx::Resources,
 {
-    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, gfx::format::Srgba8>,
+    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, TargetFormat>,
                   context: &RenderContext<R>)
                   -> Self
         where F: gfx::Factory<R>,

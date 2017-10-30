@@ -1,7 +1,7 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
-use crates::abagames_util;
+use crates::abagames_util::{self, TargetFormat};
 use crates::cgmath::{Matrix4, Vector2};
 use crates::gfx;
 use crates::gfx::traits::FactoryExt;
@@ -45,7 +45,7 @@ gfx_defines! {
         model: gfx::ConstantBuffer<ModelTransform> = "ModelTransform",
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
         sampler: gfx::TextureSampler<[f32; 4]> = "sampler",
-        out_color: gfx::BlendTarget<gfx::format::Srgba8> =
+        out_color: gfx::BlendTarget<TargetFormat> =
             ("Target0",
              gfx::state::MASK_ALL,
              gfx::state::Blend::new(gfx::state::Equation::Add,
@@ -58,7 +58,7 @@ gfx_defines! {
         screen: gfx::ConstantBuffer<ScreenTransform> = "Screen",
         model: gfx::ConstantBuffer<ModelTransform> = "ModelTransform",
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
-        out_color: gfx::BlendTarget<gfx::format::Srgba8> =
+        out_color: gfx::BlendTarget<TargetFormat> =
             ("Target0",
              gfx::state::MASK_ALL,
              gfx::state::Blend::new(gfx::state::Equation::Add,
@@ -71,7 +71,7 @@ gfx_defines! {
         screen: gfx::ConstantBuffer<ScreenTransform> = "Screen",
         model: gfx::ConstantBuffer<ModelTransform> = "ModelTransform",
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
-        out_color: gfx::BlendTarget<gfx::format::Srgba8> =
+        out_color: gfx::BlendTarget<TargetFormat> =
             ("Target0",
              gfx::state::MASK_ALL,
              gfx::state::Blend::new(gfx::state::Equation::Add,
@@ -102,7 +102,7 @@ pub struct Title<R>
 impl<R> Title<R>
     where R: gfx::Resources,
 {
-    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, gfx::format::Srgba8>,
+    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, TargetFormat>,
                   context: &RenderContext<R>)
                   -> Self
         where F: gfx::Factory<R>,
@@ -131,7 +131,7 @@ impl<R> Title<R>
             logo_height as gfx::texture::Size,
             gfx::texture::AaMode::Single);
         let (_, logo_tex) =
-            factory.create_texture_immutable_u8::<gfx::format::Rgba8>(logo_tex_kind, &[&logo_img])
+            factory.create_texture_immutable_u8::<TargetFormat>(logo_tex_kind, &[&logo_img])
                 .expect("failed to create the logo texture");
         let logo_sampler = factory.create_sampler(gfx::texture::SamplerInfo::new(
             gfx::texture::FilterMethod::Mipmap,

@@ -1,7 +1,7 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
-use crates::abagames_util;
+use crates::abagames_util::{self, TargetFormat};
 use crates::cgmath::{Deg, ElementWise, Matrix4, Rad, Vector2, Vector3};
 use crates::gfx;
 use crates::gfx::traits::FactoryExt;
@@ -39,7 +39,7 @@ gfx_defines! {
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
         letter: gfx::ConstantBuffer<LetterTransforms> = "LetterTransforms",
         segment: gfx::ConstantBuffer<LetterSegments> = "LetterSegments",
-        out_color: gfx::BlendTarget<gfx::format::Srgba8> =
+        out_color: gfx::BlendTarget<TargetFormat> =
             ("Target0",
              gfx::state::MASK_ALL,
              gfx::state::Blend::new(gfx::state::Equation::Add,
@@ -600,7 +600,7 @@ pub struct Letter<R>
 impl<R> Letter<R>
     where R: gfx::Resources,
 {
-    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, gfx::format::Srgba8>,
+    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, TargetFormat>,
                   context: &RenderContext<R>)
                   -> Self
         where F: gfx::Factory<R>,

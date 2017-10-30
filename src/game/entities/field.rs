@@ -1,7 +1,7 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
-use crates::abagames_util::{self, Pool, Rand};
+use crates::abagames_util::{self, Pool, Rand, TargetFormat};
 use crates::cgmath::{Angle, ElementWise, Rad, Vector2, Vector3};
 use crates::gfx;
 use crates::gfx::traits::FactoryExt;
@@ -657,7 +657,7 @@ gfx_defines! {
         vbuf: gfx::VertexBuffer<Position> = (),
         instances: gfx::InstanceBuffer<PerSidebar> = (),
         screen: gfx::ConstantBuffer<ScreenTransform> = "Screen",
-        out_color: gfx::RenderTarget<gfx::format::Srgba8> = "Target0",
+        out_color: gfx::RenderTarget<TargetFormat> = "Target0",
     }
 
     pipeline panel_pipe {
@@ -665,7 +665,7 @@ gfx_defines! {
         instances: gfx::InstanceBuffer<PerPanel> = (),
         screen: gfx::ConstantBuffer<ScreenTransform> = "Screen",
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
-        out_color: gfx::BlendTarget<gfx::format::Srgba8> =
+        out_color: gfx::BlendTarget<TargetFormat> =
             ("Target0",
              gfx::state::MASK_ALL,
              gfx::state::Blend::new(gfx::state::Equation::Add,
@@ -685,7 +685,7 @@ pub struct FieldDraw<R>
 impl<R> FieldDraw<R>
     where R: gfx::Resources,
 {
-    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, gfx::format::Srgba8>,
+    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, TargetFormat>,
                   context: &RenderContext<R>)
                   -> Self
         where F: gfx::Factory<R>,

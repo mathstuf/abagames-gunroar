@@ -9,7 +9,7 @@
 //!
 //! This causes the code to be quite tangled, but the logic is also quite tangled.
 
-use crates::abagames_util;
+use crates::abagames_util::{self, TargetFormat};
 use crates::cgmath::{Angle, Matrix4, Rad, Vector2, Vector3};
 use crates::gfx;
 use crates::gfx::traits::FactoryExt;
@@ -670,7 +670,7 @@ gfx_defines! {
         size: gfx::ConstantBuffer<Size> = "Size",
         shape: gfx::ConstantBuffer<ShapeData> = "Shape",
         color: gfx::ConstantBuffer<Color> = "Color",
-        out_color: gfx::BlendTarget<gfx::format::Srgba8> =
+        out_color: gfx::BlendTarget<TargetFormat> =
             ("Target0",
              gfx::state::MASK_ALL,
              gfx::state::Blend::new(gfx::state::Equation::Add,
@@ -687,7 +687,7 @@ gfx_defines! {
         shape: gfx::ConstantBuffer<ShapeData> = "Shape",
         square_loop: gfx::ConstantBuffer<SquareLoop> = "SquareLoop",
         color: gfx::ConstantBuffer<Color> = "Color",
-        out_color: gfx::BlendTarget<gfx::format::Srgba8> =
+        out_color: gfx::BlendTarget<TargetFormat> =
             ("Target0",
              gfx::state::MASK_ALL,
              gfx::state::Blend::new(gfx::state::Equation::Add,
@@ -704,7 +704,7 @@ gfx_defines! {
         shape: gfx::ConstantBuffer<ShapeData> = "Shape",
         pillar: gfx::ConstantBuffer<Pillar> = "Pillar",
         color: gfx::ConstantBuffer<Color> = "Color",
-        out_color: gfx::BlendTarget<gfx::format::Srgba8> =
+        out_color: gfx::BlendTarget<TargetFormat> =
             ("Target0",
              gfx::state::MASK_ALL,
              gfx::state::Blend::new(gfx::state::Equation::Add,
@@ -742,7 +742,7 @@ pub struct ShapeDraw<R>
 impl<R> ShapeDraw<R>
     where R: gfx::Resources,
 {
-    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, gfx::format::Srgba8>,
+    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, TargetFormat>,
                   context: &RenderContext<R>)
                   -> Self
         where F: gfx::Factory<R>,

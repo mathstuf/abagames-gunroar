@@ -1,7 +1,7 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying file LICENSE for details.
 
-use crates::abagames_util::{self, Pool, Rand};
+use crates::abagames_util::{self, Pool, Rand, TargetFormat};
 use crates::cgmath::{Angle, ElementWise, Rad, Matrix4, MetricSpace, Vector2, Vector3};
 use crates::gfx;
 use crates::gfx::traits::FactoryExt;
@@ -1253,7 +1253,7 @@ gfx_defines! {
         next_angle: gfx::ConstantBuffer<NextAngle> = "NextAngle",
         screen: gfx::ConstantBuffer<ScreenTransform> = "Screen",
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
-        out_color: gfx::RenderTarget<gfx::format::Srgba8> = "Target0",
+        out_color: gfx::RenderTarget<TargetFormat> = "Target0",
     }
 }
 
@@ -1272,7 +1272,7 @@ pub struct TurretDraw<R>
 impl<R> TurretDraw<R>
     where R: gfx::Resources,
 {
-    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, gfx::format::Srgba8>,
+    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, TargetFormat>,
                   context: &RenderContext<R>)
                   -> Self
         where F: gfx::Factory<R>,
