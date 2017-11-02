@@ -809,7 +809,7 @@ impl TurretGroup {
 
         let mut dead = true;
         let (sin, cos) = base_angle.sin_cos();
-        for turret in self.turrets[0..self.spec.count as usize].iter_mut() {
+        for turret in self.turrets.iter_mut().take(self.spec.count as usize) {
             let (new_data, base_pos, angle) = match data {
                 TurretGroupData::Round { angle, angle_step } => {
                     let new_data = TurretGroupData::Round {
