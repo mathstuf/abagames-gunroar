@@ -1248,8 +1248,9 @@ impl EnemyState {
             return false;
         }
 
-        let scores = self.turret_groups[0..self.num_turret_groups]
+        let scores = self.turret_groups
             .iter_mut()
+            .take(self.num_turret_groups)
             .filter_map(|group| {
                 let scores = group.collides(shot, smokes, sparks, fragments, context, rand);
 
