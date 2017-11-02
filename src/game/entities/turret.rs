@@ -784,7 +784,7 @@ impl TurretGroup {
             .for_each(|turret| turret.init(spec.spec.clone(), is_boss, index));
     }
 
-    pub fn step(&mut self, pos: Vector2<f32>, step_angle: Rad<f32>, field: &Field, bullets: &mut Pool<Bullet>, smokes: &mut Pool<Smoke>, ship: &Ship, rand: &mut Rand) -> TurretState {
+    pub fn step(&mut self, pos: Vector2<f32>, base_angle: Rad<f32>, field: &Field, bullets: &mut Pool<Bullet>, smokes: &mut Pool<Smoke>, ship: &Ship, rand: &mut Rand) -> TurretState {
         let mut data = match self.spec.alignment {
             TurretGroupAlignment::Round => {
                 if self.spec.count > 1 {
@@ -834,7 +834,7 @@ impl TurretGroup {
             let (cos, sin) = (-angle).sin_cos();
             let pos_offset = Vector2::new(base_pos.x * cos - base_pos.y * sin,
                                           base_pos.x * sin + base_pos.y * cos);
-            let state = turret.step(pos + pos_offset, angle + step_angle, 0., None, field, bullets, smokes, ship, rand);
+            let state = turret.step(pos + pos_offset, angle + base_angle, 0., None, field, bullets, smokes, ship, rand);
 
             if state == TurretState::Alive {
                 dead = false;
