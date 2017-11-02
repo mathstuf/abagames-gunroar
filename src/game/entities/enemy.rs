@@ -1374,14 +1374,14 @@ impl EnemyState {
         self.damaged_count = self.damaged_count.saturating_sub(1);
 
         let mut dead = true;
-        for group in self.turret_groups.iter_mut() {
+        for group in self.turret_groups.iter_mut().take(self.num_turret_groups) {
             let state = group.step(self.pos, self.angle, field, bullets, smokes, ship, rand);
 
             if state == TurretState::Alive {
                 dead = false;
             }
         }
-        for group in self.moving_turret_groups.iter_mut() {
+        for group in self.moving_turret_groups.iter_mut().take(self.num_moving_turret_groups) {
             group.step(self.pos, self.angle, field, bullets, smokes, ship, rand);
         }
 
