@@ -33,21 +33,21 @@ pub const FIELD_OUTER_SIZE: Vector2<f32> = Vector2 {
     y: (SCREEN_BLOCK_SIZE_Y / 2) as f32,
 };
 
-static SIDEWALL_X1: f32 = 18.;
-static SIDEWALL_X2: f32 = 9.3;
-static SIDEWALL_Y: f32 = 15.;
+const SIDEWALL_X1: f32 = 18.;
+const SIDEWALL_X2: f32 = 9.3;
+const SIDEWALL_Y: f32 = 15.;
 
 const TIME_COLOR_SIZE: usize = 5;
-static TIME_CHANGE_RATIO: f32 = 0.00033;
+const TIME_CHANGE_RATIO: f32 = 0.00033;
 
 const SCREEN_BLOCK_SIZE_X: usize = 20;
 const SCREEN_BLOCK_SIZE_Y: usize = 24;
-static BLOCK_WIDTH: f32 = 1.;
+const BLOCK_WIDTH: f32 = 1.;
 
 const MAX_PLATFORMS: usize = SCREEN_BLOCK_SIZE_X * NEXT_BLOCK_AREA_SIZE;
 
-static PANEL_WIDTH: f32 = 1.8;
-static PANEL_HEIGHT_BASE: f32 = 0.66;
+const PANEL_WIDTH: f32 = 1.8;
+const PANEL_HEIGHT_BASE: f32 = 0.66;
 
 static BASE_COLOR_TIME: [[Vector3<f32>; 6]; TIME_COLOR_SIZE] = [
     [

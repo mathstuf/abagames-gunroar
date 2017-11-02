@@ -147,12 +147,12 @@ pub struct GameStateContext<'a, 'b: 'a> {
     pub data: &'a mut GameData,
 }
 
-static SCROLL_SPEED_BASE: f32 = 0.025;
-static REEL_SIZE_DEFAULT: f32 = 0.5;
-static REEL_SIZE_SMALL: f32 = 0.01;
-static INDICATOR_Y_MIN: f32 = -7.;
-static INDICATOR_Y_MAX: f32 = 7.;
-static INDICATOR_Y_INTERVAL: f32 = 1.;
+const SCROLL_SPEED_BASE: f32 = 0.025;
+const REEL_SIZE_DEFAULT: f32 = 0.5;
+const REEL_SIZE_SMALL: f32 = 0.01;
+const INDICATOR_Y_MIN: f32 = -7.;
+const INDICATOR_Y_MAX: f32 = 7.;
+const INDICATOR_Y_INTERVAL: f32 = 1.;
 
 impl<R> GameState<R>
     where R: gfx::Resources,
