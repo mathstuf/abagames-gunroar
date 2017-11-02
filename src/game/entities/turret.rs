@@ -93,7 +93,7 @@ impl TurretKind {
                 if kind == TurretKind::Main {
                     spec.turn_range *= 1.2;
                 }
-                spec.turn_speed = Rad(0.005 * rand.next_float(0.015));
+                spec.turn_speed = Rad(0.005 + rand.next_float(0.015));
                 if rand.next_int(4) == 0 {
                     spec.burst_turn_ratio = rand.next_float(0.66) + 0.33;
                 }
