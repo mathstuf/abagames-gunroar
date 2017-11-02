@@ -808,6 +808,7 @@ impl TurretGroup {
         };
 
         let mut dead = true;
+        let (sin, cos) = base_angle.sin_cos();
         for turret in self.turrets[0..self.spec.count as usize].iter_mut() {
             let (new_data, base_pos, angle) = match data {
                 TurretGroupData::Round { angle, angle_step } => {
@@ -831,7 +832,6 @@ impl TurretGroup {
                 },
             };
             let base_pos = Vector2::new(base_pos.x * (1. - self.spec.distance_ratio), base_pos.y);
-            let (cos, sin) = (-angle).sin_cos();
             let pos_offset = Vector2::new(base_pos.x * cos - base_pos.y * sin,
                                           base_pos.x * sin + base_pos.y * cos);
             let state = turret.step(pos + pos_offset, angle + base_angle, 0., None, field, bullets, smokes, ship, rand);
