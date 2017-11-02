@@ -611,48 +611,50 @@ impl EnemySpec {
             let sub_turret_rank = count.rank / ((3 * count.main + count.sub) as f32);
             let main_turret_rank = sub_turret_rank * 2.5;
             if class.is_boss() {
-                let main_turret_rank = main_turret_rank * 2.5;
-                let sub_turret_rank = sub_turret_rank * 2.;
-
                 if count.main > 0 {
-                    let num_front_main_turret = (count.main + 2) / 4;
-                    let num_rear_main_turret = (count.main - num_front_main_turret * 2) / 2;
+                    let main_turret_rank = main_turret_rank * 2.5;
 
                     let angles = [
                         -Rad::full_turn() / 8.,
+                        Rad::full_turn() / 8.,
                         Rad::full_turn() * 3. / 8.,
-                        Rad::full_turn() * 7. / 8.,
-                        Rad::full_turn() * 11. / 8.,
+                        Rad::full_turn() * 5. / 8.,
                     ];
 
-                    let mut builder = TurretGroupSpecBuilder::default();
-                    builder.init_spec(main_turret_rank, TurretKind::Main, rand)
-                        .as_boss()
-                        .with_count(num_front_main_turret)
-                        .with_alignment(TurretGroupAlignment::Round)
-                        .with_sized_alignment(angles[0], f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8))
-                        .with_radius(count.size * 0.45)
-                        .with_distance_ratio(self.spec.distance_ratio);
-                    let mut mirror = builder;
-                    mirror
-                        .with_sized_alignment(angles[1], f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8));
-                    let mut alt_builder = builder;
-                    self.spec.add_turret_group(builder.into());
-                    self.spec.add_turret_group(mirror.into());
+                    let num_front_main_turret = (count.main + 2) / 4;
+                    if 0 < num_front_main_turret {
+                        let mut builder = TurretGroupSpecBuilder::default();
+                        builder.init_spec(main_turret_rank, TurretKind::Main, rand)
+                            .with_count(num_front_main_turret)
+                            .with_alignment(TurretGroupAlignment::Round)
+                            .with_sized_alignment(angles[0], f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8))
+                            .with_radius(count.size * 0.45)
+                            .with_distance_ratio(self.spec.distance_ratio);
+                        let mut mirror = builder;
+                        mirror
+                            .with_sized_alignment(angles[1], f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8));
+                        self.spec.add_turret_group(builder.into());
+                        self.spec.add_turret_group(mirror.into());
 
-                    alt_builder.with_count(num_rear_main_turret)
-                        .with_sized_alignment(angles[2], f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8));
-                    let mut mirror = alt_builder;
-                    mirror
-                        .with_sized_alignment(angles[3], f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8));
-                    self.spec.add_turret_group(alt_builder.into());
-                    self.spec.add_turret_group(mirror.into());
+                        if num_front_main_turret * 2 + 1 <= count.main {
+                            let num_rear_main_turret = (count.main - num_front_main_turret * 2) / 2;
+                            builder.init_spec(main_turret_rank, TurretKind::Main, rand)
+                                .with_count(num_rear_main_turret)
+                                .with_alignment(TurretGroupAlignment::Round)
+                                .with_sized_alignment(angles[2], f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8))
+                                .with_radius(count.size * 0.45)
+                                .with_distance_ratio(self.spec.distance_ratio);
+                            let mut mirror = builder;
+                            mirror
+                                .with_sized_alignment(angles[3], f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8));
+                            self.spec.add_turret_group(builder.into());
+                            self.spec.add_turret_group(mirror.into());
+                        }
+                    }
                 }
 
                 if count.sub > 0 {
-                    let num_front_sub_turret = (count.sub + 2) / 6;
-                    let num_mid_sub_turret = (count.sub - num_front_sub_turret * 2) / 4;
-                    let num_rear_sub_turret = (count.sub - num_front_sub_turret * 2 - num_mid_sub_turret * 2) / 2;
+                    let sub_turret_rank = sub_turret_rank * 2.;
 
                     let angles = [
                         Rad::full_turn() / 8.,
@@ -663,6 +665,7 @@ impl EnemySpec {
                         -Rad::full_turn() * 3. / 8.,
                     ];
 
+                    let num_front_sub_turret = (count.sub + 2) / 6;
                     let turret_kind = if rand.next_int(2) == 0 {
                         TurretKind::Sub
                     } else {
@@ -679,32 +682,56 @@ impl EnemySpec {
                     let mut mirror = builder;
                     mirror
                         .with_sized_alignment(angles[1], f32::consts::PI / 7. + rand.next_float(f32::consts::PI / 9.));
-                    let mut alt_builder = builder;
                     self.spec.add_turret_group(builder.into());
                     self.spec.add_turret_group(mirror.into());
 
-                    alt_builder.with_count(num_mid_sub_turret)
-                        .with_sized_alignment(angles[2], f32::consts::PI / 7. + rand.next_float(f32::consts::PI / 9.));
-                    let mut mirror = alt_builder;
-                    mirror
-                        .with_sized_alignment(angles[3], f32::consts::PI / 7. + rand.next_float(f32::consts::PI / 9.));
-                    let mut alt2_builder = builder;
-                    self.spec.add_turret_group(alt_builder.into());
-                    self.spec.add_turret_group(mirror.into());
+                    if num_front_sub_turret * 2 + 3 <= count.sub {
+                        let num_mid_sub_turret = (count.sub - num_front_sub_turret * 2) / 4;
+                        let turret_kind = if rand.next_int(2) == 0 {
+                            TurretKind::Sub
+                        } else {
+                            TurretKind::SubDestructive
+                        };
+                        let mut builder = TurretGroupSpecBuilder::default();
+                        builder.init_spec(sub_turret_rank, turret_kind, rand)
+                            .as_boss()
+                            .with_count(num_mid_sub_turret)
+                            .with_alignment(TurretGroupAlignment::Round)
+                            .with_sized_alignment(angles[2], f32::consts::PI / 7. + rand.next_float(f32::consts::PI / 9.))
+                            .with_radius(count.size * 0.75)
+                            .with_distance_ratio(self.spec.distance_ratio);
+                        let mut mirror = builder;
+                        mirror
+                            .with_sized_alignment(angles[3], f32::consts::PI / 7. + rand.next_float(f32::consts::PI / 9.));
+                        self.spec.add_turret_group(builder.into());
+                        self.spec.add_turret_group(mirror.into());
 
-                    alt2_builder.with_count(num_rear_sub_turret)
-                        .with_sized_alignment(angles[4], f32::consts::PI / 7. + rand.next_float(f32::consts::PI / 9.));
-                    let mut mirror = alt_builder;
-                    mirror
-                        .with_sized_alignment(angles[5], f32::consts::PI / 7. + rand.next_float(f32::consts::PI / 9.));
-                    self.spec.add_turret_group(alt2_builder.into());
-                    self.spec.add_turret_group(mirror.into());
+                        if (num_front_sub_turret + num_mid_sub_turret) * 2 + 1 <= count.sub {
+                            let num_rear_sub_turret = (count.sub - (num_front_sub_turret + num_mid_sub_turret) * 2) / 2;
+                            let turret_kind = if rand.next_int(2) == 0 {
+                                TurretKind::Sub
+                            } else {
+                                TurretKind::SubDestructive
+                            };
+                            let mut builder = TurretGroupSpecBuilder::default();
+                            builder.init_spec(sub_turret_rank, turret_kind, rand)
+                                .as_boss()
+                                .with_count(num_rear_sub_turret)
+                                .with_alignment(TurretGroupAlignment::Round)
+                                .with_sized_alignment(angles[4], f32::consts::PI / 7. + rand.next_float(f32::consts::PI / 9.))
+                                .with_radius(count.size * 0.75)
+                                .with_distance_ratio(self.spec.distance_ratio);
+                            let mut mirror = builder;
+                            mirror
+                                .with_sized_alignment(angles[5], f32::consts::PI / 7. + rand.next_float(f32::consts::PI / 9.));
+                            self.spec.add_turret_group(builder.into());
+                            self.spec.add_turret_group(mirror.into());
+                        }
+                    }
                 }
             } else {
-                let num_front_main_turret = (((count.main / 2) as f32) + 0.99) as u32;
-                let num_rear_main_turret = count.main - num_front_main_turret;
-
-                if num_front_main_turret > 0 {
+                let num_front_main_turret = count.main / 2;
+                if 0 < num_front_main_turret {
                     let mut builder = TurretGroupSpecBuilder::default();
                     builder.init_spec(main_turret_rank, TurretKind::Main, rand)
                         .with_count(num_front_main_turret)
@@ -713,65 +740,64 @@ impl EnemySpec {
                     self.spec.add_turret_group(builder.into());
                 }
 
-                if num_rear_main_turret > 0 {
+                if num_front_main_turret < count.main {
+                    let num_rear_main_turret = count.main - num_front_main_turret;
                     let mut builder = TurretGroupSpecBuilder::default();
                     builder.init_spec(main_turret_rank, TurretKind::Main, rand)
                         .with_count(num_rear_main_turret)
                         .with_alignment(TurretGroupAlignment::Straight)
-                        .with_y_offset(-count.size * (0.9 + rand.next_float_signed(0.05)));
+                        .with_y_offset(count.size * (0.9 + rand.next_float_signed(0.05)));
                     self.spec.add_turret_group(builder.into());
                 }
 
                 if count.sub > 0 {
-                    let num_front_sub_turret = (count.sub + 2) / 6;
-                    let num_mid_sub_turret = (count.sub - num_front_sub_turret * 2) / 4;
-                    let num_rear_sub_turret = (count.sub - num_front_sub_turret * 2 - num_mid_sub_turret * 2) / 2;
-
                     let angles = [
-                        Rad::full_turn() / 8.,
                         -Rad::full_turn() / 8.,
-                        Rad::turn_div_4(),
-                        -Rad::turn_div_4(),
+                        Rad::full_turn() / 8.,
                         Rad::full_turn() * 3. / 8.,
-                        -Rad::full_turn() * 3. / 8.,
+                        Rad::full_turn() * 5. / 8.,
                     ];
 
-                    let turret_kind = if rand.next_int(2) == 0 {
-                        TurretKind::Sub
-                    } else {
-                        TurretKind::SubDestructive
-                    };
-                    let mut builder = TurretGroupSpecBuilder::default();
-                    builder.init_spec(sub_turret_rank, turret_kind, rand)
-                        .as_boss()
-                        .with_count(num_front_sub_turret)
-                        .with_alignment(TurretGroupAlignment::Round)
-                        .with_sized_alignment(angles[0], f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8))
-                        .with_radius(count.size * 0.75)
-                        .with_distance_ratio(self.spec.distance_ratio);
-                    let mut mirror = builder;
-                    mirror
-                        .with_sized_alignment(angles[1], f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8));
-                    let mut alt_builder = builder;
-                    self.spec.add_turret_group(builder.into());
-                    self.spec.add_turret_group(mirror.into());
+                    let num_front_sub_turret = (count.sub + 2) / 4;
+                    if 0 < num_front_sub_turret {
+                        let turret_kind = if rand.next_int(2) == 0 {
+                            TurretKind::Sub
+                        } else {
+                            TurretKind::SubDestructive
+                        };
+                        let mut builder = TurretGroupSpecBuilder::default();
+                        builder.init_spec(sub_turret_rank, turret_kind, rand)
+                            .with_count(num_front_sub_turret)
+                            .with_alignment(TurretGroupAlignment::Round)
+                            .with_sized_alignment(angles[0], f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8))
+                            .with_radius(count.size * 0.75)
+                            .with_distance_ratio(self.spec.distance_ratio);
+                        let mut mirror = builder;
+                        mirror
+                            .with_sized_alignment(angles[1], f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8));
+                        self.spec.add_turret_group(builder.into());
+                        self.spec.add_turret_group(mirror.into());
 
-                    alt_builder.with_count(num_mid_sub_turret)
-                        .with_sized_alignment(angles[2], f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8));
-                    let mut mirror = alt_builder;
-                    mirror
-                        .with_sized_alignment(angles[3], f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8));
-                    let mut alt2_builder = builder;
-                    self.spec.add_turret_group(alt_builder.into());
-                    self.spec.add_turret_group(mirror.into());
-
-                    alt2_builder.with_count(num_rear_sub_turret)
-                        .with_sized_alignment(angles[4], f32::consts::PI / 7. + rand.next_float(f32::consts::PI / 9.));
-                    let mut mirror = alt_builder;
-                    mirror
-                        .with_sized_alignment(angles[5], f32::consts::PI / 7. + rand.next_float(f32::consts::PI / 9.));
-                    self.spec.add_turret_group(alt2_builder.into());
-                    self.spec.add_turret_group(mirror.into());
+                        if num_front_sub_turret * 2 + 1 <= count.sub {
+                            let turret_kind = if rand.next_int(2) == 0 {
+                                TurretKind::Sub
+                            } else {
+                                TurretKind::SubDestructive
+                            };
+                            let num_rear_sub_turret = (count.sub - num_front_sub_turret * 2) / 2;
+                            builder.init_spec(sub_turret_rank, turret_kind, rand)
+                                .with_count(num_rear_sub_turret)
+                                .with_alignment(TurretGroupAlignment::Round)
+                                .with_sized_alignment(angles[2], f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8))
+                                .with_radius(count.size * 0.75)
+                                .with_distance_ratio(self.spec.distance_ratio);
+                            let mut mirror = builder;
+                            mirror
+                                .with_sized_alignment(angles[3], f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8));
+                            self.spec.add_turret_group(builder.into());
+                            self.spec.add_turret_group(mirror.into());
+                        }
+                    }
                 }
             }
         }
