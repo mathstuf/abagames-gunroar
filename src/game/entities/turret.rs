@@ -413,7 +413,7 @@ impl Turret {
         let aim_angle = if aim.x.abs() + aim.y.abs() < 0.1 {
             Rad(0.)
         } else {
-            Rad::atan2(aim.y, aim.x)
+            Rad::turn_div_4() - Rad::atan2(aim.y, aim.x)
         };
 
         let turn_speed = if self.count >= 0 {
@@ -422,14 +422,31 @@ impl Turret {
             self.spec.turn_speed * self.spec.burst_turn_ratio
         };
 
-        let diff_angle = (self.base_angle + self.angle - aim_angle).normalize() - Rad::turn_div_2();
-        let new_angle = if diff_angle.0.abs() <= turn_speed.0 {
+        // Calculate the difference between our total angle and where we want to aim.
+        let raw_diff_angle = (self.base_angle + self.angle - aim_angle).normalize();
+        // Normalize it to [-half, half).
+        let diff_angle = if Rad::<f32>::turn_div_2().0 < raw_diff_angle.0 {
+            raw_diff_angle - Rad::full_turn()
+        } else {
+            raw_diff_angle
+        };
+        // Check the difference against our allowed turn speed.
+        let raw_new_angle = if diff_angle.0.abs() <= turn_speed.0 {
+            // We can fully turn.
             aim_angle - self.base_angle
         } else if diff_angle.0 < 0. {
+            // Move as much as possible towards our target.
             self.angle + turn_speed
         } else {
+            // Move as much as possible towards our target.
             self.angle - turn_speed
-        }.normalize() - Rad::turn_div_2();
+        }.normalize();
+        // Normalize it to [-half, half).
+        let new_angle = if Rad::<f32>::turn_div_2().0 < raw_new_angle.0 {
+            raw_new_angle - Rad::full_turn()
+        } else {
+            raw_new_angle
+        };
         self.angle = Rad(f32::min(f32::max(new_angle.0, -self.spec.turn_range.0), self.spec.turn_range.0));
 
         self.count += 1;
