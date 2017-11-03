@@ -66,7 +66,7 @@ impl TurretKind {
                 spec.blind = true;
                 spec.invisible = true;
                 spec.turn_speed = Rad(0.);
-                spec.max_range = 0. + rand.next_float(12.);
+                spec.max_range = 9. + rand.next_float(12.);
                 rank * (10. / spec.max_range.sqrt())
             },
             kind => {
