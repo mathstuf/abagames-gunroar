@@ -625,7 +625,7 @@ impl Turret {
         let is_destroyed = self.destroyed_count.is_some();
         let angle = self.base_angle + self.angle;
         let modelmat = Matrix4::from_translation((self.pos + self.damage_offset).extend(0.)) *
-            Matrix4::from_axis_angle(Vector3::unit_z(), angle);
+            Matrix4::from_axis_angle(Vector3::unit_z(), -angle);
         let scalemat = Matrix4::from_scale(self.spec.size);
 
         let shape = if is_destroyed {
