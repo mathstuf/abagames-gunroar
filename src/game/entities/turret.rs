@@ -606,8 +606,8 @@ impl Turret {
         let is_damaged = self.damaged_count > 0;
         let is_destroyed = self.destroyed_count.is_some();
         self.damage_offset = if !is_destroyed && is_damaged {
-            (rand.next_float_signed((self.damaged_count as f32) * 0.015),
-             rand.next_float_signed((self.damaged_count as f32) * 0.015))
+            let count = (self.damaged_count as f32) * 0.015;
+            (rand.next_float_signed(count), rand.next_float_signed(count))
         } else {
             (0., 0.)
         }.into();
