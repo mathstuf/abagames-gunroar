@@ -178,12 +178,14 @@ impl TurretKind {
         let size_diff = params.size_range.map(|size_range| rand.next_float(size_range)).unwrap_or(0.);
         spec.size = params.size_offset + size_diff;
         let br = rank * params.burst_factor * (1. + rand.next_float_signed(0.2));
-        let nr = params.nway_factor
-            .map(|nway_factor| rank * nway_factor * rand.next_float_signed(1.))
-            .unwrap_or(1.);
+        spec.nway = params.nway_factor
+            .map(|nway_factor| {
+                let nr = rank * nway_factor * rand.next_float_signed(1.);
+                (nr * 0.66 + 1.) as i32
+            })
+            .unwrap_or(1);
         let ir = rank * params.interval_factor * (1. + rand.next_float_signed(0.2));
         spec.burst_num = (br as i32) + 1;
-        spec.nway = (nr * 0.66 + 1.) as i32;
         spec.interval = ((params.interval_numerator / (ir * 2. + 1.)) as i32) + 1;
         let nway_diff = if params.nway_factor.is_some() {
             ((spec.nway - 1) as f32) / 0.66
