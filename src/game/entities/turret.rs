@@ -1302,7 +1302,7 @@ impl<R> TurretDraw<R>
         ];
         let vbuf = factory.create_vertex_buffer(&vertex_data);
 
-        let line_slice = abagames_util::slice_for_loop::<R, F>(factory, 2);
+        let line_slice = abagames_util::slice_for_line::<R>(2);
         let sweep_slice = abagames_util::slice_for_fan::<R, F>(factory,
                                                                vertex_data.len() as u32);
 
