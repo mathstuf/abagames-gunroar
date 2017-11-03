@@ -648,11 +648,11 @@ impl Turret {
         };
 
         if 1 < self.spec.nway {
-            turret_draw.draw_sight_line(context, self.spec.min_range, self.spec.max_range, self.pos, alpha, angle);
-        } else {
             let angle_step = self.spec.nway_angle;
             let start_angle = angle - angle_step * (((self.spec.nway) / 2) as f32);
             turret_draw.draw_sight_sweep(context, self.spec.min_range, self.spec.max_range, self.pos, alpha, start_angle, angle_step, self.spec.nway);
+        } else {
+            turret_draw.draw_sight_line(context, self.spec.min_range, self.spec.max_range, self.pos, alpha, angle);
         }
     }
 }
