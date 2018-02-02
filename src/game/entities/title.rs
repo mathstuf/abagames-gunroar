@@ -47,7 +47,7 @@ gfx_defines! {
         sampler: gfx::TextureSampler<[f32; 4]> = "sampler",
         out_color: gfx::BlendTarget<TargetFormat> =
             ("Target0",
-             gfx::state::MASK_ALL,
+             gfx::state::ColorMask::all(),
              gfx::state::Blend::new(gfx::state::Equation::Add,
                                     gfx::state::Factor::ZeroPlus(gfx::state::BlendValue::SourceAlpha),
                                     gfx::state::Factor::One)),
@@ -60,7 +60,7 @@ gfx_defines! {
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
         out_color: gfx::BlendTarget<TargetFormat> =
             ("Target0",
-             gfx::state::MASK_ALL,
+             gfx::state::ColorMask::all(),
              gfx::state::Blend::new(gfx::state::Equation::Add,
                                     gfx::state::Factor::ZeroPlus(gfx::state::BlendValue::SourceAlpha),
                                     gfx::state::Factor::One)),
@@ -73,7 +73,7 @@ gfx_defines! {
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
         out_color: gfx::BlendTarget<TargetFormat> =
             ("Target0",
-             gfx::state::MASK_ALL,
+             gfx::state::ColorMask::all(),
              gfx::state::Blend::new(gfx::state::Equation::Add,
                                     gfx::state::Factor::ZeroPlus(gfx::state::BlendValue::SourceAlpha),
                                     gfx::state::Factor::One)),
@@ -131,7 +131,9 @@ impl<R> Title<R>
             logo_height as gfx::texture::Size,
             gfx::texture::AaMode::Single);
         let (_, logo_tex) =
-            factory.create_texture_immutable_u8::<TargetFormat>(logo_tex_kind, &[&logo_img])
+            factory.create_texture_immutable_u8::<TargetFormat>(logo_tex_kind,
+                                                                gfx::texture::Mipmap::Provided,
+                                                                &[&logo_img])
                 .expect("failed to create the logo texture");
         let logo_sampler = factory.create_sampler(gfx::texture::SamplerInfo::new(
             gfx::texture::FilterMethod::Mipmap,

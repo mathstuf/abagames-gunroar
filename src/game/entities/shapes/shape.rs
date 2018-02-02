@@ -672,7 +672,7 @@ gfx_defines! {
         color: gfx::ConstantBuffer<Color> = "Color",
         out_color: gfx::BlendTarget<TargetFormat> =
             ("Target0",
-             gfx::state::MASK_ALL,
+             gfx::state::ColorMask::all(),
              gfx::state::Blend::new(gfx::state::Equation::Add,
                                     gfx::state::Factor::ZeroPlus(gfx::state::BlendValue::SourceAlpha),
                                     gfx::state::Factor::One)),
@@ -689,7 +689,7 @@ gfx_defines! {
         color: gfx::ConstantBuffer<Color> = "Color",
         out_color: gfx::BlendTarget<TargetFormat> =
             ("Target0",
-             gfx::state::MASK_ALL,
+             gfx::state::ColorMask::all(),
              gfx::state::Blend::new(gfx::state::Equation::Add,
                                     gfx::state::Factor::ZeroPlus(gfx::state::BlendValue::SourceAlpha),
                                     gfx::state::Factor::One)),
@@ -706,7 +706,7 @@ gfx_defines! {
         color: gfx::ConstantBuffer<Color> = "Color",
         out_color: gfx::BlendTarget<TargetFormat> =
             ("Target0",
-             gfx::state::MASK_ALL,
+             gfx::state::ColorMask::all(),
              gfx::state::Blend::new(gfx::state::Equation::Add,
                                     gfx::state::Factor::ZeroPlus(gfx::state::BlendValue::SourceAlpha),
                                     gfx::state::Factor::One)),

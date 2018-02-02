@@ -302,7 +302,7 @@ impl<R> ShipDraw<R>
             factory.create_buffer(MAX_BOATS * 2,
                                   gfx::buffer::Role::Vertex,
                                   gfx::memory::Usage::Upload,
-                                  gfx::Bind::empty())
+                                  gfx::memory::Bind::empty())
                 .expect("failed to create the buffer for sights");
 
         let ship_shader = factory.create_shader_vertex(include_bytes!("shader/ship.glslv"))

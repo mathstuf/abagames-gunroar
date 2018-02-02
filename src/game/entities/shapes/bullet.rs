@@ -78,7 +78,7 @@ gfx_defines! {
         color: gfx::ConstantBuffer<Color> = "Color",
         out_color: gfx::BlendTarget<TargetFormat> =
             ("Target0",
-             gfx::state::MASK_ALL,
+             gfx::state::ColorMask::all(),
              gfx::state::Blend::new(gfx::state::Equation::Add,
                                     gfx::state::Factor::ZeroPlus(gfx::state::BlendValue::SourceAlpha),
                                     gfx::state::Factor::One)),
@@ -101,7 +101,7 @@ gfx_defines! {
         color: gfx::ConstantBuffer<Color> = "Color",
         out_color: gfx::BlendTarget<TargetFormat> =
             ("Target0",
-             gfx::state::MASK_ALL,
+             gfx::state::ColorMask::all(),
              gfx::state::Blend::new(gfx::state::Equation::Add,
                                     gfx::state::Factor::ZeroPlus(gfx::state::BlendValue::SourceAlpha),
                                     gfx::state::Factor::One)),
@@ -124,7 +124,7 @@ gfx_defines! {
         color: gfx::ConstantBuffer<Color> = "Color",
         out_color: gfx::BlendTarget<TargetFormat> =
             ("Target0",
-             gfx::state::MASK_ALL,
+             gfx::state::ColorMask::all(),
              gfx::state::Blend::new(gfx::state::Equation::Add,
                                     gfx::state::Factor::ZeroPlus(gfx::state::BlendValue::SourceAlpha),
                                     gfx::state::Factor::One)),
@@ -138,7 +138,7 @@ gfx_defines! {
         color: gfx::ConstantBuffer<Color> = "Color",
         out_color: gfx::BlendTarget<TargetFormat> =
             ("Target0",
-             gfx::state::MASK_ALL,
+             gfx::state::ColorMask::all(),
              gfx::state::Blend::new(gfx::state::Equation::Add,
                                     gfx::state::Factor::ZeroPlus(gfx::state::BlendValue::SourceAlpha),
                                     gfx::state::Factor::OneMinus(gfx::state::BlendValue::SourceAlpha))),
@@ -373,7 +373,7 @@ impl<R> BulletDraw<R>
             factory.create_buffer(MAX_SHOT_SIZE,
                                   gfx::buffer::Role::Vertex,
                                   gfx::memory::Usage::Upload,
-                                  gfx::Bind::empty())
+                                  gfx::memory::Bind::empty())
                 .expect("failed to create the instance buffer for shots");
 
         let crystal_slice = abagames_util::slice_for_loop::<R, F>(factory,
@@ -382,7 +382,7 @@ impl<R> BulletDraw<R>
             factory.create_buffer(4 * MAX_CRYSTAL_SIZE,
                                   gfx::buffer::Role::Vertex,
                                   gfx::memory::Usage::Upload,
-                                  gfx::Bind::empty())
+                                  gfx::memory::Bind::empty())
                 .expect("failed to create the instance buffer for crystals");
 
         let modelmat = factory.create_constant_buffer(1);

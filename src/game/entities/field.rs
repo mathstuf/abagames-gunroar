@@ -667,7 +667,7 @@ gfx_defines! {
         brightness: gfx::ConstantBuffer<Brightness> = "Brightness",
         out_color: gfx::BlendTarget<TargetFormat> =
             ("Target0",
-             gfx::state::MASK_ALL,
+             gfx::state::ColorMask::all(),
              gfx::state::Blend::new(gfx::state::Equation::Add,
                                     gfx::state::Factor::ZeroPlus(gfx::state::BlendValue::SourceAlpha),
                                     gfx::state::Factor::One)),
@@ -739,7 +739,7 @@ impl<R> FieldDraw<R>
             factory.create_buffer(num_panel_instances,
                                   gfx::buffer::Role::Vertex,
                                   gfx::memory::Usage::Upload,
-                                  gfx::Bind::empty())
+                                  gfx::memory::Bind::empty())
                 .expect("failed to create the buffer for panels");
 
         let panel_pso = factory.create_pipeline_simple(

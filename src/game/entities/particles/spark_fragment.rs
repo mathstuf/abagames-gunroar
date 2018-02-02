@@ -111,7 +111,7 @@ gfx_defines! {
         spark_fragments: gfx::ConstantBuffer<PerSparkFragment> = "SparkFragments",
         out_color: gfx::BlendTarget<TargetFormat> =
             ("Target0",
-             gfx::state::MASK_ALL,
+             gfx::state::ColorMask::all(),
              gfx::state::Blend::new(gfx::state::Equation::Add,
                                     gfx::state::Factor::ZeroPlus(gfx::state::BlendValue::SourceAlpha),
                                     gfx::state::Factor::OneMinus(gfx::state::BlendValue::SourceAlpha))),
