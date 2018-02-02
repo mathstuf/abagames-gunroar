@@ -27,7 +27,7 @@ mod crates {
 
 use crates::abagames_util::SdlBuilder;
 use crates::clap::{App, Arg};
-use crates::log::{Log, LogLevel, LogLevelFilter, LogMetadata, LogRecord, set_logger};
+use crates::log::{self, Log, Level, LevelFilter, Metadata, Record};
 
 mod game;
 use game::Gunroar;
@@ -38,22 +38,24 @@ fn setup_logging() {
     struct SimpleLogger;
 
     impl Log for SimpleLogger {
-        fn enabled(&self, metadata: &LogMetadata) -> bool {
-            metadata.level() <= LogLevel::Debug
+        fn enabled(&self, metadata: &Metadata) -> bool {
+            metadata.level() <= Level::Debug
         }
 
-        fn log(&self, record: &LogRecord) {
+        fn log(&self, record: &Record) {
             if self.enabled(record.metadata()) {
                 println!("[{}] {}", record.level(), record.args());
             }
         }
+
+        fn flush(&self) {
+        }
     }
 
-    // Since the tests run in parallel, this may get called multiple times. Just ignore errors.
-    let _ = set_logger(|max_level| {
-        max_level.set(LogLevelFilter::Debug);
-        Box::new(SimpleLogger)
-    });
+    static LOGGER: SimpleLogger = SimpleLogger;
+
+    let _ = log::set_logger(&LOGGER);
+    log::set_max_level(LevelFilter::Debug);
 }
 
 fn try_main() -> Result<(), Box<Error>> {
