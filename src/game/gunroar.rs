@@ -4,10 +4,19 @@
 use crates::abagames_util::{Event, Game, Input, Resources, SdlInfo, StepResult};
 use crates::sdl2::event::WindowEvent;
 
+use std::fmt::{self, Display};
+
 use game::render::RenderContext;
 use game::state::{GameData, GameState, GameStateContext};
 
-error_chain! {}
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Fail)]
+pub struct Error;
+
+impl Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Error")
+    }
+}
 
 pub struct Gunroar<'a, 'b: 'a> {
     global_render: RenderContext<Resources>,
@@ -46,7 +55,7 @@ impl<'a, 'b> Gunroar<'a, 'b> {
 impl<'a, 'b> Game for Gunroar<'a, 'b> {
     type Error = Error;
 
-    fn init(&mut self) -> Result<()> {
+    fn init(&mut self) -> Result<(), Error> {
         let mut context = GameStateContext {
             audio: self.info.audio.as_mut(),
 
@@ -58,7 +67,7 @@ impl<'a, 'b> Game for Gunroar<'a, 'b> {
         Ok(())
     }
 
-    fn handle_event(&mut self, event: &Event) -> Result<bool> {
+    fn handle_event(&mut self, event: &Event) -> Result<bool, Error> {
         Ok(match *event {
             Event::AppTerminating { .. } => true,
             Event::AppWillEnterBackground { .. } |
@@ -82,7 +91,7 @@ impl<'a, 'b> Game for Gunroar<'a, 'b> {
         })
     }
 
-    fn step(&mut self, input: &Input) -> Result<StepResult> {
+    fn step(&mut self, input: &Input) -> Result<StepResult, Error> {
         let mut context = GameStateContext {
             audio: self.info.audio.as_mut(),
 
@@ -92,7 +101,7 @@ impl<'a, 'b> Game for Gunroar<'a, 'b> {
         Ok(self.state.step(&mut context, input))
     }
 
-    fn draw(&mut self) -> Result<()> {
+    fn draw(&mut self) -> Result<(), Error> {
         if self.backgrounded {
             return Ok(());
         }
@@ -112,7 +121,7 @@ impl<'a, 'b> Game for Gunroar<'a, 'b> {
         Ok(())
     }
 
-    fn quit(&mut self) -> Result<()> {
+    fn quit(&mut self) -> Result<(), Error> {
         Ok(())
     }
 }

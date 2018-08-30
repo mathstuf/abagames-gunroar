@@ -5,7 +5,7 @@
 extern crate clap;
 
 #[macro_use]
-extern crate error_chain;
+extern crate failure;
 
 #[macro_use]
 extern crate gfx;
@@ -17,6 +17,7 @@ mod crates {
     pub extern crate abagames_util;
     pub extern crate cgmath;
     pub extern crate clap;
+    pub extern crate failure;
     pub extern crate gfx;
     pub extern crate image;
     pub extern crate itertools;
@@ -27,12 +28,11 @@ mod crates {
 
 use crates::abagames_util::SdlBuilder;
 use crates::clap::{App, Arg};
+use crates::failure::Error;
 use crates::log::{self, Log, Level, LevelFilter, Metadata, Record};
 
 mod game;
 use game::Gunroar;
-
-use std::error::Error;
 
 fn setup_logging() {
     struct SimpleLogger;
@@ -58,7 +58,7 @@ fn setup_logging() {
     log::set_max_level(LevelFilter::Debug);
 }
 
-fn try_main() -> Result<(), Box<Error>> {
+fn try_main() -> Result<(), Error> {
     let matches = App::new("gunroar")
         .version(crate_version!())
         .about("360-degree gunboat shooter")
