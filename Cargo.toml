@@ -13,11 +13,11 @@ cgmath = "~0.16"
 clap = "^2.20"
 error-chain = "~0.11"
 gfx = "~0.17"
-image = { version = "~0.18", default-features = false, features = ["bmp"] }
+image = { version = "~0.19", default-features = false, features = ["bmp"] }
 itertools = "~0.7"
 lazy_static = "^1.0"
 log = "~0.4"
-rayon = "~0.9"
+rayon = "^1.0"
 sdl2 = "~0.31"
 
 [dependencies.abagames-util]
