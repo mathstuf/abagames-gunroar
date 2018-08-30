@@ -122,14 +122,14 @@ impl Stage {
     fn start_boss(&mut self, context: &mut GameStateContext) {
         self.boss_timer = None;
         self.boss_app_count = 2;
-        context.audio.as_mut().map(|audio| audio.fade());
+        context.audio.fade();
         self.background_timer = 120;
         self.rank_velocity = 0.;
     }
 
     fn reset_boss(&mut self, context: &mut GameStateContext) {
         if self.boss_mode() {
-            context.audio.as_mut().map(|audio| audio.fade());
+            context.audio.fade();
             self.background_timer = 120;
             self.boss_timer_base += 30 * 1000;
         }
@@ -140,9 +140,9 @@ impl Stage {
         self.background_timer = self.background_timer.saturating_sub(1);
         if self.background_timer == 0 {
             if self.boss_mode() {
-                context.audio.as_mut().map(|audio| audio.play_music("gr0"));
+                context.audio.play_music("gr0");
             } else {
-                // context.audio.as_mut().map(|audio| audio.play_next());
+                // context.audio.play_next();
             }
         }
         if self.boss_mode() {

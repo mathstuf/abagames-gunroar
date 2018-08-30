@@ -534,7 +534,7 @@ impl Turret {
     }
 
     fn destroyed(&mut self, smokes: &mut Pool<Smoke>, sparks: &mut Pool<Spark>, fragments: &mut Pool<Fragment>, context: &mut GameStateContext, rand: &mut Rand) -> TurretScore {
-        context.audio.as_mut().map(|audio| audio.mark_sfx("turret_destroyed"));
+        context.audio.mark_sfx("turret_destroyed");
         self.destroyed_count = Some(0);
 
         (0..6).foreach(|_| {

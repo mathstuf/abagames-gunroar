@@ -1363,7 +1363,7 @@ impl EnemyState {
             .and_then(|destroy| destroy.step(rand));
 
         if let Some(interval) = interval {
-            context.audio.as_mut().map(|audio| audio.mark_sfx("explode"));
+            context.audio.mark_sfx("explode");
 
             let n = cmp::min(48, (spec.size.sqrt() * 27. / ((interval as f32) * 0.1 + 1.)) as usize);
             let points = spec.spec.shapes.normal().points();
@@ -1618,13 +1618,11 @@ impl EnemyState {
             .for_each(|group| group.destroy());
 
         let sfx = if let EnemyKind::SmallShip = spec.spec.kind {
-            "small_destroyed.wav"
+            "small_destroyed"
         } else {
-            "destroyed.wav"
+            "destroyed"
         };
-        context.audio
-            .as_mut()
-            .map(|audio| audio.mark_sfx(sfx));
+        context.audio.mark_sfx(sfx);
 
         let (score, res) = if self.data.destroy() {
             let mut num_bullets = 0;

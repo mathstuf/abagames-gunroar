@@ -110,9 +110,7 @@ impl Shot {
             .any(|enemy| enemy.check_shot_hit(self, stage, bullets, crystals, fragments, smokes, sparks, indicators, reel, context, rand) == PoolRemoval::Remove);
 
         if remove_enemy {
-            context.audio
-                .as_mut()
-                .map(|audio| audio.mark_sfx("hit"));
+            context.audio.mark_sfx("hit");
         }
 
         if remove {
