@@ -21,7 +21,7 @@ pub struct Gunroar<'a, 'b: 'a> {
 }
 
 impl<'a, 'b> Gunroar<'a, 'b> {
-    pub fn new(info: &'a mut SdlInfo<'b>, brightness: f32) -> Result<Self> {
+    pub fn new(info: &'a mut SdlInfo<'b>, brightness: f32) -> Self {
         let (render, state) = {
             let (factory, view) = info.video.factory_view();
             let render = RenderContext::new(factory, brightness);
@@ -30,7 +30,7 @@ impl<'a, 'b> Gunroar<'a, 'b> {
             (render, state)
         };
 
-        Ok(Gunroar {
+        Gunroar {
             global_render: render,
             state: state,
 
@@ -39,7 +39,7 @@ impl<'a, 'b> Gunroar<'a, 'b> {
             backgrounded: false,
 
             data: GameData::default(),
-        })
+        }
     }
 }
 
