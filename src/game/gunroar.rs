@@ -40,7 +40,7 @@ impl<'a> Gunroar<'a> {
 
             (render, state)
         };
-        let mut audio = Audio::new(data::MUSIC_DATA.iter(), data::SFX_DATA.iter())
+        let audio = Audio::new(data::MUSIC_DATA.iter(), data::SFX_DATA.iter())
             .expect("failed to decode audio data?");
 
         Gunroar {
