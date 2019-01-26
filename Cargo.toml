@@ -21,4 +21,4 @@ rayon = "^1.0"
 sdl2 = "~0.31"
 
 [dependencies.abagames-util]
-path = "../../rust-abagames-util/src"
+git = "https://github.com/mathstuf/rust-abagames-util"
