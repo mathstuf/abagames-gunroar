@@ -288,12 +288,12 @@ struct ShapeCommand {
 }
 
 impl ShapeCommand {
-    fn new() -> Self {
+    const fn new() -> Self {
         ShapeCommand {
             category: ShapeCategory::Pillar {
-                pos: (0., 0.).into(),
+                pos: Vector2::new(0., 0.),
             },
-            color: (0., 0., 0.).into(),
+            color: Vector3::new(0., 0., 0.),
             size_factor: 0.,
             z: 0.,
         }
@@ -362,9 +362,9 @@ pub struct ShapePoint {
 }
 
 impl ShapePoint {
-    fn new() -> Self {
+    const fn new() -> Self {
         ShapePoint {
-            pos: (0., 0.).into(),
+            pos: Vector2::new(0., 0.),
             angle: Rad(0.),
         }
     }

@@ -347,7 +347,7 @@ impl Turret {
     fn new() -> Self {
         Turret {
             spec: TurretSpec::new(),
-            pos: (0., 0.).into(),
+            pos: Vector2::new(0., 0.),
             angle: Rad(0.),
             base_angle: Rad(0.),
             count: 0,
@@ -359,11 +359,11 @@ impl Turret {
             damaged_count: 0,
             speed: 0.,
             burst_count: 0,
-            color: (0., 0., 0.).into(),
+            color: Vector3::new(0., 0., 0.),
 
             is_boss: false,
             index: 0,
-            damage_offset: (0., 0.).into(),
+            damage_offset: Vector2::new(0., 0.),
         }
     }
 
@@ -1217,7 +1217,7 @@ enum MovingTurretStateData {
 }
 
 impl MovingTurretStateData {
-    fn new() -> Self {
+    const fn new() -> Self {
         MovingTurretStateData::Roll(RollStateData {
             roll_amplitude: Rad(0.),
         })

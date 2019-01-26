@@ -25,10 +25,10 @@ pub struct SparkFragment {
 }
 
 impl SparkFragment {
-    fn new() -> Self {
+    const fn new() -> Self {
         SparkFragment {
-            pos: (0., 0., 0.).into(),
-            vel: (0., 0., 0.).into(),
+            pos: Vector3::new(0., 0., 0.),
+            vel: Vector3::new(0., 0., 0.),
             size: 1.,
             angle: Rad(0.),
             angle_rate: Rad(0.),

@@ -37,10 +37,10 @@ pub struct Wake {
 }
 
 impl Wake {
-    fn new() -> Self {
+    const fn new() -> Self {
         Wake {
-            pos: (0., 0.).into(),
-            vel: (0., 0.).into(),
+            pos: Vector2::new(0., 0.),
+            vel: Vector2::new(0., 0.),
             size: 1.,
             angle: Rad(0.),
             speed: 0.,

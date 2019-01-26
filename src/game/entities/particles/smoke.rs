@@ -74,11 +74,7 @@ impl SmokeKind {
     }
 }
 
-const WIND_VELOCITY: Vector3<f32> = Vector3 {
-    x: 0.04,
-    y: 0.04,
-    z: 0.02,
-};
+const WIND_VELOCITY: Vector3<f32> = Vector3::new(0.04, 0.04, 0.02);
 
 #[derive(Debug, Clone, Copy)]
 pub struct Smoke {
@@ -92,15 +88,15 @@ pub struct Smoke {
 }
 
 impl Smoke {
-    fn new() -> Self {
+    const fn new() -> Self {
         Smoke {
-            pos: (0., 0., 0.).into(),
-            vel: (0., 0., 0.).into(),
+            pos: Vector3::new(0., 0., 0.),
+            vel: Vector3::new(0., 0., 0.),
             kind: SmokeKind::Fire,
             count: 0,
             start_count: 1,
             size: 1.,
-            color: (0., 0., 0., 0.).into(),
+            color: Vector4::new(0., 0., 0., 0.),
         }
     }
 

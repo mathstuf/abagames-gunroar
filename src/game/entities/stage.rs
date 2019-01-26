@@ -30,7 +30,7 @@ struct Appearance {
 }
 
 impl Appearance {
-    fn new() -> Self {
+    const fn new() -> Self {
         Appearance {
             spec: None,
             next_dist: 0.,

@@ -24,14 +24,14 @@ const BLOCK_SIZE_Y_F32: f32 = BLOCK_SIZE_Y as f32;
 const NEXT_BLOCK_AREA_SIZE: usize = 16;
 pub const NEXT_BLOCK_AREA_SIZE_F32: f32 = NEXT_BLOCK_AREA_SIZE as f32;
 
-pub const FIELD_SIZE: Vector2<f32> = Vector2 {
-    x: ((SCREEN_BLOCK_SIZE_X / 2) as f32) * 0.9,
-    y: ((SCREEN_BLOCK_SIZE_Y / 2) as f32) * 0.8,
-};
-pub const FIELD_OUTER_SIZE: Vector2<f32> = Vector2 {
-    x: (SCREEN_BLOCK_SIZE_X / 2) as f32,
-    y: (SCREEN_BLOCK_SIZE_Y / 2) as f32,
-};
+pub const FIELD_SIZE: Vector2<f32> = Vector2::new(
+    ((SCREEN_BLOCK_SIZE_X / 2) as f32) * 0.9,
+    ((SCREEN_BLOCK_SIZE_Y / 2) as f32) * 0.8,
+);
+pub const FIELD_OUTER_SIZE: Vector2<f32> = Vector2::new(
+    (SCREEN_BLOCK_SIZE_X / 2) as f32,
+    (SCREEN_BLOCK_SIZE_Y / 2) as f32,
+);
 
 const SIDEWALL_X1: f32 = 18.;
 const SIDEWALL_X2: f32 = 9.3;
@@ -49,55 +49,50 @@ const MAX_PLATFORMS: usize = SCREEN_BLOCK_SIZE_X * NEXT_BLOCK_AREA_SIZE;
 const PANEL_WIDTH: f32 = 1.8;
 const PANEL_HEIGHT_BASE: f32 = 0.66;
 
-static BASE_COLOR_TIME: [[Vector3<f32>; 6]; TIME_COLOR_SIZE] = [
+const BASE_COLOR_TIME: [[Vector3<f32>; 6]; TIME_COLOR_SIZE] = [
     [
-        Vector3 { x: 0.15, y: 0.15, z: 0.3, },
-        Vector3 { x: 0.25, y: 0.25, z: 0.5, },
-        Vector3 { x: 0.35, y: 0.35, z: 0.45, },
-        Vector3 { x: 0.6, y: 0.7, z: 0.35, },
-        Vector3 { x: 0.45, y: 0.8, z: 0.3, },
-        Vector3 { x: 0.2, y: 0.6, z: 0.1, },
+        Vector3::new(0.15, 0.15, 0.3),
+        Vector3::new(0.25, 0.25, 0.5),
+        Vector3::new(0.35, 0.35, 0.45),
+        Vector3::new(0.6, 0.7, 0.35),
+        Vector3::new(0.45, 0.8, 0.3),
+        Vector3::new(0.2, 0.6, 0.1),
     ],
     [
-        Vector3 { x: 0.1, y: 0.1, z: 0.3, },
-        Vector3 { x: 0.2, y: 0.2, z: 0.5, },
-        Vector3 { x: 0.3, y: 0.3, z: 0.4, },
-        Vector3 { x: 0.5, y: 0.65, z: 0.35, },
-        Vector3 { x: 0.4, y: 0.7, z: 0.3, },
-        Vector3 { x: 0.1, y: 0.5, z: 0.1, },
+        Vector3::new(0.1, 0.1, 0.3),
+        Vector3::new(0.2, 0.2, 0.5),
+        Vector3::new(0.3, 0.3, 0.4),
+        Vector3::new(0.5, 0.65, 0.35),
+        Vector3::new(0.4, 0.7, 0.3),
+        Vector3::new(0.1, 0.5, 0.1),
     ],
     [
-        Vector3 { x: 0.1, y: 0.1, z: 0.3, },
-        Vector3 { x: 0.2, y: 0.2, z: 0.5, },
-        Vector3 { x: 0.3, y: 0.3, z: 0.4, },
-        Vector3 { x: 0.5, y: 0.65, z: 0.35, },
-        Vector3 { x: 0.4, y: 0.7, z: 0.3, },
-        Vector3 { x: 0.1, y: 0.5, z: 0.1, },
+        Vector3::new(0.1, 0.1, 0.3),
+        Vector3::new(0.2, 0.2, 0.5),
+        Vector3::new(0.3, 0.3, 0.4),
+        Vector3::new(0.5, 0.65, 0.35),
+        Vector3::new(0.4, 0.7, 0.3),
+        Vector3::new(0.1, 0.5, 0.1),
     ],
     [
-        Vector3 { x: 0.2, y: 0.15, z: 0.25, },
-        Vector3 { x: 0.35, y: 0.2, z: 0.4, },
-        Vector3 { x: 0.5, y: 0.35, z: 0.45, },
-        Vector3 { x: 0.7, y: 0.6, z: 0.3, },
-        Vector3 { x: 0.6, y: 0.65, z: 0.25, },
-        Vector3 { x: 0.2, y: 0.45, z: 0.1, },
+        Vector3::new(0.2, 0.15, 0.25),
+        Vector3::new(0.35, 0.2, 0.4),
+        Vector3::new(0.5, 0.35, 0.45),
+        Vector3::new(0.7, 0.6, 0.3),
+        Vector3::new(0.6, 0.65, 0.25),
+        Vector3::new(0.2, 0.45, 0.1),
     ],
     [
-        Vector3 { x: 0., y: 0., z: 0.1, },
-        Vector3 { x: 0.1, y: 0.1, z: 0.3, },
-        Vector3 { x: 0.2, y: 0.2, z: 0.3, },
-        Vector3 { x: 0.2, y: 0.3, z: 0.15, },
-        Vector3 { x: 0.2, y: 0.2, z: 0.1, },
-        Vector3 { x: 0., y: 0.15, z: 0., },
+        Vector3::new(0., 0., 0.1),
+        Vector3::new(0.1, 0.1, 0.3),
+        Vector3::new(0.2, 0.2, 0.3),
+        Vector3::new(0.2, 0.3, 0.15),
+        Vector3::new(0.2, 0.2, 0.1),
+        Vector3::new(0., 0.15, 0.),
     ],
 ];
 
-static ANGLE_BLOCK_OFFSET: [[i32; 2]; 4] = [
-    [0, -1],
-    [1, 0],
-    [0, 1],
-    [-1, 0],
-];
+const ANGLE_BLOCK_OFFSET: [[i32; 2]; 4] = [[0, -1], [1, 0], [0, 1], [-1, 0]];
 
 #[derive(Clone, Copy)]
 struct Panel {
@@ -107,7 +102,7 @@ struct Panel {
 }
 
 impl Panel {
-    fn new() -> Self {
+    const fn new() -> Self {
         Panel {
             position: Vector3::new(0., 0., 0.),
             color: Vector3::new(0., 0., 0.),
@@ -228,9 +223,9 @@ pub struct Platform {
 }
 
 impl Platform {
-    fn new() -> Self {
+    const fn new() -> Self {
         Platform {
-            position: (0, 0).into(),
+            position: Vector2::new(0, 0),
             angle: Rad(0.),
             in_use: false,
         }
@@ -292,7 +287,7 @@ pub struct Field {
 }
 
 impl Field {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Field {
             color_step: 0.,
             screen_y: 0.,

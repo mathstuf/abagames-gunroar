@@ -18,10 +18,10 @@ pub struct Crystal {
 }
 
 impl Crystal {
-    fn new() -> Self {
+    const fn new() -> Self {
         Crystal {
-            pos: (0., 0.).into(),
-            vel: (0., 0.).into(),
+            pos: Vector2::new(0., 0.),
+            vel: Vector2::new(0., 0.),
             count: 0,
         }
     }

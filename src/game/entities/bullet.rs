@@ -20,14 +20,14 @@ pub struct BulletShape {
 }
 
 impl BulletShape {
-    fn new() -> Self {
+    const fn new() -> Self {
         BulletShape {
             kind: BulletShapeKind::Normal,
             size: 1.,
         }
     }
 
-    fn of_kind(kind: BulletShapeKind, size: f32) -> Self {
+    const fn of_kind(kind: BulletShapeKind, size: f32) -> Self {
         BulletShape {
             kind: kind,
             size: size,
@@ -54,10 +54,10 @@ pub struct Bullet {
 const MAX_BULLET_SIZE: usize = 240;
 
 impl Bullet {
-    fn new() -> Self {
+    const fn new() -> Self {
         Bullet {
-            pos: (0., 0.).into(),
-            prev_pos: (0., 0.).into(),
+            pos: Vector2::new(0., 0.),
+            prev_pos: Vector2::new(0., 0.),
             angle: Rad(0.),
             speed: 1.,
             target_angle: Rad(0.),

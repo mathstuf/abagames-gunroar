@@ -25,7 +25,7 @@ pub struct ScoreReel {
 }
 
 impl ScoreReel {
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         ScoreReel {
             score: 0,
             target_score: 0,
@@ -118,7 +118,7 @@ struct NumberReel {
 }
 
 impl NumberReel {
-    fn new() -> Self {
+    const fn new() -> Self {
         NumberReel {
             degrees: Deg(0.),
             target_degrees: Deg(0.),

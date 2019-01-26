@@ -20,11 +20,11 @@ pub struct Spark {
 }
 
 impl Spark {
-    fn new() -> Self {
+    const fn new() -> Self {
         Spark {
-            pos: (0., 0.).into(),
-            vel: (0., 0.).into(),
-            color: (0., 0., 0.).into(),
+            pos: Vector2::new(0., 0.),
+            vel: Vector2::new(0., 0.),
+            color: Vector3::new(0., 0., 0.),
             count: 0,
         }
     }

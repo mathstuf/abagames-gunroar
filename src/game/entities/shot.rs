@@ -32,15 +32,15 @@ pub struct Shot {
 }
 
 impl Shot {
-    fn new() -> Self {
+    const fn new() -> Self {
         Shot {
-            pos: (0., 0.).into(),
+            pos: Vector2::new(0., 0.),
             count: 0,
             hit_count: 0,
             angle: Rad(0.),
             damage: 0,
             lance: false,
-            collision: (0., 0.).into(),
+            collision: Vector2::new(0., 0.),
         }
     }
 

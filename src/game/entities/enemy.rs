@@ -1072,7 +1072,7 @@ struct DestroyData {
 }
 
 impl DestroyData {
-    fn new() -> Self {
+    const fn new() -> Self {
         DestroyData {
             count: 0,
             explode_count: 1,
@@ -1130,7 +1130,7 @@ enum EnemyStateData {
 }
 
 impl EnemyStateData {
-    fn new() -> Self {
+    const fn new() -> Self {
         EnemyStateData::Platform(PlatformStateData {
             destroyed: None,
         })
@@ -1207,8 +1207,8 @@ impl EnemyState {
             index: 0,
             data: EnemyStateData::new(),
             shield: 0,
-            pos: (0., 0.).into(),
-            prev_pos: (0., 0.).into(),
+            pos: Vector2::new(0., 0.),
+            prev_pos: Vector2::new(0., 0.),
             angle: Rad(0.),
             damaged: false,
             damaged_count: 0,
@@ -2035,7 +2035,7 @@ impl Enemy {
             spec: EnemySpec::new(),
             state: EnemyState::new(),
             index: index as u32,
-            damage_offset: (0., 0.).into(),
+            damage_offset: Vector2::new(0., 0.),
         }
     }
 

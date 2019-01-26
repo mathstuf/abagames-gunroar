@@ -35,7 +35,7 @@ pub struct ScoreTarget {
 }
 
 impl ScoreTarget {
-    fn new() -> Self {
+    const fn new() -> Self {
         ScoreTarget {
             pos: Vector2::new(0., 0.),
             flying_to: FlyingTo::Right,
@@ -65,7 +65,7 @@ pub struct ScoreIndicator {
 }
 
 impl ScoreIndicator {
-    fn new() -> Self {
+    const fn new() -> Self {
         ScoreIndicator {
             pos: Vector2::new(0., 0.),
             vel: Vector2::new(0., 0.),

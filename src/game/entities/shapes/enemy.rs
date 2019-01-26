@@ -9,11 +9,7 @@ use game::entities::field::Field;
 use game::entities::particles::{Wake, WakeDirection};
 use game::entities::shapes::{BaseShape, Shape, ShapeKind};
 
-const MIDDLE_COLOR: Vector3<f32> = Vector3 {
-    x: 1.,
-    y: 0.6,
-    z: 0.5,
-};
+const MIDDLE_COLOR: Vector3<f32> = Vector3::new(1., 0.6, 0.5);
 
 lazy_static! {
     static ref SMALL: BaseShape =
