@@ -149,40 +149,43 @@ impl Block {
         }
     }
 
+    #[rustfmt::skip]
     pub fn is_dry(&self) -> bool {
         match *self {
-            Block::DeepWater |
-            Block::Water |
-            Block::Shore |
-            Block::Beach => false,
-            Block::Inland |
-            Block::DeepInland => true,
+            Block::DeepWater
+            | Block::Water
+            | Block::Shore
+            | Block::Beach => false,
+            Block::Inland
+            | Block::DeepInland => true,
         }
     }
 
+    #[rustfmt::skip]
     pub fn is_land(&self) -> bool {
         match *self {
-            Block::DeepWater |
-            Block::Water |
-            Block::Shore => false,
-            Block::Beach |
-            Block::Inland |
-            Block::DeepInland => true,
+            Block::DeepWater
+            | Block::Water
+            | Block::Shore => false,
+            Block::Beach
+            | Block::Inland
+            | Block::DeepInland => true,
         }
     }
 
+    #[rustfmt::skip]
     fn transform_for_count(&mut self, count: usize) -> Self {
         *self = match (self.is_land(), count) {
             (true, 0) => Block::Water,
-            (true, 1) |
-            (true, 2) |
-            (true, 3) => Block::Beach,
+            (true, 1)
+            | (true, 2)
+            | (true, 3) => Block::Beach,
             (true, 4) => Block::DeepInland,
             (false, 0) => Block::DeepWater,
-            (false, 1) |
-            (false, 2) |
-            (false, 3) |
-            (false, 4) => Block::Shore,
+            (false, 1)
+            | (false, 2)
+            | (false, 3)
+            | (false, 4) => Block::Shore,
             _ => unreachable!(),
         };
 
@@ -714,6 +717,7 @@ where
     where
         F: gfx::Factory<R>,
     {
+        #[rustfmt::skip]
         let sidebar_data = [
             Position { pos: [SIDEWALL_X1,  SIDEWALL_Y], },
             Position { pos: [SIDEWALL_X2,  SIDEWALL_Y], },
@@ -726,6 +730,7 @@ where
             abagames_util::slice_for_fan::<R, F>(factory, sidebar_data.len() as u32);
         sidebar_slice.instances = Some((2, 0));
 
+        #[rustfmt::skip]
         let sidebar_instance_data = [
             PerSidebar { flip: 1., },
             PerSidebar { flip: -1., },
@@ -748,6 +753,7 @@ where
             out_color: view.clone(),
         };
 
+        #[rustfmt::skip]
         let panel_data = [
             Difference { diff: [0.,  0.], },
             Difference { diff: [1.,  0.], },

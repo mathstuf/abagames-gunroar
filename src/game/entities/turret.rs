@@ -1465,6 +1465,7 @@ where
     where
         F: gfx::Factory<R>,
     {
+        #[rustfmt::skip]
         let vertex_data = [
             Vertex { minmax: 0., angle_choice: 0., },
             Vertex { minmax: 1., angle_choice: 0., },

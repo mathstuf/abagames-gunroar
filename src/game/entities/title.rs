@@ -112,6 +112,7 @@ where
     where
         F: gfx::Factory<R>,
     {
+        #[rustfmt::skip]
         let logo_data = [
             LogoVertex { pos: [  0., -63.], tex: [0., 0.], },
             LogoVertex { pos: [255., -63.], tex: [1., 0.], },
@@ -152,6 +153,7 @@ where
             gfx::texture::WrapMode::Tile,
         ));
 
+        #[rustfmt::skip]
         let logo_line_data = [
             LogoLineVertex { pos: [-80.,  -7.], },
             LogoLineVertex { pos: [-20.,  -7.], },
@@ -187,6 +189,7 @@ where
             )
             .expect("failed to create the pipeline for the logo line");
 
+        #[rustfmt::skip]
         let logo_fill_data = [
             LogoFillVertex { pos: [-19.,  -6.], color: [1., 1., 1.], },
             LogoFillVertex { pos: [-79.,  -6.], color: [0., 0., 0.], },

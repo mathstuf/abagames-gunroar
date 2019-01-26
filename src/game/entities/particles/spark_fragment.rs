@@ -157,6 +157,7 @@ where
     where
         F: gfx::Factory<R>,
     {
+        #[rustfmt::skip]
         let data = [
             Vertex { pos: [-0.25, -0.25] },
             Vertex { pos: [ 0.25, -0.25] },

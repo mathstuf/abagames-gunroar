@@ -271,6 +271,7 @@ where
     where
         F: gfx::Factory<R>,
     {
+        #[rustfmt::skip]
         let ship_vertex_data = [
             ShipData { pos: 0., color: [0.5, 0.5, 0.9, 0.8], },
             ShipData { pos: 0.5, color: [0.5, 0.5, 0.9, 0.3], },
@@ -281,6 +282,7 @@ where
         let ship_slice =
             abagames_util::slice_for_loop::<R, F>(factory, ship_vertex_data.len() as u32);
 
+        #[rustfmt::skip]
         let line_vertex_data = [
             Line { rotation: 0., color: [0.5, 0.9, 0.7, 0.4], },
             Line { rotation: 1., color: [0.5, 0.9, 0.7, 0.8], },
@@ -289,6 +291,7 @@ where
         let line_slice =
             abagames_util::slice_for_loop::<R, F>(factory, line_vertex_data.len() as u32);
 
+        #[rustfmt::skip]
         let sight_vertex_data = [
             Sight { size_factor: [-1., -0.5], },
             Sight { size_factor: [-1., -1.], },

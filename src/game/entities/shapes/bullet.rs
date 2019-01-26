@@ -212,6 +212,7 @@ where
     where
         F: gfx::Factory<R>,
     {
+        #[rustfmt::skip]
         let normal_vertex_data = [
             Vertex3 { pos: [0.2, -0.25, 0.2], },
             Vertex3 { pos: [0., 0.33, 0.], },
@@ -230,6 +231,7 @@ where
         ];
         let normal_vbuf = factory.create_vertex_buffer(&normal_vertex_data);
 
+        #[rustfmt::skip]
         let small_vertex_data = [
             Vertex3 { pos: [0.25, -0.25, 0.25], },
             Vertex3 { pos: [0., 0.33, 0.], },
@@ -248,6 +250,7 @@ where
         ];
         let small_vbuf = factory.create_vertex_buffer(&small_vertex_data);
 
+        #[rustfmt::skip]
         let destructible_vertex_data = [
             Vertex2 { pos: [0.2, 0.], },
             Vertex2 { pos: [0., 0.4], },
@@ -256,6 +259,7 @@ where
         ];
         let destructible_vbuf = factory.create_vertex_buffer(&destructible_vertex_data);
 
+        #[rustfmt::skip]
         let shot_vertex_data = [
             Vertex3 { pos: [0., 0.3, 0.1], },
             Vertex3 { pos: [0.066, 0.3, -0.033], },
@@ -274,6 +278,7 @@ where
         ];
         let shot_vbuf = factory.create_vertex_buffer(&shot_vertex_data);
 
+        #[rustfmt::skip]
         let crystal_vertex_data = [
             Vertex2 { pos: [-0.2, 0.2], },
             Vertex2 { pos: [0.2, 0.2], },

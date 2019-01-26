@@ -265,6 +265,7 @@ where
     where
         F: gfx::Factory<R>,
     {
+        #[rustfmt::skip]
         let data = [
             Vertex { diff: [-0.5, -0.5] },
             Vertex { diff: [ 0.5, -0.5] },

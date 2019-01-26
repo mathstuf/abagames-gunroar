@@ -61,29 +61,32 @@ pub enum Style<'a> {
 }
 
 impl<'a> Style<'a> {
+    #[rustfmt::skip]
     fn color(&'a self, alpha: f32) -> Cow<'a, [f32; 4]> {
         match *self {
             Style::White => Cow::Owned([1., 1., 1., alpha]),
             Style::OffWhite => Cow::Owned([0.9, 0.7, 0.5, alpha]),
-            Style::Outline(data) |
-            Style::Filled(data) => Cow::Borrowed(data),
+            Style::Outline(data)
+            | Style::Filled(data) => Cow::Borrowed(data),
         }
     }
 
+    #[rustfmt::skip]
     fn is_outline(&self) -> bool {
         match *self {
-            Style::White |
-            Style::OffWhite |
-            Style::Outline(_) => true,
+            | Style::White
+            | Style::OffWhite
+            | Style::Outline(_) => true,
             Style::Filled(_) => false,
         }
     }
 
+    #[rustfmt::skip]
     fn is_fill(&self) -> bool {
         match *self {
-            Style::White |
-            Style::OffWhite |
-            Style::Filled(_) => true,
+            Style::White
+            | Style::OffWhite
+            | Style::Filled(_) => true,
             Style::Outline(_) => false,
         }
     }
@@ -113,6 +116,7 @@ impl SegmentData {
     }
 }
 
+#[rustfmt::skip]
 const LETTER_DATA: [&'static [SegmentData]; 44] = [
     &[
         SegmentData { pos: Vector2::new(0., 1.15), size: Vector2::new(0.65, 0.3), deg: 0., },
@@ -606,6 +610,7 @@ where
     where
         F: gfx::Factory<R>,
     {
+        #[rustfmt::skip]
         let vertex_data = [
             Vertex { pos: [-0.5,   0.], },
             Vertex { pos: [-0.33, -0.5], },
