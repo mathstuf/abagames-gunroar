@@ -1,5 +1,5 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
-// See accompanying file LICENSE for details.
+// See accompanying LICENSE file for details.
 
 use crates::abagames_util::{self, TargetFormat};
 use crates::cgmath::{Angle, Matrix4, Rad};

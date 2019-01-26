@@ -1,5 +1,5 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
-// See accompanying file LICENSE for details.
+// See accompanying LICENSE file for details.
 
 macro_rules! music {
     ( $name:expr ) => {

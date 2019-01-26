@@ -1,5 +1,5 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
-// See accompanying file LICENSE for details.
+// See accompanying LICENSE file for details.
 
 use crates::abagames_util::{Audio, Event, Game, Input, Resources, SdlInfo, StepResult};
 use crates::sdl2::event::WindowEvent;
