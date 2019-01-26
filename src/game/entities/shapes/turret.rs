@@ -10,8 +10,13 @@ lazy_static! {
         BaseShape::new(ShapeKind::Turret, 1., 0., 0., (1., 0.8, 0.8).into());
     static ref DAMAGED: BaseShape =
         BaseShape::new(ShapeKind::TurretDamaged, 1., 0., 0., (0.9, 0.9, 1.).into());
-    static ref DESTROYED: BaseShape =
-        BaseShape::new(ShapeKind::TurretDestroyed, 1., 0., 0., (0.8, 0.33, 0.66).into());
+    static ref DESTROYED: BaseShape = BaseShape::new(
+        ShapeKind::TurretDestroyed,
+        1.,
+        0.,
+        0.,
+        (0.8, 0.33, 0.66).into()
+    );
 }
 
 #[derive(Debug, Clone, Copy)]

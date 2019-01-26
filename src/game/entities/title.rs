@@ -7,9 +7,9 @@ use crates::gfx;
 use crates::gfx::traits::FactoryExt;
 use crates::image;
 
+pub use game::render::{Brightness, ScreenTransform};
 use game::render::{EncoderContext, RenderContext};
 use game::state::{GameMode, Scores};
-pub use game::render::{Brightness, ScreenTransform};
 
 use game::entities::letter::{self, Letter};
 
@@ -87,7 +87,8 @@ pub enum TitleState {
 }
 
 pub struct Title<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
     count: u32,
     state: TitleState,
@@ -100,12 +101,16 @@ pub struct Title<R>
 }
 
 impl<R> Title<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
-    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, TargetFormat>,
-                  context: &RenderContext<R>)
-                  -> Self
-        where F: gfx::Factory<R>,
+    pub fn new<F>(
+        factory: &mut F,
+        view: gfx::handle::RenderTargetView<R, TargetFormat>,
+        context: &RenderContext<R>,
+    ) -> Self
+    where
+        F: gfx::Factory<R>,
     {
         let logo_data = [
             LogoVertex { pos: [  0., -63.], tex: [0., 0.], },
@@ -117,27 +122,34 @@ impl<R> Title<R>
         let logo_vbuf = factory.create_vertex_buffer(&logo_data);
         let logo_slice = abagames_util::slice_for_fan::<R, F>(factory, logo_data.len() as u32);
 
-        let logo_pso = factory.create_pipeline_simple(
-            include_bytes!("shader/title_logo.glslv"),
-            include_bytes!("shader/title_logo.glslf"),
-            logo_pipe::new())
+        let logo_pso = factory
+            .create_pipeline_simple(
+                include_bytes!("shader/title_logo.glslv"),
+                include_bytes!("shader/title_logo.glslf"),
+                logo_pipe::new(),
+            )
             .expect("failed to create the pipeline for title_logo");
 
         let logo_bmp_data = include_bytes!("images/title.bmp");
-        let logo_img = image::load(Cursor::new(&logo_bmp_data[..]), image::BMP).expect("failed to load the logo image").to_rgba();
+        let logo_img = image::load(Cursor::new(&logo_bmp_data[..]), image::BMP)
+            .expect("failed to load the logo image")
+            .to_rgba();
         let (logo_width, logo_height) = logo_img.dimensions();
         let logo_tex_kind = gfx::texture::Kind::D2(
             logo_width as gfx::texture::Size,
             logo_height as gfx::texture::Size,
-            gfx::texture::AaMode::Single);
-        let (_, logo_tex) =
-            factory.create_texture_immutable_u8::<TargetFormat>(logo_tex_kind,
-                                                                gfx::texture::Mipmap::Provided,
-                                                                &[&logo_img])
-                .expect("failed to create the logo texture");
+            gfx::texture::AaMode::Single,
+        );
+        let (_, logo_tex) = factory
+            .create_texture_immutable_u8::<TargetFormat>(
+                logo_tex_kind,
+                gfx::texture::Mipmap::Provided,
+                &[&logo_img],
+            )
+            .expect("failed to create the logo texture");
         let logo_sampler = factory.create_sampler(gfx::texture::SamplerInfo::new(
             gfx::texture::FilterMethod::Mipmap,
-            gfx::texture::WrapMode::Tile
+            gfx::texture::WrapMode::Tile,
         ));
 
         let logo_line_data = [
@@ -154,20 +166,25 @@ impl<R> Title<R>
         let (logo_line_vbuf, logo_line_slice) =
             factory.create_vertex_buffer_with_slice(&logo_line_data, ());
 
-        let logo_line_program = factory.link_program(include_bytes!("shader/title_logo_line.glslv"),
-                          include_bytes!("shader/title_logo_line.glslf"))
+        let logo_line_program = factory
+            .link_program(
+                include_bytes!("shader/title_logo_line.glslv"),
+                include_bytes!("shader/title_logo_line.glslf"),
+            )
             .expect("could not link the title logo line shader");
-        let logo_line_pso = factory.create_pipeline_from_program(
-            &logo_line_program,
-            gfx::Primitive::LineList,
-            gfx::state::Rasterizer {
-                front_face: gfx::state::FrontFace::CounterClockwise,
-                cull_face: gfx::state::CullFace::Nothing,
-                method: gfx::state::RasterMethod::Line(3),
-                offset: None,
-                samples: None,
-            },
-            logo_line_pipe::new())
+        let logo_line_pso = factory
+            .create_pipeline_from_program(
+                &logo_line_program,
+                gfx::Primitive::LineList,
+                gfx::state::Rasterizer {
+                    front_face: gfx::state::FrontFace::CounterClockwise,
+                    cull_face: gfx::state::CullFace::Nothing,
+                    method: gfx::state::RasterMethod::Line(3),
+                    offset: None,
+                    samples: None,
+                },
+                logo_line_pipe::new(),
+            )
             .expect("failed to create the pipeline for the logo line");
 
         let logo_fill_data = [
@@ -181,10 +198,12 @@ impl<R> Title<R>
 
         let (logo_fill_vbuf, logo_fill_slice) =
             factory.create_vertex_buffer_with_slice(&logo_fill_data, ());
-        let logo_fill_pso = factory.create_pipeline_simple(
-            include_bytes!("shader/title_logo_fill.glslv"),
-            include_bytes!("shader/title_logo_fill.glslf"),
-            logo_fill_pipe::new())
+        let logo_fill_pso = factory
+            .create_pipeline_simple(
+                include_bytes!("shader/title_logo_fill.glslv"),
+                include_bytes!("shader/title_logo_fill.glslf"),
+                logo_fill_pipe::new(),
+            )
             .expect("failed to create the pipeline for the logo fill");
 
         let model_buffer = factory.create_constant_buffer(1);
@@ -239,76 +258,101 @@ impl<R> Title<R>
     }
 
     pub fn draw<C>(&self, context: &mut EncoderContext<R, C>, letter: &Letter<R>, scores: &Scores)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
         match self.state {
             TitleState::Replay => {
-                letter.draw_string(context,
-                                   "REPLAY",
-                                   letter::Style::White,
-                                   letter::Location::new(Vector2::new(3., 400.), 5.));
+                letter.draw_string(
+                    context,
+                    "REPLAY",
+                    letter::Style::White,
+                    letter::Location::new(Vector2::new(3., 400.), 5.),
+                );
             },
             TitleState::GameSelection(mode) => self.draw_title(context, letter, scores, mode),
         }
     }
 
-    fn draw_title<C>(&self, context: &mut EncoderContext<R, C>, letter: &Letter<R>,
-                     scores: &Scores, mode: GameMode)
-        where C: gfx::CommandBuffer<R>,
+    fn draw_title<C>(
+        &self,
+        context: &mut EncoderContext<R, C>,
+        letter: &Letter<R>,
+        scores: &Scores,
+        mode: GameMode,
+    ) where
+        C: gfx::CommandBuffer<R>,
     {
         let translation_factor = if self.count > 120 {
             f32::max(1. - ((self.count - 120) as f32) * 0.015, 0.5)
         } else {
             1.
         };
-        let modelmat =
-            Matrix4::from_translation((80. * translation_factor, 240., 0.).into()) *
-            Matrix4::from_nonuniform_scale(translation_factor, translation_factor, 0.);
+        let modelmat = Matrix4::from_translation((80. * translation_factor, 240., 0.).into())
+            * Matrix4::from_nonuniform_scale(translation_factor, translation_factor, 0.);
         let model = ModelTransform {
             modelmat: modelmat.into(),
         };
-        context.encoder.update_constant_buffer(&self.model_buffer, &model);
+        context
+            .encoder
+            .update_constant_buffer(&self.model_buffer, &model);
 
         self.logo_bundle.encode(context.encoder);
         self.logo_line_bundle.encode(context.encoder);
         self.logo_fill_bundle.encode(context.encoder);
 
         if self.count > 150 {
-            self.draw_score(context,
-                            letter,
-                            Vector2::new(3., 305.),
-                            "HIGH",
-                            scores.high_for_mode(mode));
+            self.draw_score(
+                context,
+                letter,
+                Vector2::new(3., 305.),
+                "HIGH",
+                scores.high_for_mode(mode),
+            );
         }
         if self.count > 200 {
-            self.draw_score(context,
-                            letter,
-                            Vector2::new(3., 345.),
-                            "LAST",
-                            scores.last());
+            self.draw_score(
+                context,
+                letter,
+                Vector2::new(3., 345.),
+                "LAST",
+                scores.last(),
+            );
         }
-        letter.draw_string(context,
-                           mode.name(),
-                           letter::Style::White,
-                           letter::Location::new(Vector2::new(3., 400.), 5.));
+        letter.draw_string(
+            context,
+            mode.name(),
+            letter::Style::White,
+            letter::Location::new(Vector2::new(3., 400.), 5.),
+        );
     }
 
-    fn draw_score<C>(&self, context: &mut EncoderContext<R, C>, letter: &Letter<R>,
-                     pos: Vector2<f32>, label: &str, score: u32)
-        where C: gfx::CommandBuffer<R>,
+    fn draw_score<C>(
+        &self,
+        context: &mut EncoderContext<R, C>,
+        letter: &Letter<R>,
+        pos: Vector2<f32>,
+        label: &str,
+        score: u32,
+    ) where
+        C: gfx::CommandBuffer<R>,
     {
-        letter.draw_string(context,
-                           label,
-                           letter::Style::OffWhite,
-                           letter::Location::new(pos, 4.));
-        letter.draw_number(context,
-                           score,
-                           letter::Style::OffWhite,
-                           letter::Location::new(pos + Vector2::new(77., 15.), 4.),
-                           letter::NumberStyle {
-                               pad_to: Some(9),
-                               prefix_char: None,
-                               floating_digits: None,
-                           });
+        letter.draw_string(
+            context,
+            label,
+            letter::Style::OffWhite,
+            letter::Location::new(pos, 4.),
+        );
+        letter.draw_number(
+            context,
+            score,
+            letter::Style::OffWhite,
+            letter::Location::new(pos + Vector2::new(77., 15.), 4.),
+            letter::NumberStyle {
+                pad_to: Some(9),
+                prefix_char: None,
+                floating_digits: None,
+            },
+        );
     }
 }

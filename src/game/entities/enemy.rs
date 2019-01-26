@@ -9,9 +9,9 @@ use crates::rayon::prelude::*;
 
 use game::entities::bullet::Bullet;
 use game::entities::crystal::Crystal;
-use game::entities::field::{Field, FIELD_SIZE, FIELD_OUTER_SIZE};
-use game::entities::particles::{Fragment, Smoke, SmokeKind, Spark, SparkFragment, Wake};
+use game::entities::field::{Field, FIELD_OUTER_SIZE, FIELD_SIZE};
 use game::entities::letter::{self, Letter};
+use game::entities::particles::{Fragment, Smoke, SmokeKind, Spark, SparkFragment, Wake};
 use game::entities::reel::ScoreReel;
 use game::entities::score_indicator::{FlyingTo, Indicator, ScoreIndicator, ScoreTarget};
 use game::entities::shapes::enemy::EnemyShapes;
@@ -19,7 +19,11 @@ use game::entities::shapes::ShapeDraw;
 use game::entities::ship::Ship;
 use game::entities::shot::{Shot, SHOT_SPEED};
 use game::entities::stage::Stage;
-use game::entities::turret::{MovingTurretGroup, MovingTurretGroupSpec, MovingTurretGroupSpecBuilder, TurretDraw, TurretGroup, TurretGroupAlignment, TurretGroupSpec, TurretGroupSpecBuilder, TurretKind, TurretMovement, TurretState};
+use game::entities::turret::{
+    MovingTurretGroup, MovingTurretGroupSpec, MovingTurretGroupSpecBuilder, TurretDraw,
+    TurretGroup, TurretGroupAlignment, TurretGroupSpec, TurretGroupSpecBuilder, TurretKind,
+    TurretMovement, TurretState,
+};
 use game::render::EncoderContext;
 use game::state::GameStateContext;
 
@@ -88,7 +92,8 @@ impl BaseEnemySpec {
             turret_groups: [TurretGroupSpecBuilder::default().into(); MAX_TURRET_GROUPS],
             num_turret_groups: 0,
 
-            moving_turret_groups: [MovingTurretGroupSpecBuilder::default().into(); MAX_MOVING_TURRET_GROUPS],
+            moving_turret_groups: [MovingTurretGroupSpecBuilder::default().into();
+                MAX_MOVING_TURRET_GROUPS],
             num_moving_turret_groups: 0,
         }
     }
@@ -156,105 +161,115 @@ impl BaseEnemySpec {
             },
         };
 
-        (0..num_moving_turrets)
-            .foreach(|_| {
-                let mut builder = MovingTurretGroupSpecBuilder::default();
-                builder.with_radius(radius);
+        (0..num_moving_turrets).foreach(|_| {
+            let mut builder = MovingTurretGroupSpecBuilder::default();
+            builder.with_radius(radius);
 
-                let turret_rank = match kind {
-                    TurretMovement::Roll => {
-                        let count = 4 + rand.next_int(6);
+            let turret_rank = match kind {
+                TurretMovement::Roll => {
+                    let count = 4 + rand.next_int(6);
 
-                        builder.with_alignment(data.align)
-                            .with_count(count);
+                    builder.with_alignment(data.align).with_count(count);
 
+                    if rand.next_int(2) == 0 {
                         if rand.next_int(2) == 0 {
-                            if rand.next_int(2) == 0 {
-                                builder.as_roll(data.rotate_velocity, Rad(0.), Rad(0.));
-                            } else {
-                                builder.as_roll(-data.rotate_velocity, Rad(0.), Rad(0.));
-                            }
+                            builder.as_roll(data.rotate_velocity, Rad(0.), Rad(0.));
                         } else {
-                            if rand.next_int(2) == 0 {
-                                builder.as_roll(Rad(0.), data.amplitude, data.amplitude_velocity);
-                            } else {
-                                builder.as_roll(Rad(0.), -data.amplitude, data.amplitude_velocity);
-                            }
+                            builder.as_roll(-data.rotate_velocity, Rad(0.), Rad(0.));
                         }
-
-                        if rand.next_int(3) == 0 {
-                            builder.with_radius_amplitude(1. + rand.next_float(1.),
-                                                          Rad(0.01 + rand.next_float(0.03)));
-                        }
+                    } else {
                         if rand.next_int(2) == 0 {
-                            builder.with_distance_ratio(0.8 + rand.next_float_signed(0.3));
-                        }
-
-                        br / (count as f32)
-                    },
-                    TurretMovement::SwingFix => {
-                        let count = 3 + rand.next_int(5);
-
-                        builder.with_alignment(data.align * ((count as f32) * 0.1 + 0.3))
-                            .with_count(count);
-
-                        if rand.next_int(2) == 0 {
-                            builder.as_swing(data.rotate_velocity, data.amplitude_velocity, false);
+                            builder.as_roll(Rad(0.), data.amplitude, data.amplitude_velocity);
                         } else {
-                            builder.as_swing(-data.rotate_velocity, data.amplitude_velocity, false);
+                            builder.as_roll(Rad(0.), -data.amplitude, data.amplitude_velocity);
                         }
+                    }
 
-                        if rand.next_int(6) == 0 {
-                            builder.with_radius_amplitude(1. + rand.next_float(1.),
-                                                          Rad(0.01 + rand.next_float(0.03)));
-                        }
-                        if rand.next_int(4) == 0 {
-                            builder.with_align_amplitude(0.25 + rand.next_float(0.25),
-                                                         Rad(0.01 + rand.next_float(0.02)));
-                        }
+                    if rand.next_int(3) == 0 {
+                        builder.with_radius_amplitude(
+                            1. + rand.next_float(1.),
+                            Rad(0.01 + rand.next_float(0.03)),
+                        );
+                    }
+                    if rand.next_int(2) == 0 {
+                        builder.with_distance_ratio(0.8 + rand.next_float_signed(0.3));
+                    }
 
-                        br / (count as f32) * 0.6
-                    },
-                    TurretMovement::SwingAim => {
-                        let count = 3 + rand.next_int(4);
+                    br / (count as f32)
+                },
+                TurretMovement::SwingFix => {
+                    let count = 3 + rand.next_int(5);
 
-                        builder.with_alignment(data.align * ((count as f32) * 0.1 + 0.3))
-                            .with_count(count);
+                    builder
+                        .with_alignment(data.align * ((count as f32) * 0.1 + 0.3))
+                        .with_count(count);
 
-                        if rand.next_int(2) == 0 {
-                            builder.as_swing(data.rotate_velocity, data.amplitude_velocity, true);
-                        } else {
-                            builder.as_swing(-data.rotate_velocity, data.amplitude_velocity, true);
-                        }
+                    if rand.next_int(2) == 0 {
+                        builder.as_swing(data.rotate_velocity, data.amplitude_velocity, false);
+                    } else {
+                        builder.as_swing(-data.rotate_velocity, data.amplitude_velocity, false);
+                    }
 
-                        if rand.next_int(4) == 0 {
-                            builder.with_radius_amplitude(1. + rand.next_float(1.),
-                                                          Rad(0.01 + rand.next_float(0.03)));
-                        }
-                        if rand.next_int(5) == 0 {
-                            builder.with_align_amplitude(0.25 + rand.next_float(0.25),
-                                                         Rad(0.01 + rand.next_float(0.02)));
-                        }
+                    if rand.next_int(6) == 0 {
+                        builder.with_radius_amplitude(
+                            1. + rand.next_float(1.),
+                            Rad(0.01 + rand.next_float(0.03)),
+                        );
+                    }
+                    if rand.next_int(4) == 0 {
+                        builder.with_align_amplitude(
+                            0.25 + rand.next_float(0.25),
+                            Rad(0.01 + rand.next_float(0.02)),
+                        );
+                    }
 
-                        br / (count as f32) * 0.4
-                    },
-                };
+                    br / (count as f32) * 0.6
+                },
+                TurretMovement::SwingAim => {
+                    let count = 3 + rand.next_int(4);
 
-                if rand.next_int(4) == 0 {
-                    builder.with_reverse_x();
-                }
+                    builder
+                        .with_alignment(data.align * ((count as f32) * 0.1 + 0.3))
+                        .with_count(count);
 
-                builder.init_spec(turret_rank, TurretKind::Moving, rand);
+                    if rand.next_int(2) == 0 {
+                        builder.as_swing(data.rotate_velocity, data.amplitude_velocity, true);
+                    } else {
+                        builder.as_swing(-data.rotate_velocity, data.amplitude_velocity, true);
+                    }
 
-                if is_boss {
-                    builder.as_boss();
-                }
+                    if rand.next_int(4) == 0 {
+                        builder.with_radius_amplitude(
+                            1. + rand.next_float(1.),
+                            Rad(0.01 + rand.next_float(0.03)),
+                        );
+                    }
+                    if rand.next_int(5) == 0 {
+                        builder.with_align_amplitude(
+                            0.25 + rand.next_float(0.25),
+                            Rad(0.01 + rand.next_float(0.02)),
+                        );
+                    }
 
-                self.add_moving_turret_group(builder.into());
+                    br / (count as f32) * 0.4
+                },
+            };
 
-                radius += radius_inc;
-                data.align *= 1. + rand.next_float_signed(0.2);
-            });
+            if rand.next_int(4) == 0 {
+                builder.with_reverse_x();
+            }
+
+            builder.init_spec(turret_rank, TurretKind::Moving, rand);
+
+            if is_boss {
+                builder.as_boss();
+            }
+
+            self.add_moving_turret_group(builder.into());
+
+            radius += radius_inc;
+            data.align *= 1. + rand.next_float_signed(0.2);
+        });
     }
 
     fn recolor(&mut self, color_factor: f32) {
@@ -624,29 +639,42 @@ impl EnemySpec {
                     let num_front_main_turret = (count.main + 2) / 4;
                     if 0 < num_front_main_turret {
                         let mut builder = TurretGroupSpecBuilder::default();
-                        builder.init_spec(main_turret_rank, TurretKind::Main, rand)
+                        builder
+                            .init_spec(main_turret_rank, TurretKind::Main, rand)
                             .with_count(num_front_main_turret)
                             .with_alignment(TurretGroupAlignment::Round)
-                            .with_sized_alignment(angles[0], f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8))
+                            .with_sized_alignment(
+                                angles[0],
+                                f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8),
+                            )
                             .with_radius(count.size * 0.45)
                             .with_distance_ratio(self.spec.distance_ratio);
                         let mut mirror = builder;
-                        mirror
-                            .with_sized_alignment(angles[1], f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8));
+                        mirror.with_sized_alignment(
+                            angles[1],
+                            f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8),
+                        );
                         self.spec.add_turret_group(builder.into());
                         self.spec.add_turret_group(mirror.into());
 
                         if num_front_main_turret * 2 + 1 <= count.main {
                             let num_rear_main_turret = (count.main - num_front_main_turret * 2) / 2;
-                            builder.init_spec(main_turret_rank, TurretKind::Main, rand)
+                            builder
+                                .init_spec(main_turret_rank, TurretKind::Main, rand)
                                 .with_count(num_rear_main_turret)
                                 .with_alignment(TurretGroupAlignment::Round)
-                                .with_sized_alignment(angles[2], f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8))
+                                .with_sized_alignment(
+                                    angles[2],
+                                    f32::consts::FRAC_PI_6
+                                        + rand.next_float(f32::consts::FRAC_PI_8),
+                                )
                                 .with_radius(count.size * 0.45)
                                 .with_distance_ratio(self.spec.distance_ratio);
                             let mut mirror = builder;
-                            mirror
-                                .with_sized_alignment(angles[3], f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8));
+                            mirror.with_sized_alignment(
+                                angles[3],
+                                f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8),
+                            );
                             self.spec.add_turret_group(builder.into());
                             self.spec.add_turret_group(mirror.into());
                         }
@@ -672,16 +700,22 @@ impl EnemySpec {
                         TurretKind::SubDestructive
                     };
                     let mut builder = TurretGroupSpecBuilder::default();
-                    builder.init_spec(sub_turret_rank, turret_kind, rand)
+                    builder
+                        .init_spec(sub_turret_rank, turret_kind, rand)
                         .as_boss()
                         .with_count(num_front_sub_turret)
                         .with_alignment(TurretGroupAlignment::Round)
-                        .with_sized_alignment(angles[0], f32::consts::PI / 7. + rand.next_float(f32::consts::PI / 9.))
+                        .with_sized_alignment(
+                            angles[0],
+                            f32::consts::PI / 7. + rand.next_float(f32::consts::PI / 9.),
+                        )
                         .with_radius(count.size * 0.75)
                         .with_distance_ratio(self.spec.distance_ratio);
                     let mut mirror = builder;
-                    mirror
-                        .with_sized_alignment(angles[1], f32::consts::PI / 7. + rand.next_float(f32::consts::PI / 9.));
+                    mirror.with_sized_alignment(
+                        angles[1],
+                        f32::consts::PI / 7. + rand.next_float(f32::consts::PI / 9.),
+                    );
                     self.spec.add_turret_group(builder.into());
                     self.spec.add_turret_group(mirror.into());
 
@@ -693,37 +727,50 @@ impl EnemySpec {
                             TurretKind::SubDestructive
                         };
                         let mut builder = TurretGroupSpecBuilder::default();
-                        builder.init_spec(sub_turret_rank, turret_kind, rand)
+                        builder
+                            .init_spec(sub_turret_rank, turret_kind, rand)
                             .as_boss()
                             .with_count(num_mid_sub_turret)
                             .with_alignment(TurretGroupAlignment::Round)
-                            .with_sized_alignment(angles[2], f32::consts::PI / 7. + rand.next_float(f32::consts::PI / 9.))
+                            .with_sized_alignment(
+                                angles[2],
+                                f32::consts::PI / 7. + rand.next_float(f32::consts::PI / 9.),
+                            )
                             .with_radius(count.size * 0.75)
                             .with_distance_ratio(self.spec.distance_ratio);
                         let mut mirror = builder;
-                        mirror
-                            .with_sized_alignment(angles[3], f32::consts::PI / 7. + rand.next_float(f32::consts::PI / 9.));
+                        mirror.with_sized_alignment(
+                            angles[3],
+                            f32::consts::PI / 7. + rand.next_float(f32::consts::PI / 9.),
+                        );
                         self.spec.add_turret_group(builder.into());
                         self.spec.add_turret_group(mirror.into());
 
                         if (num_front_sub_turret + num_mid_sub_turret) * 2 + 1 <= count.sub {
-                            let num_rear_sub_turret = (count.sub - (num_front_sub_turret + num_mid_sub_turret) * 2) / 2;
+                            let num_rear_sub_turret =
+                                (count.sub - (num_front_sub_turret + num_mid_sub_turret) * 2) / 2;
                             let turret_kind = if rand.next_int(2) == 0 {
                                 TurretKind::Sub
                             } else {
                                 TurretKind::SubDestructive
                             };
                             let mut builder = TurretGroupSpecBuilder::default();
-                            builder.init_spec(sub_turret_rank, turret_kind, rand)
+                            builder
+                                .init_spec(sub_turret_rank, turret_kind, rand)
                                 .as_boss()
                                 .with_count(num_rear_sub_turret)
                                 .with_alignment(TurretGroupAlignment::Round)
-                                .with_sized_alignment(angles[4], f32::consts::PI / 7. + rand.next_float(f32::consts::PI / 9.))
+                                .with_sized_alignment(
+                                    angles[4],
+                                    f32::consts::PI / 7. + rand.next_float(f32::consts::PI / 9.),
+                                )
                                 .with_radius(count.size * 0.75)
                                 .with_distance_ratio(self.spec.distance_ratio);
                             let mut mirror = builder;
-                            mirror
-                                .with_sized_alignment(angles[5], f32::consts::PI / 7. + rand.next_float(f32::consts::PI / 9.));
+                            mirror.with_sized_alignment(
+                                angles[5],
+                                f32::consts::PI / 7. + rand.next_float(f32::consts::PI / 9.),
+                            );
                             self.spec.add_turret_group(builder.into());
                             self.spec.add_turret_group(mirror.into());
                         }
@@ -733,7 +780,8 @@ impl EnemySpec {
                 let num_front_main_turret = count.main / 2;
                 if 0 < num_front_main_turret {
                     let mut builder = TurretGroupSpecBuilder::default();
-                    builder.init_spec(main_turret_rank, TurretKind::Main, rand)
+                    builder
+                        .init_spec(main_turret_rank, TurretKind::Main, rand)
                         .with_count(num_front_main_turret)
                         .with_alignment(TurretGroupAlignment::Straight)
                         .with_y_offset(-count.size * (0.9 + rand.next_float_signed(0.05)));
@@ -743,7 +791,8 @@ impl EnemySpec {
                 if num_front_main_turret < count.main {
                     let num_rear_main_turret = count.main - num_front_main_turret;
                     let mut builder = TurretGroupSpecBuilder::default();
-                    builder.init_spec(main_turret_rank, TurretKind::Main, rand)
+                    builder
+                        .init_spec(main_turret_rank, TurretKind::Main, rand)
                         .with_count(num_rear_main_turret)
                         .with_alignment(TurretGroupAlignment::Straight)
                         .with_y_offset(count.size * (0.9 + rand.next_float_signed(0.05)));
@@ -766,15 +815,21 @@ impl EnemySpec {
                             TurretKind::SubDestructive
                         };
                         let mut builder = TurretGroupSpecBuilder::default();
-                        builder.init_spec(sub_turret_rank, turret_kind, rand)
+                        builder
+                            .init_spec(sub_turret_rank, turret_kind, rand)
                             .with_count(num_front_sub_turret)
                             .with_alignment(TurretGroupAlignment::Round)
-                            .with_sized_alignment(angles[0], f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8))
+                            .with_sized_alignment(
+                                angles[0],
+                                f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8),
+                            )
                             .with_radius(count.size * 0.75)
                             .with_distance_ratio(self.spec.distance_ratio);
                         let mut mirror = builder;
-                        mirror
-                            .with_sized_alignment(angles[1], f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8));
+                        mirror.with_sized_alignment(
+                            angles[1],
+                            f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8),
+                        );
                         self.spec.add_turret_group(builder.into());
                         self.spec.add_turret_group(mirror.into());
 
@@ -785,15 +840,22 @@ impl EnemySpec {
                                 TurretKind::SubDestructive
                             };
                             let num_rear_sub_turret = (count.sub - num_front_sub_turret * 2) / 2;
-                            builder.init_spec(sub_turret_rank, turret_kind, rand)
+                            builder
+                                .init_spec(sub_turret_rank, turret_kind, rand)
                                 .with_count(num_rear_sub_turret)
                                 .with_alignment(TurretGroupAlignment::Round)
-                                .with_sized_alignment(angles[2], f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8))
+                                .with_sized_alignment(
+                                    angles[2],
+                                    f32::consts::FRAC_PI_6
+                                        + rand.next_float(f32::consts::FRAC_PI_8),
+                                )
                                 .with_radius(count.size * 0.75)
                                 .with_distance_ratio(self.spec.distance_ratio);
                             let mut mirror = builder;
-                            mirror
-                                .with_sized_alignment(angles[3], f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8));
+                            mirror.with_sized_alignment(
+                                angles[3],
+                                f32::consts::FRAC_PI_6 + rand.next_float(f32::consts::FRAC_PI_8),
+                            );
                             self.spec.add_turret_group(builder.into());
                             self.spec.add_turret_group(mirror.into());
                         }
@@ -803,7 +865,8 @@ impl EnemySpec {
         }
 
         if count.moving_ratio > 0. {
-            self.spec.add_moving_turret(rank * count.moving_ratio, class.is_boss(), rand);
+            self.spec
+                .add_moving_turret(rank * count.moving_ratio, class.is_boss(), rand);
         }
     }
 
@@ -855,10 +918,14 @@ impl EnemySpec {
 
         if count.main > 0 {
             let mut builder = TurretGroupSpecBuilder::default();
-            builder.init_spec(main_turret_rank, TurretKind::Main, rand)
+            builder
+                .init_spec(main_turret_rank, TurretKind::Main, rand)
                 .with_count(count.main)
                 .with_alignment(TurretGroupAlignment::Round)
-                .with_sized_alignment(Rad(0.), f32::consts::PI * 0.66 + rand.next_float(f32::consts::FRAC_PI_2))
+                .with_sized_alignment(
+                    Rad(0.),
+                    f32::consts::PI * 0.66 + rand.next_float(f32::consts::FRAC_PI_2),
+                )
                 .with_radius(size * 0.7)
                 .with_distance_ratio(self.spec.distance_ratio);
             self.spec.add_turret_group(builder.into());
@@ -866,10 +933,14 @@ impl EnemySpec {
 
         if count.front > 0 {
             let mut builder = TurretGroupSpecBuilder::default();
-            builder.init_spec(sub_turret_rank, TurretKind::Sub, rand)
+            builder
+                .init_spec(sub_turret_rank, TurretKind::Sub, rand)
                 .with_count(count.front)
                 .with_alignment(TurretGroupAlignment::Round)
-                .with_sized_alignment(Rad(0.), f32::consts::PI / 5. + rand.next_float(f32::consts::FRAC_PI_6))
+                .with_sized_alignment(
+                    Rad(0.),
+                    f32::consts::PI / 5. + rand.next_float(f32::consts::FRAC_PI_6),
+                )
                 .with_radius(size * 0.8)
                 .with_distance_ratio(self.spec.distance_ratio);
             self.spec.add_turret_group(builder.into());
@@ -878,21 +949,28 @@ impl EnemySpec {
         let side_turret_count = count.side / 2;
         if side_turret_count > 0 {
             let mut builder = TurretGroupSpecBuilder::default();
-            builder.init_spec(sub_turret_rank, TurretKind::Sub, rand)
+            builder
+                .init_spec(sub_turret_rank, TurretKind::Sub, rand)
                 .with_count(side_turret_count)
                 .with_alignment(TurretGroupAlignment::Round)
-                .with_sized_alignment(Rad::turn_div_4(), f32::consts::PI / 5. + rand.next_float(f32::consts::FRAC_PI_6))
+                .with_sized_alignment(
+                    Rad::turn_div_4(),
+                    f32::consts::PI / 5. + rand.next_float(f32::consts::FRAC_PI_6),
+                )
                 .with_radius(size * 0.75)
                 .with_distance_ratio(self.spec.distance_ratio);
             let mut mirror = builder;
-            mirror
-                .with_sized_alignment(-Rad::turn_div_4(), f32::consts::PI / 5. + rand.next_float(f32::consts::FRAC_PI_6));
+            mirror.with_sized_alignment(
+                -Rad::turn_div_4(),
+                f32::consts::PI / 5. + rand.next_float(f32::consts::FRAC_PI_6),
+            );
             self.spec.add_turret_group(builder.into());
             self.spec.add_turret_group(mirror.into());
         }
 
         if count.moving_ratio > 0. {
-            self.spec.add_moving_turret(rank * count.moving_ratio, false, rand);
+            self.spec
+                .add_moving_turret(rank * count.moving_ratio, false, rand);
         }
     }
 
@@ -937,9 +1015,7 @@ pub enum EnemyAppearance {
 #[derive(Debug, Clone, Copy)]
 enum SmallShipMode {
     Chase,
-    StopAndGo {
-        state: SmallShipMoveState,
-    },
+    StopAndGo { state: SmallShipMoveState },
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -957,11 +1033,7 @@ struct BossTurn {
 impl BossTurn {
     fn new(rand: &mut Rand) -> Self {
         let angle = Rad(rand.next_float(0.1) + 0.1);
-        let factor = if rand.next_int(2) == 0 {
-            -1.
-        } else {
-            1.
-        };
+        let factor = if rand.next_int(2) == 0 { -1. } else { 1. };
 
         BossTurn {
             target_angle: angle * factor,
@@ -1014,7 +1086,8 @@ impl DestroyData {
         self.explode_count = self.explode_count.saturating_sub(1);
 
         if self.explode_count == 0 {
-            self.explode_interval = (((self.explode_interval + 2) as f32) * (1.2 + rand.next_float(1.))) as u32;
+            self.explode_interval =
+                (((self.explode_interval + 2) as f32) * (1.2 + rand.next_float(1.))) as u32;
             self.explode_count = self.explode_interval + 1;
             Some(self.explode_interval)
         } else {
@@ -1071,8 +1144,12 @@ impl EnemyStateData {
     fn destroy(&mut self) -> bool {
         match *self {
             EnemyStateData::SmallShip(..) => false,
-            EnemyStateData::Ship(ShipStateData { ref mut destroyed, .. }) |
-            EnemyStateData::Platform(PlatformStateData { ref mut destroyed, .. }) => {
+            EnemyStateData::Ship(ShipStateData {
+                ref mut destroyed, ..
+            })
+            | EnemyStateData::Platform(PlatformStateData {
+                ref mut destroyed, ..
+            }) => {
                 *destroyed = Some(DestroyData::new());
                 true
             },
@@ -1082,16 +1159,24 @@ impl EnemyStateData {
     fn destroyed(&self) -> Option<DestroyData> {
         match *self {
             EnemyStateData::SmallShip(..) => None,
-            EnemyStateData::Ship(ShipStateData { destroyed, .. }) |
-            EnemyStateData::Platform(PlatformStateData { destroyed }) => destroyed,
+            EnemyStateData::Ship(ShipStateData {
+                destroyed, ..
+            })
+            | EnemyStateData::Platform(PlatformStateData {
+                destroyed,
+            }) => destroyed,
         }
     }
 
     fn destroyed_mut(&mut self) -> Option<&mut DestroyData> {
         match *self {
             EnemyStateData::SmallShip(..) => None,
-            EnemyStateData::Ship(ShipStateData { ref mut destroyed, .. }) |
-            EnemyStateData::Platform(PlatformStateData { ref mut destroyed }) => destroyed.as_mut(),
+            EnemyStateData::Ship(ShipStateData {
+                ref mut destroyed, ..
+            })
+            | EnemyStateData::Platform(PlatformStateData {
+                ref mut destroyed,
+            }) => destroyed.as_mut(),
         }
     }
 }
@@ -1138,7 +1223,13 @@ impl EnemyState {
         }
     }
 
-    pub fn appear(spec: &EnemySpec, appearance: EnemyAppearance, field: &Field, enemies: &Pool<Enemy>, rand: &mut Rand) -> Option<Self> {
+    pub fn appear(
+        spec: &EnemySpec,
+        appearance: EnemyAppearance,
+        field: &Field,
+        enemies: &Pool<Enemy>,
+        rand: &mut Rand,
+    ) -> Option<Self> {
         assert!(spec.spec.kind.is_ship());
 
         let mut state = Self::new();
@@ -1146,8 +1237,10 @@ impl EnemyState {
         let can_spawn = (0..8).any(|_| {
             let (pos, angle) = match appearance {
                 EnemyAppearance::Top => {
-                    let pos = Vector2::new(rand.next_float_signed(FIELD_SIZE.x),
-                                           FIELD_OUTER_SIZE.x * 0.99 + spec.size);
+                    let pos = Vector2::new(
+                        rand.next_float_signed(FIELD_SIZE.x),
+                        FIELD_OUTER_SIZE.x * 0.99 + spec.size,
+                    );
                     let angle = if pos.x < 0. {
                         Rad::turn_div_2() - Rad(rand.next_float(0.5))
                     } else {
@@ -1157,11 +1250,7 @@ impl EnemyState {
                     (pos, angle)
                 },
                 EnemyAppearance::Side => {
-                    let factor = if rand.next_int(2) == 0 {
-                        1.
-                    } else {
-                        -1.
-                    };
+                    let factor = if rand.next_int(2) == 0 { 1. } else { -1. };
 
                     let pos = Vector2::new(-factor * FIELD_OUTER_SIZE.x * 0.99, 0.);
                     let angle = (Rad::turn_div_2() + Rad(rand.next_float(0.66))) * factor;
@@ -1179,7 +1268,8 @@ impl EnemyState {
             state.prev_pos = pos;
             state.angle = angle;
 
-            appearance == EnemyAppearance::Center || state.check_front(true, spec, field, enemies.iter())
+            appearance == EnemyAppearance::Center
+                || state.check_front(true, spec, field, enemies.iter())
         });
 
         if !can_spawn {
@@ -1216,7 +1306,13 @@ impl EnemyState {
         Some(state)
     }
 
-    pub fn for_platform(spec: &EnemySpec, pos: Vector2<f32>, angle: Rad<f32>, field: &Field, enemies: &Pool<Enemy>) -> Option<Self> {
+    pub fn for_platform(
+        spec: &EnemySpec,
+        pos: Vector2<f32>,
+        angle: Rad<f32>,
+        field: &Field,
+        enemies: &Pool<Enemy>,
+    ) -> Option<Self> {
         assert_eq!(spec.spec.kind, EnemyKind::Platform);
 
         let mut state = Self::new();
@@ -1241,14 +1337,16 @@ impl EnemyState {
         self.index = index;
 
         let group_specs = spec.turret_group_specs();
-        group_specs.par_iter()
+        group_specs
+            .par_iter()
             .cloned()
             .zip(self.turret_groups.par_iter_mut())
             .for_each(|(turret_spec, group)| group.init(turret_spec, spec.is_boss(), index));
         self.num_turret_groups = group_specs.len();
 
         let moving_group_specs = spec.moving_turret_group_specs();
-        moving_group_specs.par_iter()
+        moving_group_specs
+            .par_iter()
             .cloned()
             .zip(self.moving_turret_groups.par_iter_mut())
             .for_each(|(turret_spec, group)| group.init(turret_spec, spec.is_boss(), index));
@@ -1267,14 +1365,29 @@ impl EnemyState {
         &mut self.turret_groups[0..self.num_turret_groups]
     }
 
-    fn collides(&mut self, spec: &EnemySpec, shot: &Shot, stage: &Stage, bullets: &mut Pool<Bullet>, crystals: &mut Pool<Crystal>, fragments: &mut Pool<Fragment>, smokes: &mut Pool<Smoke>, sparks: &mut Pool<Spark>, indicators: &mut Pool<ScoreIndicator>, reel: &mut ScoreReel, context: &mut GameStateContext, rand: &mut Rand) -> bool {
+    fn collides(
+        &mut self,
+        spec: &EnemySpec,
+        shot: &Shot,
+        stage: &Stage,
+        bullets: &mut Pool<Bullet>,
+        crystals: &mut Pool<Crystal>,
+        fragments: &mut Pool<Fragment>,
+        smokes: &mut Pool<Smoke>,
+        sparks: &mut Pool<Spark>,
+        indicators: &mut Pool<ScoreIndicator>,
+        reel: &mut ScoreReel,
+        context: &mut GameStateContext,
+        rand: &mut Rand,
+    ) -> bool {
         let offset = shot.pos() - self.pos;
         let offset = Vector2::new(offset.x.abs(), offset.y.abs());
         if offset.x + offset.y > 2. * spec.size {
             return false;
         }
 
-        let scores = self.turret_groups
+        let scores = self
+            .turret_groups
             .iter_mut()
             .take(self.num_turret_groups)
             .filter_map(|group| {
@@ -1289,64 +1402,103 @@ impl EnemyState {
             .next();
 
         if let Some(scores) = scores {
-            scores.into_iter()
-                .foreach(|score| {
-                    self.multiplier += score.multiplier();
-                    self.add_score_indicator(score.score(), 1., stage, indicators, reel, context, rand);
-                });
+            scores.into_iter().foreach(|score| {
+                self.multiplier += score.multiplier();
+                self.add_score_indicator(score.score(), 1., stage, indicators, reel, context, rand);
+            });
             true
         } else if spec.spec.shapes.collides(offset, shot.collision()) {
-            self.damage(spec, stage, shot, bullets, crystals, fragments, smokes, sparks, indicators, reel, context, rand);
+            self.damage(
+                spec, stage, shot, bullets, crystals, fragments, smokes, sparks, indicators, reel,
+                context, rand,
+            );
             true
         } else {
             false
         }
     }
 
-    fn damage(&mut self, spec: &EnemySpec, stage: &Stage, shot: &Shot, bullets: &mut Pool<Bullet>, crystals: &mut Pool<Crystal>, fragments: &mut Pool<Fragment>, smokes: &mut Pool<Smoke>, sparks: &mut Pool<Spark>, indicators: &mut Pool<ScoreIndicator>, reel: &mut ScoreReel, context: &mut GameStateContext, rand: &mut Rand) {
+    fn damage(
+        &mut self,
+        spec: &EnemySpec,
+        stage: &Stage,
+        shot: &Shot,
+        bullets: &mut Pool<Bullet>,
+        crystals: &mut Pool<Crystal>,
+        fragments: &mut Pool<Fragment>,
+        smokes: &mut Pool<Smoke>,
+        sparks: &mut Pool<Spark>,
+        indicators: &mut Pool<ScoreIndicator>,
+        reel: &mut ScoreReel,
+        context: &mut GameStateContext,
+        rand: &mut Rand,
+    ) {
         self.shield = self.shield.saturating_sub(shot.damage());
         if self.shield == 0 {
-            self.destroyed(spec, Some(shot), stage, bullets, crystals, fragments, smokes, sparks, indicators, reel, context, rand);
+            self.destroyed(
+                spec,
+                Some(shot),
+                stage,
+                bullets,
+                crystals,
+                fragments,
+                smokes,
+                sparks,
+                indicators,
+                reel,
+                context,
+                rand,
+            );
         } else {
             self.damaged_count = 7;
         }
     }
 
     fn check_front<'a, I>(&self, current: bool, spec: &EnemySpec, field: &Field, enemies: I) -> bool
-        where I: Clone + IntoIterator<Item = &'a Enemy>,
+    where
+        I: Clone + IntoIterator<Item = &'a Enemy>,
     {
         let angle: Vector2<f32> = self.angle.sin_cos().into();
         let angle = spec.size * angle;
-        let start: u32 = if current {
-            0
-        } else {
-            1
-        };
+        let start: u32 = if current { 0 } else { 1 };
 
-        (start..5)
-            .all(|i| {
-                let pos = self.pos + angle * (i as f32);
+        (start..5).all(|i| {
+            let pos = self.pos + angle * (i as f32);
 
-                if field.block(pos).is_land() {
-                    return false;
-                }
+            if field.block(pos).is_land() {
+                return false;
+            }
 
-                enemies.clone()
-                    .into_iter()
-                    .filter_map(|enemy| {
-                        if !enemy.spec.is_large() {
-                            None
-                        } else if enemy.state.is_destroyed() {
-                            None
-                        } else {
-                            Some(enemy.collides(pos - enemy.state.pos, enemy.state.angle, 1.))
-                        }
-                    })
-                    .all(|i| i)
-            })
+            enemies
+                .clone()
+                .into_iter()
+                .filter_map(|enemy| {
+                    if !enemy.spec.is_large() {
+                        None
+                    } else if enemy.state.is_destroyed() {
+                        None
+                    } else {
+                        Some(enemy.collides(pos - enemy.state.pos, enemy.state.angle, 1.))
+                    }
+                })
+                .all(|i| i)
+        })
     }
 
-    fn step(&mut self, spec: &EnemySpec, field: &Field, bullets: &mut Pool<Bullet>, ship: &Ship, smokes: &mut Pool<Smoke>, sparks: &mut Pool<Spark>, spark_fragments: &mut Pool<SparkFragment>, wakes: &mut Pool<Wake>, other_enemies: PoolChainIter<Enemy>, context: &mut GameStateContext, rand: &mut Rand) -> PoolRemoval {
+    fn step(
+        &mut self,
+        spec: &EnemySpec,
+        field: &Field,
+        bullets: &mut Pool<Bullet>,
+        ship: &Ship,
+        smokes: &mut Pool<Smoke>,
+        sparks: &mut Pool<Spark>,
+        spark_fragments: &mut Pool<SparkFragment>,
+        wakes: &mut Pool<Wake>,
+        other_enemies: PoolChainIter<Enemy>,
+        context: &mut GameStateContext,
+        rand: &mut Rand,
+    ) -> PoolRemoval {
         if let EnemyStateData::Ship(ref data) = self.data {
             if let Some(destroyed) = data.destroyed {
                 if destroyed.count >= SINK_INTERVAL {
@@ -1358,42 +1510,54 @@ impl EnemyState {
         self.prev_pos = self.pos;
         self.multiplier = f32::max(1., self.multiplier - MULTIPLIER_DECREASE_RATIO);
 
-        let interval = self.data
+        let interval = self
+            .data
             .destroyed_mut()
             .and_then(|destroy| destroy.step(rand));
 
         if let Some(interval) = interval {
             context.audio.mark_sfx("explode");
 
-            let n = cmp::min(48, (spec.size.sqrt() * 27. / ((interval as f32) * 0.1 + 1.)) as usize);
+            let n = cmp::min(
+                48,
+                (spec.size.sqrt() * 27. / ((interval as f32) * 0.1 + 1.)) as usize,
+            );
             let points = spec.spec.shapes.normal().points();
             let i = rand.next_int(points.len() as u32) as usize;
             let pos = points[i].pos * spec.size + self.pos;
             let size = f32::min(1., spec.size * 0.5);
 
-            (0..n)
-                .foreach(|i| {
-                    let velocity_factor = rand.next_float(0.5);
-                    let angle = points[i].angle + Rad(rand.next_float_signed(0.2));
-                    let angle_comps: Vector2<f32> = angle.sin_cos().into();
-                    let vel = angle_comps * velocity_factor;
+            (0..n).foreach(|i| {
+                let velocity_factor = rand.next_float(0.5);
+                let angle = points[i].angle + Rad(rand.next_float_signed(0.2));
+                let angle_comps: Vector2<f32> = angle.sin_cos().into();
+                let vel = angle_comps * velocity_factor;
 
-                    smokes.get_force()
-                        .init_2d(pos, vel.extend(-0.004), SmokeKind::Explosion, 75 + rand.next_int(25), size, rand);
+                smokes.get_force().init_2d(
+                    pos,
+                    vel.extend(-0.004),
+                    SmokeKind::Explosion,
+                    75 + rand.next_int(25),
+                    size,
+                    rand,
+                );
 
-                    (0..2).foreach(|_| {
-                        let color = (0.5 + rand.next_float(0.5),
-                                     0.5 + rand.next_float(0.5),
-                                     0.).into();
-                        sparks.get_force()
-                            .init(pos, vel * 2., color, 30 + rand.next_int(30));
-                    });
+                (0..2).foreach(|_| {
+                    let color = (0.5 + rand.next_float(0.5), 0.5 + rand.next_float(0.5), 0.).into();
+                    sparks
+                        .get_force()
+                        .init(pos, vel * 2., color, 30 + rand.next_int(30));
+                });
 
-                    if i % 2 == 0 {
-                        spark_fragments.get_force()
-                            .init(pos, (vel * 0.5).extend(0.06 + rand.next_float(0.07)), 0.2 + rand.next_float(0.1), rand);
-                    }
-                })
+                if i % 2 == 0 {
+                    spark_fragments.get_force().init(
+                        pos,
+                        (vel * 0.5).extend(0.06 + rand.next_float(0.07)),
+                        0.2 + rand.next_float(0.1),
+                        rand,
+                    );
+                }
+            })
         }
 
         self.damaged = false;
@@ -1407,7 +1571,11 @@ impl EnemyState {
                 dead = false;
             }
         }
-        for group in self.moving_turret_groups.iter_mut().take(self.num_moving_turret_groups) {
+        for group in self
+            .moving_turret_groups
+            .iter_mut()
+            .take(self.num_moving_turret_groups)
+        {
             group.step(self.pos, self.angle, field, bullets, smokes, ship, rand);
         }
 
@@ -1434,12 +1602,18 @@ impl EnemyState {
                     self.pos += angle_comps * data.speed * 2.;
                 }
 
-                let ship_spec_data = spec.spec_data.small_ship()
+                let ship_spec_data = spec
+                    .spec_data
+                    .small_ship()
                     .expect("expected the spec to have small ship data");
 
                 match data.mode {
-                    SmallShipMode::StopAndGo { ref mut state } => {
-                        let spec_data = ship_spec_data.movement.stop_and_go()
+                    SmallShipMode::StopAndGo {
+                        ref mut state,
+                    } => {
+                        let spec_data = ship_spec_data
+                            .movement
+                            .stop_and_go()
                             .expect("expected the spec to have stop and go data");
 
                         match *state {
@@ -1465,7 +1639,9 @@ impl EnemyState {
                         }
                     },
                     SmallShipMode::Chase => {
-                        let spec_data = ship_spec_data.movement.chase()
+                        let spec_data = ship_spec_data
+                            .movement
+                            .chase()
                             .expect("expected the spec to have chase data");
 
                         let ship_pos = ship.nearest_boat(self.pos).pos();
@@ -1483,7 +1659,8 @@ impl EnemyState {
                             data.velocity_angle - spec_data.turn_velocity
                         } else {
                             data.velocity_angle + spec_data.turn_velocity
-                        }.normalize();
+                        }
+                        .normalize();
                         data.count = data.count.wrapping_add(1);
                     },
                 }
@@ -1492,7 +1669,9 @@ impl EnemyState {
                 self.angle = (self.angle + offset_angle * 0.05).normalize();
 
                 if data.count % 6 == 0 && data.speed >= 0.03 {
-                    spec.spec.shapes.add_wake(field, self.pos, self.angle, data.speed, spec.size, wakes, rand)
+                    spec.spec.shapes.add_wake(
+                        field, self.pos, self.angle, data.speed, spec.size, wakes, rand,
+                    )
                 }
 
                 EnemyStateData::SmallShip(data)
@@ -1500,7 +1679,9 @@ impl EnemyState {
             EnemyStateData::Ship(old_data) => {
                 let mut data = old_data;
 
-                let spec_data = spec.spec_data.ship()
+                let spec_data = spec
+                    .spec_data
+                    .ship()
                     .expect("expected the spec to have ship data");
 
                 let angle_comps: Vector2<f32> = self.angle.sin_cos().into();
@@ -1508,7 +1689,10 @@ impl EnemyState {
                 self.pos.y -= field.last_scroll_y();
 
                 let size = spec.size;
-                if self.pos.x <= -FIELD_OUTER_SIZE.x - size || FIELD_OUTER_SIZE.x + size <= self.pos.x || self.pos.y <= -FIELD_OUTER_SIZE.y - size {
+                if self.pos.x <= -FIELD_OUTER_SIZE.x - size
+                    || FIELD_OUTER_SIZE.x + size <= self.pos.x
+                    || self.pos.y <= -FIELD_OUTER_SIZE.y - size
+                {
                     return PoolRemoval::Remove;
                 }
 
@@ -1549,8 +1733,16 @@ impl EnemyState {
                 }
 
                 data.wake_count = data.wake_count.saturating_add(1);
-                if data.wake_count % 6 == 0 && data.speed >= 0.01 && data.destroyed.map(|destroyed| destroyed.count < SINK_INTERVAL / 2).unwrap_or(true) {
-                    spec.spec.shapes.add_wake(field, self.pos, self.angle, data.speed, spec.size, wakes, rand);
+                if data.wake_count % 6 == 0
+                    && data.speed >= 0.01
+                    && data
+                        .destroyed
+                        .map(|destroyed| destroyed.count < SINK_INTERVAL / 2)
+                        .unwrap_or(true)
+                {
+                    spec.spec.shapes.add_wake(
+                        field, self.pos, self.angle, data.speed, spec.size, wakes, rand,
+                    );
                 }
 
                 EnemyStateData::Ship(data)
@@ -1569,7 +1761,21 @@ impl EnemyState {
         PoolRemoval::Keep
     }
 
-    fn destroyed(&mut self, spec: &EnemySpec, shot: Option<&Shot>, stage: &Stage, bullets: &mut Pool<Bullet>, crystals: &mut Pool<Crystal>, fragments: &mut Pool<Fragment>, smokes: &mut Pool<Smoke>, sparks: &mut Pool<Spark>, indicators: &mut Pool<ScoreIndicator>, reel: &mut ScoreReel, context: &mut GameStateContext, rand: &mut Rand) -> PoolRemoval {
+    fn destroyed(
+        &mut self,
+        spec: &EnemySpec,
+        shot: Option<&Shot>,
+        stage: &Stage,
+        bullets: &mut Pool<Bullet>,
+        crystals: &mut Pool<Crystal>,
+        fragments: &mut Pool<Fragment>,
+        smokes: &mut Pool<Smoke>,
+        sparks: &mut Pool<Spark>,
+        indicators: &mut Pool<ScoreIndicator>,
+        reel: &mut ScoreReel,
+        context: &mut GameStateContext,
+        rand: &mut Rand,
+    ) -> PoolRemoval {
         let (explode_vel, z_vel) = if let Some(shot) = shot {
             let angle_comps: Vector2<f32> = shot.angle().sin_cos().into();
             (angle_comps * SHOT_SPEED / 2., 0.)
@@ -1578,35 +1784,45 @@ impl EnemyState {
         };
 
         let size = f32::min(2., spec.size * 1.5);
-        let particle_count_base = f32::min(3., if spec.size < 1. {
-            spec.size
-        } else {
-            spec.size.sqrt()
-        });
+        let particle_count_base = f32::min(
+            3.,
+            if spec.size < 1. {
+                spec.size
+            } else {
+                spec.size.sqrt()
+            },
+        );
 
         (0..((particle_count_base * 8.) as usize)).foreach(|_| {
-            let vel_offset = Vector2::new(rand.next_float_signed(0.1),
-                                          rand.next_float_signed(0.1));
+            let vel_offset = Vector2::new(rand.next_float_signed(0.1), rand.next_float_signed(0.1));
             let vel = (vel_offset + explode_vel).extend(rand.next_float(z_vel));
-            smokes.get_force()
-                .init_2d(self.pos, vel, SmokeKind::Explosion, 32 + rand.next_int(30), size, rand);
+            smokes.get_force().init_2d(
+                self.pos,
+                vel,
+                SmokeKind::Explosion,
+                32 + rand.next_int(30),
+                size,
+                rand,
+            );
         });
 
         (0..((particle_count_base * 36.) as usize)).foreach(|_| {
-            let vel_offset = Vector2::new(rand.next_float_signed(0.8),
-                                          rand.next_float_signed(0.8));
-            let color = Vector3::new(0.5 + rand.next_float(0.5),
-                                     0.5 + rand.next_float(0.5),
-                                     0.);
-            sparks.get_force()
-                .init(self.pos, vel_offset + explode_vel, color, 30 + rand.next_int(30));
+            let vel_offset = Vector2::new(rand.next_float_signed(0.8), rand.next_float_signed(0.8));
+            let color = Vector3::new(0.5 + rand.next_float(0.5), 0.5 + rand.next_float(0.5), 0.);
+            sparks.get_force().init(
+                self.pos,
+                vel_offset + explode_vel,
+                color,
+                30 + rand.next_int(30),
+            );
         });
 
         (0..((particle_count_base * 12.) as usize)).foreach(|_| {
-            let vel_offset = Vector2::new(rand.next_float_signed(0.33),
-                                          rand.next_float_signed(0.33));
+            let vel_offset =
+                Vector2::new(rand.next_float_signed(0.33), rand.next_float_signed(0.33));
             let vel = (vel_offset + explode_vel).extend(0.05 + rand.next_float(0.1));
-            fragments.get_force()
+            fragments
+                .get_force()
                 .init(self.pos, vel, 0.2 + rand.next_float(0.33), rand);
         });
 
@@ -1645,12 +1861,29 @@ impl EnemyState {
             (spec.score(), PoolRemoval::Remove)
         };
 
-        self.add_score_indicator(score, self.multiplier, stage, indicators, reel, context, rand);
+        self.add_score_indicator(
+            score,
+            self.multiplier,
+            stage,
+            indicators,
+            reel,
+            context,
+            rand,
+        );
 
         res
     }
 
-    fn add_score_indicator(&self, score: u32, multiplier: f32, stage: &Stage, indicators: &mut Pool<ScoreIndicator>, reel: &mut ScoreReel, context: &mut GameStateContext, rand: &mut Rand) {
+    fn add_score_indicator(
+        &self,
+        score: u32,
+        multiplier: f32,
+        stage: &Stage,
+        indicators: &mut Pool<ScoreIndicator>,
+        reel: &mut ScoreReel,
+        context: &mut GameStateContext,
+        rand: &mut Rand,
+    ) {
         let target_y = context.data.indicator_target();
         let final_score = if multiplier > 1. {
             let mid_score = ((score as f32) * multiplier) as u32;
@@ -1690,22 +1923,36 @@ impl EnemyState {
                     count: 40,
                 },
             ];
-            indicators.get_force()
-                .init(score, Indicator::Score, self.pos, 0.5, targets.into_iter(), reel, context, rand);
+            indicators.get_force().init(
+                score,
+                Indicator::Score,
+                self.pos,
+                0.5,
+                targets.into_iter(),
+                reel,
+                context,
+                rand,
+            );
 
             let multiplier_value = (1000. * multiplier) as u32;
-            let targets = [
-                ScoreTarget {
-                    pos: (10.5, target_y).into(),
-                    flying_to: FlyingTo::Right,
-                    initial_velocity_ratio: 0.5,
-                    scale: 0.2,
-                    value: multiplier_value,
-                    count: 70,
-                },
-            ];
-            indicators.get_force()
-                .init(multiplier_value, Indicator::Multiplier, self.pos, 0.7, targets.into_iter(), reel, context, rand);
+            let targets = [ScoreTarget {
+                pos: (10.5, target_y).into(),
+                flying_to: FlyingTo::Right,
+                initial_velocity_ratio: 0.5,
+                scale: 0.2,
+                value: multiplier_value,
+                count: 70,
+            }];
+            indicators.get_force().init(
+                multiplier_value,
+                Indicator::Multiplier,
+                self.pos,
+                0.7,
+                targets.into_iter(),
+                reel,
+                context,
+                rand,
+            );
 
             final_score
         } else {
@@ -1737,25 +1984,39 @@ impl EnemyState {
                     count: 40,
                 },
             ];
-            indicators.get_force()
-                .init(score, Indicator::Score, self.pos, 0.3, targets.into_iter(), reel, context, rand);
+            indicators.get_force().init(
+                score,
+                Indicator::Score,
+                self.pos,
+                0.3,
+                targets.into_iter(),
+                reel,
+                context,
+                rand,
+            );
 
             final_score
         };
 
         let rank_value = (1000. * stage.rank()) as u32;
-        let targets = [
-            ScoreTarget {
-                pos: (13., target_y).into(),
-                flying_to: FlyingTo::Right,
-                initial_velocity_ratio: 0.5,
-                scale: 0.2,
-                value: rank_value,
-                count: 40,
-            },
-        ];
-        indicators.get_force()
-            .init(rank_value, Indicator::Multiplier, (11., 8.).into(), 0.4, targets.into_iter(), reel, context, rand);
+        let targets = [ScoreTarget {
+            pos: (13., target_y).into(),
+            flying_to: FlyingTo::Right,
+            initial_velocity_ratio: 0.5,
+            scale: 0.2,
+            value: rank_value,
+            count: 40,
+        }];
+        indicators.get_force().init(
+            rank_value,
+            Indicator::Multiplier,
+            (11., 8.).into(),
+            0.4,
+            targets.into_iter(),
+            reel,
+            context,
+            rand,
+        );
 
         reel.add_actual_score(final_score);
     }
@@ -1805,11 +2066,16 @@ impl Enemy {
                         FoldWhile::Done((offset, check_size, false))
                     } else {
                         let ref_pos = angle_comps * offset;
-                        if abagames_util::fast_distance(pos, ref_pos) < check_size ||
-                           abagames_util::fast_distance(pos, -ref_pos) < check_size {
+                        if abagames_util::fast_distance(pos, ref_pos) < check_size
+                            || abagames_util::fast_distance(pos, -ref_pos) < check_size
+                        {
                             FoldWhile::Done((offset, check_size, true))
                         } else {
-                            FoldWhile::Continue((offset + check_size, check_size * self.spec.distance_ratio(), true))
+                            FoldWhile::Continue((
+                                offset + check_size,
+                                check_size * self.spec.distance_ratio(),
+                                true,
+                            ))
                         }
                     }
                 })
@@ -1818,8 +2084,26 @@ impl Enemy {
         }
     }
 
-    pub fn check_shot_hit(&mut self, shot: &Shot, stage: &Stage, bullets: &mut Pool<Bullet>, crystals: &mut Pool<Crystal>, fragments: &mut Pool<Fragment>, smokes: &mut Pool<Smoke>, sparks: &mut Pool<Spark>, indicators: &mut Pool<ScoreIndicator>, reel: &mut ScoreReel, context: &mut GameStateContext, rand: &mut Rand) -> PoolRemoval {
-        if !self.state.is_destroyed() && self.state.collides(&self.spec, shot, stage, bullets, crystals, fragments, smokes, sparks, indicators, reel, context, rand) {
+    pub fn check_shot_hit(
+        &mut self,
+        shot: &Shot,
+        stage: &Stage,
+        bullets: &mut Pool<Bullet>,
+        crystals: &mut Pool<Crystal>,
+        fragments: &mut Pool<Fragment>,
+        smokes: &mut Pool<Smoke>,
+        sparks: &mut Pool<Spark>,
+        indicators: &mut Pool<ScoreIndicator>,
+        reel: &mut ScoreReel,
+        context: &mut GameStateContext,
+        rand: &mut Rand,
+    ) -> PoolRemoval {
+        if !self.state.is_destroyed()
+            && self.state.collides(
+                &self.spec, shot, stage, bullets, crystals, fragments, smokes, sparks, indicators,
+                reel, context, rand,
+            )
+        {
             if self.spec.spec.kind.is_small() && shot.is_lance() {
                 PoolRemoval::Keep
             } else {
@@ -1830,8 +2114,32 @@ impl Enemy {
         }
     }
 
-    pub fn step(&mut self, field: &Field, bullets: &mut Pool<Bullet>, ship: &Ship, smokes: &mut Pool<Smoke>, sparks: &mut Pool<Spark>, spark_fragments: &mut Pool<SparkFragment>, wakes: &mut Pool<Wake>, other_enemies: PoolChainIter<Enemy>, context: &mut GameStateContext, rand: &mut Rand) -> PoolRemoval {
-        self.state.step(&self.spec, field, bullets, ship, smokes, sparks, spark_fragments, wakes, other_enemies, context, rand)
+    pub fn step(
+        &mut self,
+        field: &Field,
+        bullets: &mut Pool<Bullet>,
+        ship: &Ship,
+        smokes: &mut Pool<Smoke>,
+        sparks: &mut Pool<Spark>,
+        spark_fragments: &mut Pool<SparkFragment>,
+        wakes: &mut Pool<Wake>,
+        other_enemies: PoolChainIter<Enemy>,
+        context: &mut GameStateContext,
+        rand: &mut Rand,
+    ) -> PoolRemoval {
+        self.state.step(
+            &self.spec,
+            field,
+            bullets,
+            ship,
+            smokes,
+            sparks,
+            spark_fragments,
+            wakes,
+            other_enemies,
+            context,
+            rand,
+        )
     }
 
     pub fn prep_draw(&mut self, rand: &mut Rand) {
@@ -1839,14 +2147,19 @@ impl Enemy {
         let destroyed_data = self.state.data.destroyed();
         let is_destroyed = destroyed_data.is_some();
         self.damage_offset = if !is_destroyed && is_damaged {
-            (rand.next_float_signed((self.state.damaged_count as f32) * 0.01),
-             rand.next_float_signed((self.state.damaged_count as f32) * 0.01))
+            (
+                rand.next_float_signed((self.state.damaged_count as f32) * 0.01),
+                rand.next_float_signed((self.state.damaged_count as f32) * 0.01),
+            )
         } else {
             (0., 0.)
-        }.into();
+        }
+        .into();
 
         if let Some(data) = destroyed_data {
-            self.spec.spec.recolor((data.count as f32) / (SINK_INTERVAL as f32));
+            self.spec
+                .spec
+                .recolor((data.count as f32) / (SINK_INTERVAL as f32));
             return;
         }
 
@@ -1856,18 +2169,27 @@ impl Enemy {
             .foreach(|group| group.prep_draw(rand));
     }
 
-    pub fn draw<R, C>(&self, context: &mut EncoderContext<R, C>, shape_draw: &ShapeDraw<R>, turret_draw: &TurretDraw<R>, letter: &Letter<R>)
-        where R: gfx::Resources,
-              C: gfx::CommandBuffer<R>,
+    pub fn draw<R, C>(
+        &self,
+        context: &mut EncoderContext<R, C>,
+        shape_draw: &ShapeDraw<R>,
+        turret_draw: &TurretDraw<R>,
+        letter: &Letter<R>,
+    ) where
+        R: gfx::Resources,
+        C: gfx::CommandBuffer<R>,
     {
         let is_damaged = self.state.damaged_count > 0;
         let is_destroyed = self.state.is_destroyed();
-        let modelmat = Matrix4::from_translation((self.state.pos + self.damage_offset).extend(0.)) *
-            Matrix4::from_axis_angle(Vector3::unit_z(), self.state.angle);
+        let modelmat = Matrix4::from_translation((self.state.pos + self.damage_offset).extend(0.))
+            * Matrix4::from_axis_angle(Vector3::unit_z(), self.state.angle);
         let scalemat = Matrix4::from_scale(self.spec.size);
 
         let shape = if self.state.data.destroyed().is_some() {
-            self.spec.spec.shapes.destroyed()
+            self.spec
+                .spec
+                .shapes
+                .destroyed()
                 .expect("the state says to draw a damaged ship, but no shape is available")
         } else if is_damaged {
             self.spec.spec.shapes.damaged()
@@ -1881,7 +2203,11 @@ impl Enemy {
         }
 
         let bridge_scalemat = Matrix4::from_scale(self.spec.bridge_size);
-        shape_draw.draw(context, self.spec.spec.shapes.bridge(), modelmat * bridge_scalemat);
+        shape_draw.draw(
+            context,
+            self.spec.spec.shapes.bridge(),
+            modelmat * bridge_scalemat,
+        );
 
         self.state
             .turret_groups()
@@ -1898,13 +2224,16 @@ impl Enemy {
                 (offset_x + 4., 0.)
             } else {
                 (offset_x, 1.25)
-            }.into();
+            }
+            .into();
 
-            letter.draw_number(context,
-                               (self.state.multiplier * 1000.) as u32,
-                               letter::Style::OffWhite,
-                               letter::Location::new(self.state.pos + offset, 0.33),
-                               letter::NumberStyle::multiplier());
+            letter.draw_number(
+                context,
+                (self.state.multiplier * 1000.) as u32,
+                letter::Style::OffWhite,
+                letter::Location::new(self.state.pos + offset, 0.33),
+                letter::NumberStyle::multiplier(),
+            );
         }
     }
 }

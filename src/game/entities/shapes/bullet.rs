@@ -8,11 +8,11 @@ use crates::gfx::traits::FactoryExt;
 use crates::itertools::Itertools;
 
 use game::entities::bullet::Bullet;
-use game::entities::field::Field;
 use game::entities::crystal::{Crystal, MAX_CRYSTAL_SIZE};
+use game::entities::field::Field;
 use game::entities::shot::{Shot, MAX_SHOT_SIZE};
-use game::render::{EncoderContext, RenderContext};
 use game::render::{Brightness, ScreenTransform};
+use game::render::{EncoderContext, RenderContext};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BulletShapeKind {
@@ -29,7 +29,8 @@ impl BulletShapeKind {
             BulletShapeKind::Small => [0.6, 0.9, 0.3],
             BulletShapeKind::MovingTurret => [0.7, 0.5, 0.9],
             BulletShapeKind::Destructible => [0.9, 0.9, 0.6],
-        }.into()
+        }
+        .into()
     }
 
     fn fill_color(&self) -> [f32; 3] {
@@ -157,13 +158,16 @@ impl From<Matrix4<f32>> for ShapeMat {
 }
 
 pub struct BulletDraw<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
     pipe2_pso: gfx::PipelineState<R, <pipe2::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
-    pipe2_outline_pso: gfx::PipelineState<R, <pipe2_outline::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
+    pipe2_outline_pso:
+        gfx::PipelineState<R, <pipe2_outline::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
 
     pipe3_pso: gfx::PipelineState<R, <pipe3::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
-    pipe3_outline_pso: gfx::PipelineState<R, <pipe3_outline::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
+    pipe3_outline_pso:
+        gfx::PipelineState<R, <pipe3_outline::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
 
     outline_slice_a: gfx::Slice<R>,
     outline_slice_b: gfx::Slice<R>,
@@ -197,12 +201,16 @@ pub struct BulletDraw<R>
 }
 
 impl<R> BulletDraw<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
-    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, TargetFormat>,
-                  context: &RenderContext<R>)
-                  -> Self
-        where F: gfx::Factory<R>,
+    pub fn new<F>(
+        factory: &mut F,
+        view: gfx::handle::RenderTargetView<R, TargetFormat>,
+        context: &RenderContext<R>,
+    ) -> Self
+    where
+        F: gfx::Factory<R>,
     {
         let normal_vertex_data = [
             Vertex3 { pos: [0.2, -0.25, 0.2], },
@@ -274,83 +282,104 @@ impl<R> BulletDraw<R>
         ];
         let crystal_vbuf = factory.create_vertex_buffer(&crystal_vertex_data);
 
-        let frag_shader = factory.create_shader_pixel(include_bytes!("shader/uniform3.glslf"))
+        let frag_shader = factory
+            .create_shader_pixel(include_bytes!("shader/uniform3.glslf"))
             .expect("failed to compile the fragment shader for bullet shapes");
-        let vert2_shader = factory.create_shader_vertex(include_bytes!("shader/uniform2.glslv"))
+        let vert2_shader = factory
+            .create_shader_vertex(include_bytes!("shader/uniform2.glslv"))
             .expect("failed to compile the vertex shader for 2-pos bullet shapes");
-        let vert3_shader = factory.create_shader_vertex(include_bytes!("shader/uniform3.glslv"))
+        let vert3_shader = factory
+            .create_shader_vertex(include_bytes!("shader/uniform3.glslv"))
             .expect("failed to compile the vertex shader for 3-pos bullet shapes");
-        let crystal_shader = factory.create_shader_vertex(include_bytes!("shader/crystal.glslv"))
+        let crystal_shader = factory
+            .create_shader_vertex(include_bytes!("shader/crystal.glslv"))
             .expect("failed to compile the vertex shader for crystals");
-        let shot_shader = factory.create_shader_vertex(include_bytes!("shader/shot.glslv"))
+        let shot_shader = factory
+            .create_shader_vertex(include_bytes!("shader/shot.glslv"))
             .expect("failed to compile the vertex shader for shots");
 
-        let pipe2_program = factory.create_program(&gfx::ShaderSet::Simple(vert2_shader, frag_shader.clone()))
+        let pipe2_program = factory
+            .create_program(&gfx::ShaderSet::Simple(vert2_shader, frag_shader.clone()))
             .expect("failed to link the 2-pos shader");
-        let pipe3_program = factory.create_program(&gfx::ShaderSet::Simple(vert3_shader, frag_shader.clone()))
+        let pipe3_program = factory
+            .create_program(&gfx::ShaderSet::Simple(vert3_shader, frag_shader.clone()))
             .expect("failed to link the 3-pos shader");
 
-        let shot_program = factory.create_program(&gfx::ShaderSet::Simple(shot_shader, frag_shader.clone()))
+        let shot_program = factory
+            .create_program(&gfx::ShaderSet::Simple(shot_shader, frag_shader.clone()))
             .expect("failed to link the shot shader");
-        let crystal_program = factory.create_program(&gfx::ShaderSet::Simple(crystal_shader, frag_shader.clone()))
+        let crystal_program = factory
+            .create_program(&gfx::ShaderSet::Simple(crystal_shader, frag_shader.clone()))
             .expect("failed to link the crystal shader");
 
-        let pipe2_outline_pso = factory.create_pipeline_from_program(
-            &pipe2_program,
-            gfx::Primitive::LineStrip,
-            gfx::state::Rasterizer {
-                front_face: gfx::state::FrontFace::CounterClockwise,
-                cull_face: gfx::state::CullFace::Nothing,
-                method: gfx::state::RasterMethod::Line(1),
-                offset: None,
-                samples: None,
-            },
-            pipe2_outline::new())
+        let pipe2_outline_pso = factory
+            .create_pipeline_from_program(
+                &pipe2_program,
+                gfx::Primitive::LineStrip,
+                gfx::state::Rasterizer {
+                    front_face: gfx::state::FrontFace::CounterClockwise,
+                    cull_face: gfx::state::CullFace::Nothing,
+                    method: gfx::state::RasterMethod::Line(1),
+                    offset: None,
+                    samples: None,
+                },
+                pipe2_outline::new(),
+            )
             .expect("failed to create the outline pipeline for 2-pos");
-        let pipe2_pso = factory.create_pipeline_from_program(
-            &pipe2_program,
-            gfx::Primitive::TriangleList,
-            gfx::state::Rasterizer::new_fill(),
-            pipe2::new())
+        let pipe2_pso = factory
+            .create_pipeline_from_program(
+                &pipe2_program,
+                gfx::Primitive::TriangleList,
+                gfx::state::Rasterizer::new_fill(),
+                pipe2::new(),
+            )
             .expect("failed to create the fan pipeline for 2-pos");
 
-        let pipe3_outline_pso = factory.create_pipeline_from_program(
-            &pipe3_program,
-            gfx::Primitive::LineStrip,
-            gfx::state::Rasterizer {
-                front_face: gfx::state::FrontFace::CounterClockwise,
-                cull_face: gfx::state::CullFace::Nothing,
-                method: gfx::state::RasterMethod::Line(1),
-                offset: None,
-                samples: None,
-            },
-            pipe3_outline::new())
+        let pipe3_outline_pso = factory
+            .create_pipeline_from_program(
+                &pipe3_program,
+                gfx::Primitive::LineStrip,
+                gfx::state::Rasterizer {
+                    front_face: gfx::state::FrontFace::CounterClockwise,
+                    cull_face: gfx::state::CullFace::Nothing,
+                    method: gfx::state::RasterMethod::Line(1),
+                    offset: None,
+                    samples: None,
+                },
+                pipe3_outline::new(),
+            )
             .expect("failed to create the outline pipeline for 3-pos");
-        let pipe3_pso = factory.create_pipeline_from_program(
-            &pipe3_program,
-            gfx::Primitive::TriangleList,
-            gfx::state::Rasterizer::new_fill(),
-            pipe3::new())
+        let pipe3_pso = factory
+            .create_pipeline_from_program(
+                &pipe3_program,
+                gfx::Primitive::TriangleList,
+                gfx::state::Rasterizer::new_fill(),
+                pipe3::new(),
+            )
             .expect("failed to create the fan pipeline for 3-pos");
 
-        let shot_pso = factory.create_pipeline_from_program(
-            &shot_program,
-            gfx::Primitive::TriangleList,
-            gfx::state::Rasterizer::new_fill(),
-            shot_pipe::new())
+        let shot_pso = factory
+            .create_pipeline_from_program(
+                &shot_program,
+                gfx::Primitive::TriangleList,
+                gfx::state::Rasterizer::new_fill(),
+                shot_pipe::new(),
+            )
             .expect("failed to create the pipeline for shot");
 
-        let crystal_pso = factory.create_pipeline_from_program(
-            &crystal_program,
-            gfx::Primitive::LineStrip,
-            gfx::state::Rasterizer {
-                front_face: gfx::state::FrontFace::CounterClockwise,
-                cull_face: gfx::state::CullFace::Nothing,
-                method: gfx::state::RasterMethod::Line(1),
-                offset: None,
-                samples: None,
-            },
-            crystal_pipe::new())
+        let crystal_pso = factory
+            .create_pipeline_from_program(
+                &crystal_program,
+                gfx::Primitive::LineStrip,
+                gfx::state::Rasterizer {
+                    front_face: gfx::state::FrontFace::CounterClockwise,
+                    cull_face: gfx::state::CullFace::Nothing,
+                    method: gfx::state::RasterMethod::Line(1),
+                    offset: None,
+                    samples: None,
+                },
+                crystal_pipe::new(),
+            )
             .expect("failed to create the pipeline for crystal");
 
         let outline_slice_a = abagames_util::slice_for_loop::<R, F>(factory, 3);
@@ -359,31 +388,35 @@ impl<R> BulletDraw<R>
         let mut fill_slice = abagames_util::slice_for_fan::<R, F>(factory, 6);
         fill_slice.base_vertex = 6;
 
-        let destructible_outline_slice = abagames_util::slice_for_loop::<R, F>(factory,
-                                                                               destructible_vertex_data.len() as u32);
-        let destructible_fill_slice = abagames_util::slice_for_fan::<R, F>(factory,
-                                                                           destructible_vertex_data.len() as u32);
+        let destructible_outline_slice =
+            abagames_util::slice_for_loop::<R, F>(factory, destructible_vertex_data.len() as u32);
+        let destructible_fill_slice =
+            abagames_util::slice_for_fan::<R, F>(factory, destructible_vertex_data.len() as u32);
 
         let shot_slice_a = abagames_util::slice_for_loop::<R, F>(factory, 4);
         let mut shot_slice_b = shot_slice_a.clone();
         shot_slice_b.base_vertex = 4;
         let mut shot_slice_c = shot_slice_a.clone();
         shot_slice_c.base_vertex = 8;
-        let shot_instances =
-            factory.create_buffer(MAX_SHOT_SIZE,
-                                  gfx::buffer::Role::Vertex,
-                                  gfx::memory::Usage::Upload,
-                                  gfx::memory::Bind::empty())
-                .expect("failed to create the instance buffer for shots");
+        let shot_instances = factory
+            .create_buffer(
+                MAX_SHOT_SIZE,
+                gfx::buffer::Role::Vertex,
+                gfx::memory::Usage::Upload,
+                gfx::memory::Bind::empty(),
+            )
+            .expect("failed to create the instance buffer for shots");
 
-        let crystal_slice = abagames_util::slice_for_loop::<R, F>(factory,
-                                                                  crystal_vertex_data.len() as u32);
-        let crystal_instances =
-            factory.create_buffer(4 * MAX_CRYSTAL_SIZE,
-                                  gfx::buffer::Role::Vertex,
-                                  gfx::memory::Usage::Upload,
-                                  gfx::memory::Bind::empty())
-                .expect("failed to create the instance buffer for crystals");
+        let crystal_slice =
+            abagames_util::slice_for_loop::<R, F>(factory, crystal_vertex_data.len() as u32);
+        let crystal_instances = factory
+            .create_buffer(
+                4 * MAX_CRYSTAL_SIZE,
+                gfx::buffer::Role::Vertex,
+                gfx::memory::Usage::Upload,
+                gfx::memory::Bind::empty(),
+            )
+            .expect("failed to create the instance buffer for crystals");
 
         let modelmat = factory.create_constant_buffer(1);
         let color = factory.create_constant_buffer(1);
@@ -497,7 +530,8 @@ impl<R> BulletDraw<R>
     }
 
     fn draw_bullet<C>(&self, encoder: &mut gfx::Encoder<R, C>, kind: BulletShapeKind)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
         let color = Color {
             color: kind.outline_color(),
@@ -506,15 +540,35 @@ impl<R> BulletDraw<R>
 
         match kind {
             BulletShapeKind::Normal => {
-                encoder.draw(&self.outline_slice_a, &self.pipe3_outline_pso, &self.normal_outline_data);
-                encoder.draw(&self.outline_slice_b, &self.pipe3_outline_pso, &self.normal_outline_data);
+                encoder.draw(
+                    &self.outline_slice_a,
+                    &self.pipe3_outline_pso,
+                    &self.normal_outline_data,
+                );
+                encoder.draw(
+                    &self.outline_slice_b,
+                    &self.pipe3_outline_pso,
+                    &self.normal_outline_data,
+                );
             },
             BulletShapeKind::Small | BulletShapeKind::MovingTurret => {
-                encoder.draw(&self.outline_slice_a, &self.pipe3_outline_pso, &self.small_outline_data);
-                encoder.draw(&self.outline_slice_b, &self.pipe3_outline_pso, &self.small_outline_data);
+                encoder.draw(
+                    &self.outline_slice_a,
+                    &self.pipe3_outline_pso,
+                    &self.small_outline_data,
+                );
+                encoder.draw(
+                    &self.outline_slice_b,
+                    &self.pipe3_outline_pso,
+                    &self.small_outline_data,
+                );
             },
             BulletShapeKind::Destructible => {
-                encoder.draw(&self.destructible_outline_slice, &self.pipe2_outline_pso, &self.destructible_outline_data);
+                encoder.draw(
+                    &self.destructible_outline_slice,
+                    &self.pipe2_outline_pso,
+                    &self.destructible_outline_data,
+                );
             },
         }
 
@@ -531,32 +585,48 @@ impl<R> BulletDraw<R>
                 encoder.draw(&self.fill_slice, &self.pipe3_pso, &self.small_data);
             },
             BulletShapeKind::Destructible => {
-                encoder.draw(&self.destructible_fill_slice, &self.pipe2_pso, &self.destructible_data);
+                encoder.draw(
+                    &self.destructible_fill_slice,
+                    &self.pipe2_pso,
+                    &self.destructible_data,
+                );
             },
         }
     }
 
-    pub fn draw_bullets<C>(&self, context: &mut EncoderContext<R, C>, field: &Field, bullets: &Pool<Bullet>)
-        where C: gfx::CommandBuffer<R>,
+    pub fn draw_bullets<C>(
+        &self,
+        context: &mut EncoderContext<R, C>,
+        field: &Field,
+        bullets: &Pool<Bullet>,
+    ) where
+        C: gfx::CommandBuffer<R>,
     {
-        bullets.iter()
+        bullets
+            .iter()
             .filter(|bullet| field.is_in_outer_field(bullet.pos()))
             .foreach(|bullet| {
                 let modelmat = ModelMat {
                     modelmat: bullet.modelmat().into(),
                 };
-                context.encoder.update_constant_buffer(&self.modelmat, &modelmat);
+                context
+                    .encoder
+                    .update_constant_buffer(&self.modelmat, &modelmat);
 
                 self.draw_bullet(context.encoder, bullet.shape())
             })
     }
 
     pub fn prep_draw_shots<F>(&mut self, factory: &mut F, shots: &Pool<Shot>)
-        where F: gfx::Factory<R>,
+    where
+        F: gfx::Factory<R>,
     {
-        let mut writer = factory.write_mapping(&self.shot_instances).expect("could not get a writable mapping to the shot buffer");
+        let mut writer = factory
+            .write_mapping(&self.shot_instances)
+            .expect("could not get a writable mapping to the shot buffer");
 
-        let count = shots.iter()
+        let count = shots
+            .iter()
             .filter(|shot| shot.is_lance())
             .enumerate()
             .map(|(i, shot)| writer[i] = shot.modelmat().into())
@@ -568,45 +638,56 @@ impl<R> BulletDraw<R>
     }
 
     pub fn draw_shots<C>(&self, context: &mut EncoderContext<R, C>)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
         let color = Color {
             color: [0.1, 0.33, 0.1],
         };
         context.encoder.update_constant_buffer(&self.color, &color);
 
-        context.encoder.draw(&self.shot_slice_a, &self.shot_pso, &self.shot_data);
-        context.encoder.draw(&self.shot_slice_b, &self.shot_pso, &self.shot_data);
-        context.encoder.draw(&self.shot_slice_c, &self.shot_pso, &self.shot_data);
+        context
+            .encoder
+            .draw(&self.shot_slice_a, &self.shot_pso, &self.shot_data);
+        context
+            .encoder
+            .draw(&self.shot_slice_b, &self.shot_pso, &self.shot_data);
+        context
+            .encoder
+            .draw(&self.shot_slice_c, &self.shot_pso, &self.shot_data);
     }
 
     pub fn prep_draw_crystals<F>(&mut self, factory: &mut F, crystals: &Pool<Crystal>)
-        where F: gfx::Factory<R>,
+    where
+        F: gfx::Factory<R>,
     {
-        let mut writer = factory.write_mapping(&self.crystal_instances).expect("could not get a writable mapping to the crystal buffer");
+        let mut writer = factory
+            .write_mapping(&self.crystal_instances)
+            .expect("could not get a writable mapping to the crystal buffer");
 
-        let count = crystals.iter()
-            .enumerate()
-            .fold(0, |count, (i, crystal)| {
-                let modelmats = crystal.modelmats();
-                writer[4 * i] = modelmats[0].into();
-                writer[4 * i + 1] = modelmats[1].into();
-                writer[4 * i + 2] = modelmats[2].into();
-                writer[4 * i + 3] = modelmats[3].into();
-                count + 4
-            });
+        let count = crystals.iter().enumerate().fold(0, |count, (i, crystal)| {
+            let modelmats = crystal.modelmats();
+            writer[4 * i] = modelmats[0].into();
+            writer[4 * i + 1] = modelmats[1].into();
+            writer[4 * i + 2] = modelmats[2].into();
+            writer[4 * i + 3] = modelmats[3].into();
+            count + 4
+        });
 
         self.crystal_slice.instances = Some((count, 0));
     }
 
     pub fn draw_crystals<C>(&self, context: &mut EncoderContext<R, C>)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
         let color = Color {
             color: [0.6, 1., 0.7],
         };
         context.encoder.update_constant_buffer(&self.color, &color);
 
-        context.encoder.draw(&self.crystal_slice, &self.crystal_pso, &self.crystal_data);
+        context
+            .encoder
+            .draw(&self.crystal_slice, &self.crystal_pso, &self.crystal_data);
     }
 }

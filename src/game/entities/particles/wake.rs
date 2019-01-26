@@ -7,8 +7,8 @@ use crates::gfx;
 use crates::gfx::traits::FactoryExt;
 
 use game::entities::field::Field;
-use game::render::{EncoderContext, RenderContext};
 use game::render::{Brightness, ScreenTransform};
+use game::render::{EncoderContext, RenderContext};
 
 use std::str;
 
@@ -53,7 +53,16 @@ impl Wake {
         Pool::new(MAX_WAKE_SIZE, Self::new)
     }
 
-    pub fn init(&mut self, field: &Field, pos: Vector2<f32>, angle: Rad<f32>, speed: f32, count: u32, size: f32, direction: WakeDirection) {
+    pub fn init(
+        &mut self,
+        field: &Field,
+        pos: Vector2<f32>,
+        angle: Rad<f32>,
+        speed: f32,
+        count: u32,
+        size: f32,
+        direction: WakeDirection,
+    ) {
         if !field.is_in_outer_field(self.pos) {
             self.count = 0;
             return;
@@ -71,7 +80,10 @@ impl Wake {
 
     pub fn step(&mut self, field: &Field) -> PoolRemoval {
         self.count = self.count.saturating_sub(1);
-        if self.count == 0 || abagames_util::fast_distance_origin(self.vel) < 0.005 || field.is_in_outer_field(self.pos) {
+        if self.count == 0
+            || abagames_util::fast_distance_origin(self.vel) < 0.005
+            || field.is_in_outer_field(self.pos)
+        {
             PoolRemoval::Remove
         } else {
             self.pos += self.vel;
@@ -115,7 +127,8 @@ gfx_defines! {
 }
 
 pub struct WakeDraw<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
     slice: gfx::Slice<R>,
     pso: gfx::PipelineState<R, <pipe::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
@@ -123,12 +136,16 @@ pub struct WakeDraw<R>
 }
 
 impl<R> WakeDraw<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
-    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, TargetFormat>,
-                  context: &RenderContext<R>)
-                  -> Self
-        where F: gfx::Factory<R>,
+    pub fn new<F>(
+        factory: &mut F,
+        view: gfx::handle::RenderTargetView<R, TargetFormat>,
+        context: &RenderContext<R>,
+    ) -> Self
+    where
+        F: gfx::Factory<R>,
     {
         let data = [
             Vertex {
@@ -149,21 +166,25 @@ impl<R> WakeDraw<R>
         ];
 
         let vbuf = factory.create_vertex_buffer(&data);
-        let slice = abagames_util::slice_for_fan::<R, F>(factory,
-                                                         data.len() as u32);
+        let slice = abagames_util::slice_for_fan::<R, F>(factory, data.len() as u32);
 
-        let vert_source = str::from_utf8(include_bytes!("shader/wake.glslv")).expect("invalid utf-8 in wake vertex shader");
-        let frag_source = str::from_utf8(include_bytes!("shader/wake.glslf")).expect("invalid utf-8 in wake fragment shader");
+        let vert_source = str::from_utf8(include_bytes!("shader/wake.glslv"))
+            .expect("invalid utf-8 in wake vertex shader");
+        let frag_source = str::from_utf8(include_bytes!("shader/wake.glslf"))
+            .expect("invalid utf-8 in wake fragment shader");
         let size_str = format!("{}", MAX_WAKE_SIZE);
-        let pso = factory.create_pipeline_simple(
-            vert_source.replace("NUM_WAKES", &size_str).as_bytes(),
-            frag_source.replace("NUM_WAKES", &size_str).as_bytes(),
-            pipe::new())
+        let pso = factory
+            .create_pipeline_simple(
+                vert_source.replace("NUM_WAKES", &size_str).as_bytes(),
+                frag_source.replace("NUM_WAKES", &size_str).as_bytes(),
+                pipe::new(),
+            )
             .expect("failed to create the pipeline for wake");
 
         let data = pipe::Data {
             vbuf: vbuf,
-            wakes: factory.create_upload_buffer(MAX_WAKE_SIZE)
+            wakes: factory
+                .create_upload_buffer(MAX_WAKE_SIZE)
                 .expect("failed to create the buffer for wake"),
             screen: context.perspective_screen_buffer.clone(),
             brightness: context.brightness_buffer.clone(),
@@ -178,12 +199,15 @@ impl<R> WakeDraw<R>
     }
 
     pub fn prep_draw<F>(&mut self, factory: &mut F, wakes: &Pool<Wake>)
-        where F: gfx::Factory<R>,
+    where
+        F: gfx::Factory<R>,
     {
-        let mut writer = factory.write_mapping(&self.data.wakes)
+        let mut writer = factory
+            .write_mapping(&self.data.wakes)
             .expect("could not get a writeable mapping to the wake buffer");
 
-        let num_wakes = wakes.iter()
+        let num_wakes = wakes
+            .iter()
             .enumerate()
             .map(|(idx, wake)| {
                 writer[idx] = PerWake {
@@ -200,7 +224,8 @@ impl<R> WakeDraw<R>
     }
 
     pub fn draw<C>(&self, context: &mut EncoderContext<R, C>)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
         context.encoder.draw(&self.slice, &self.pso, &self.data);
     }

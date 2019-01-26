@@ -6,8 +6,8 @@ use crates::cgmath::{Angle, Matrix4, Rad};
 use crates::gfx;
 use crates::gfx::traits::FactoryExt;
 
-use game::render::{EncoderContext, RenderContext};
 use game::render::{Brightness, ScreenTransform};
+use game::render::{EncoderContext, RenderContext};
 
 use std::iter;
 
@@ -40,7 +40,8 @@ gfx_defines! {
 }
 
 pub struct ShieldDraw<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
     outline_bundle: gfx::Bundle<R, pipe::Data<R>>,
     fill_bundle: gfx::Bundle<R, pipe::Data<R>>,
@@ -49,12 +50,16 @@ pub struct ShieldDraw<R>
 }
 
 impl<R> ShieldDraw<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
-    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, TargetFormat>,
-                  context: &RenderContext<R>)
-                  -> Self
-        where F: gfx::Factory<R>,
+    pub fn new<F>(
+        factory: &mut F,
+        view: gfx::handle::RenderTargetView<R, TargetFormat>,
+        context: &RenderContext<R>,
+    ) -> Self
+    where
+        F: gfx::Factory<R>,
     {
         let pos_vertex_data = (0..9)
             .map(|i| {
@@ -72,46 +77,59 @@ impl<R> ShieldDraw<R>
             .collect::<Vec<_>>();
         let pos_vbuf = factory.create_vertex_buffer(&pos_vertex_data);
 
-        let outline_vertex_data = iter::repeat(Color { color: [0.5, 0.5, 0.7], }).take(8)
-            .collect::<Vec<_>>();
+        let outline_vertex_data = iter::repeat(Color {
+            color: [0.5, 0.5, 0.7],
+        })
+        .take(8)
+        .collect::<Vec<_>>();
         let outline_vbuf = factory.create_vertex_buffer(&outline_vertex_data);
 
-        let fill_vertex_data = iter::once(Color { color: [0., 0., 0.], })
-            .chain(iter::repeat(Color { color: [0.3, 0.3, 0.5], }))
-            .take(pos_vertex_data.len())
-            .collect::<Vec<_>>();
+        let fill_vertex_data = iter::once(Color {
+            color: [0., 0., 0.],
+        })
+        .chain(iter::repeat(Color {
+            color: [0.3, 0.3, 0.5],
+        }))
+        .take(pos_vertex_data.len())
+        .collect::<Vec<_>>();
         let fill_vbuf = factory.create_vertex_buffer(&fill_vertex_data);
 
-        let program = factory.link_program(
-            include_bytes!("shader/shield.glslv"),
-            include_bytes!("shader/shield.glslf"))
+        let program = factory
+            .link_program(
+                include_bytes!("shader/shield.glslv"),
+                include_bytes!("shader/shield.glslf"),
+            )
             .expect("could not link the shield shader");
 
-        let outline_pso = factory.create_pipeline_from_program(
-            &program,
-            gfx::Primitive::LineStrip,
-            gfx::state::Rasterizer {
-                front_face: gfx::state::FrontFace::CounterClockwise,
-                cull_face: gfx::state::CullFace::Nothing,
-                method: gfx::state::RasterMethod::Line(1),
-                offset: None,
-                samples: None,
-            },
-            pipe::new())
+        let outline_pso = factory
+            .create_pipeline_from_program(
+                &program,
+                gfx::Primitive::LineStrip,
+                gfx::state::Rasterizer {
+                    front_face: gfx::state::FrontFace::CounterClockwise,
+                    cull_face: gfx::state::CullFace::Nothing,
+                    method: gfx::state::RasterMethod::Line(1),
+                    offset: None,
+                    samples: None,
+                },
+                pipe::new(),
+            )
             .expect("failed to create the outline pipeline for shield");
-        let fill_pso = factory.create_pipeline_from_program(
-            &program,
-            gfx::Primitive::TriangleList,
-            gfx::state::Rasterizer::new_fill(),
-            pipe::new())
+        let fill_pso = factory
+            .create_pipeline_from_program(
+                &program,
+                gfx::Primitive::TriangleList,
+                gfx::state::Rasterizer::new_fill(),
+                pipe::new(),
+            )
             .expect("failed to create the fan pipeline for shield");
 
-        let mut outline_slice = abagames_util::slice_for_loop::<R, F>(factory,
-                                                                      outline_vertex_data.len() as u32);
+        let mut outline_slice =
+            abagames_util::slice_for_loop::<R, F>(factory, outline_vertex_data.len() as u32);
         outline_slice.start += 1;
         outline_slice.end += 1;
-        let fill_slice = abagames_util::slice_for_fan::<R, F>(factory,
-                                                              fill_vertex_data.len() as u32);
+        let fill_slice =
+            abagames_util::slice_for_fan::<R, F>(factory, fill_vertex_data.len() as u32);
 
         let modelmat = factory.create_constant_buffer(1);
 
@@ -141,12 +159,15 @@ impl<R> ShieldDraw<R>
     }
 
     pub fn draw<C>(&self, context: &mut EncoderContext<R, C>, modelmat: Matrix4<f32>)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
         let modelmat = ModelMat {
             modelmat: modelmat.into(),
         };
-        context.encoder.update_constant_buffer(&self.modelmat, &modelmat);
+        context
+            .encoder
+            .update_constant_buffer(&self.modelmat, &modelmat);
 
         self.outline_bundle.encode(context.encoder);
         self.fill_bundle.encode(context.encoder);

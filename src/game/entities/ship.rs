@@ -8,10 +8,10 @@ use crates::gfx::traits::FactoryExt;
 use crates::itertools::Itertools;
 use crates::rayon::prelude::*;
 
-use game::entities::shapes::{BaseShape, Shape, ShapeDraw, ShapeKind};
 use game::entities::shapes::shield::ShieldDraw;
-use game::render::{EncoderContext, RenderContext};
+use game::entities::shapes::{BaseShape, Shape, ShapeDraw, ShapeKind};
 use game::render::{Brightness, ScreenTransform};
+use game::render::{EncoderContext, RenderContext};
 
 const MAX_BOATS: usize = 2;
 
@@ -20,10 +20,20 @@ const SCROLL_SPEED_MAX: f32 = 0.1;
 const SCROLL_SPEED_Y: f32 = 2.5;
 
 lazy_static! {
-    static ref ROUNDTAIL_0: BaseShape =
-        BaseShape::new(ShapeKind::ShipRoundTail, 0.7, 0.6, 0.6, (0.5, 0.7, 0.5).into());
-    static ref ROUNDTAIL_1: BaseShape =
-        BaseShape::new(ShapeKind::ShipRoundTail, 0.7, 0.6, 0.6, (0.4, 0.3, 0.8).into());
+    static ref ROUNDTAIL_0: BaseShape = BaseShape::new(
+        ShapeKind::ShipRoundTail,
+        0.7,
+        0.6,
+        0.6,
+        (0.5, 0.7, 0.5).into()
+    );
+    static ref ROUNDTAIL_1: BaseShape = BaseShape::new(
+        ShapeKind::ShipRoundTail,
+        0.7,
+        0.6,
+        0.6,
+        (0.4, 0.3, 0.8).into()
+    );
     static ref BRIDGE_0: BaseShape =
         BaseShape::new(ShapeKind::Bridge, 0.3, 0.6, 0.6, (0.3, 0.7, 0.3).into());
     static ref BRIDGE_1: BaseShape =
@@ -52,8 +62,7 @@ impl Ship {
         }
     }
 
-    pub fn init(&mut self) {
-    }
+    pub fn init(&mut self) {}
 
     pub fn scroll_speed_base(&self) -> f32 {
         self.scroll_speed_base
@@ -62,10 +71,12 @@ impl Ship {
     pub fn nearest_boat(&self, pos: Vector2<f32>) -> &Boat {
         self.boats[0..self.num_boats]
             .par_iter()
-            .map(|boat| {
-                (boat, abagames_util::fast_distance(boat.pos, pos))
+            .map(|boat| (boat, abagames_util::fast_distance(boat.pos, pos)))
+            .min_by(|&(_, dist_a), &(_, dist_b)| {
+                dist_a
+                    .partial_cmp(&dist_b)
+                    .expect("distances should not be NaN")
             })
-            .min_by(|&(_, dist_a), &(_, dist_b)| dist_a.partial_cmp(&dist_b).expect("distances should not be NaN"))
             .expect("expected there to be at least one distance")
             .0
     }
@@ -150,7 +161,8 @@ impl Boat {
             let ship_bullet_proj = bullet_travel.dot(ship_offset);
             if 0. <= ship_bullet_proj && ship_bullet_proj <= bullet_travel_dist {
                 let ship_dist = ship_offset.dot(ship_offset);
-                let hit_distance = ship_dist - ship_bullet_proj * ship_bullet_proj / bullet_travel_dist;
+                let hit_distance =
+                    ship_dist - ship_bullet_proj * ship_bullet_proj / bullet_travel_dist;
                 if 0. <= hit_distance && hit_distance <= HIT_DISTANCE {
                     return true;
                 }
@@ -225,7 +237,8 @@ gfx_defines! {
 }
 
 pub struct ShipDraw<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
     ship_slice: gfx::Slice<R>,
     ship_pso: gfx::PipelineState<R, <ship_pipe::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
@@ -247,12 +260,16 @@ pub struct ShipDraw<R>
 }
 
 impl<R> ShipDraw<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
-    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, TargetFormat>,
-                  context: &RenderContext<R>)
-                  -> Self
-        where F: gfx::Factory<R>,
+    pub fn new<F>(
+        factory: &mut F,
+        view: gfx::handle::RenderTargetView<R, TargetFormat>,
+        context: &RenderContext<R>,
+    ) -> Self
+    where
+        F: gfx::Factory<R>,
     {
         let ship_vertex_data = [
             ShipData { pos: 0., color: [0.5, 0.5, 0.9, 0.8], },
@@ -261,16 +278,16 @@ impl<R> ShipDraw<R>
         ];
         let ship_vbuf = factory.create_vertex_buffer(&ship_vertex_data);
 
-        let ship_slice = abagames_util::slice_for_loop::<R, F>(factory,
-                                                               ship_vertex_data.len() as u32);
+        let ship_slice =
+            abagames_util::slice_for_loop::<R, F>(factory, ship_vertex_data.len() as u32);
 
         let line_vertex_data = [
             Line { rotation: 0., color: [0.5, 0.9, 0.7, 0.4], },
             Line { rotation: 1., color: [0.5, 0.9, 0.7, 0.8], },
         ];
         let line_vbuf = factory.create_vertex_buffer(&line_vertex_data);
-        let line_slice = abagames_util::slice_for_loop::<R, F>(factory,
-                                                               line_vertex_data.len() as u32);
+        let line_slice =
+            abagames_util::slice_for_loop::<R, F>(factory, line_vertex_data.len() as u32);
 
         let sight_vertex_data = [
             Sight { size_factor: [-1., -0.5], },
@@ -298,65 +315,80 @@ impl<R> ShipDraw<R>
         let mut sight_slice_d = sight_slice_a.clone();
         sight_slice_d.base_vertex = 9;
 
-        let sight_instances =
-            factory.create_buffer(MAX_BOATS * 2,
-                                  gfx::buffer::Role::Vertex,
-                                  gfx::memory::Usage::Upload,
-                                  gfx::memory::Bind::empty())
-                .expect("failed to create the buffer for sights");
+        let sight_instances = factory
+            .create_buffer(
+                MAX_BOATS * 2,
+                gfx::buffer::Role::Vertex,
+                gfx::memory::Usage::Upload,
+                gfx::memory::Bind::empty(),
+            )
+            .expect("failed to create the buffer for sights");
 
-        let ship_shader = factory.create_shader_vertex(include_bytes!("shader/ship.glslv"))
+        let ship_shader = factory
+            .create_shader_vertex(include_bytes!("shader/ship.glslv"))
             .expect("failed to compile the vertex shader for ships");
-        let line_shader = factory.create_shader_vertex(include_bytes!("shader/ship_line.glslv"))
+        let line_shader = factory
+            .create_shader_vertex(include_bytes!("shader/ship_line.glslv"))
             .expect("failed to compile the vertex shader for lines");
-        let sight_shader = factory.create_shader_vertex(include_bytes!("shader/ship_sight.glslv"))
+        let sight_shader = factory
+            .create_shader_vertex(include_bytes!("shader/ship_sight.glslv"))
             .expect("failed to compile the vertex shader for sights");
 
-        let frag_shader = factory.create_shader_pixel(include_bytes!("shader/ship.glslf"))
+        let frag_shader = factory
+            .create_shader_pixel(include_bytes!("shader/ship.glslf"))
             .expect("failed to compile the fragment shader for ships");
 
-        let ship_program = factory.create_program(&gfx::ShaderSet::Simple(ship_shader, frag_shader.clone()))
+        let ship_program = factory
+            .create_program(&gfx::ShaderSet::Simple(ship_shader, frag_shader.clone()))
             .expect("failed to link the ship shader");
-        let line_program = factory.create_program(&gfx::ShaderSet::Simple(line_shader, frag_shader.clone()))
+        let line_program = factory
+            .create_program(&gfx::ShaderSet::Simple(line_shader, frag_shader.clone()))
             .expect("failed to link the line shader");
-        let sight_program = factory.create_program(&gfx::ShaderSet::Simple(sight_shader, frag_shader.clone()))
+        let sight_program = factory
+            .create_program(&gfx::ShaderSet::Simple(sight_shader, frag_shader.clone()))
             .expect("failed to link the sight shader");
 
-        let ship_pso = factory.create_pipeline_from_program(
-            &ship_program,
-            gfx::Primitive::LineStrip,
-            gfx::state::Rasterizer {
-                front_face: gfx::state::FrontFace::CounterClockwise,
-                cull_face: gfx::state::CullFace::Nothing,
-                method: gfx::state::RasterMethod::Line(1),
-                offset: None,
-                samples: None,
-            },
-            ship_pipe::new())
+        let ship_pso = factory
+            .create_pipeline_from_program(
+                &ship_program,
+                gfx::Primitive::LineStrip,
+                gfx::state::Rasterizer {
+                    front_face: gfx::state::FrontFace::CounterClockwise,
+                    cull_face: gfx::state::CullFace::Nothing,
+                    method: gfx::state::RasterMethod::Line(1),
+                    offset: None,
+                    samples: None,
+                },
+                ship_pipe::new(),
+            )
             .expect("failed to create the pipeline for ships");
-        let line_pso = factory.create_pipeline_from_program(
-            &line_program,
-            gfx::Primitive::LineStrip,
-            gfx::state::Rasterizer {
-                front_face: gfx::state::FrontFace::CounterClockwise,
-                cull_face: gfx::state::CullFace::Nothing,
-                method: gfx::state::RasterMethod::Line(1),
-                offset: None,
-                samples: None,
-            },
-            line_pipe::new())
+        let line_pso = factory
+            .create_pipeline_from_program(
+                &line_program,
+                gfx::Primitive::LineStrip,
+                gfx::state::Rasterizer {
+                    front_face: gfx::state::FrontFace::CounterClockwise,
+                    cull_face: gfx::state::CullFace::Nothing,
+                    method: gfx::state::RasterMethod::Line(1),
+                    offset: None,
+                    samples: None,
+                },
+                line_pipe::new(),
+            )
             .expect("failed to create the pipeline for lines");
-        let sight_pso = factory.create_pipeline_from_program(
-            &sight_program,
-            gfx::Primitive::LineStrip,
-            gfx::state::Rasterizer {
-                front_face: gfx::state::FrontFace::CounterClockwise,
-                cull_face: gfx::state::CullFace::Nothing,
-                method: gfx::state::RasterMethod::Line(2),
-                offset: None,
-                samples: None,
-            },
-            sight_pipe::new())
+        let sight_pso = factory
+            .create_pipeline_from_program(
+                &sight_program,
+                gfx::Primitive::LineStrip,
+                gfx::state::Rasterizer {
+                    front_face: gfx::state::FrontFace::CounterClockwise,
+                    cull_face: gfx::state::CullFace::Nothing,
+                    method: gfx::state::RasterMethod::Line(2),
+                    offset: None,
+                    samples: None,
+                },
+                sight_pipe::new(),
+            )
             .expect("failed to create the pipeline for sights");
 
         let rotation_buffer = factory.create_constant_buffer(1);
@@ -406,10 +438,13 @@ impl<R> ShipDraw<R>
     }
 
     pub fn prep_draw<F>(&mut self, factory: &mut F, mouse_pos: Option<Vector2<f32>>, ship: &Ship)
-        where F: gfx::Factory<R>,
+    where
+        F: gfx::Factory<R>,
     {
         let sights = if let Some(mouse_pos) = mouse_pos {
-            let mut writer = factory.write_mapping(&self.sight_instances).expect("could not get a writable mapping to the sight buffer");
+            let mut writer = factory
+                .write_mapping(&self.sight_instances)
+                .expect("could not get a writable mapping to the sight buffer");
             2 * ship.boats[0..ship.num_boats]
                 .iter()
                 .filter(|boat| boat.count <= INVINCIBLE_COUNT)
@@ -436,8 +471,14 @@ impl<R> ShipDraw<R>
         self.sight_slice_d.instances = Some((sights, 0));
     }
 
-    fn draw_boat<C>(&self, context: &mut EncoderContext<R, C>, shape_draw: &ShapeDraw<R>, shield_draw: &ShieldDraw<R>, boat: &Boat)
-        where C: gfx::CommandBuffer<R>,
+    fn draw_boat<C>(
+        &self,
+        context: &mut EncoderContext<R, C>,
+        shape_draw: &ShapeDraw<R>,
+        shield_draw: &ShieldDraw<R>,
+        boat: &Boat,
+    ) where
+        C: gfx::CommandBuffer<R>,
     {
         if boat.is_in_reset() {
             return;
@@ -448,17 +489,21 @@ impl<R> ShipDraw<R>
                 pos: boat.pos.into(),
                 angle: angle.0,
             };
-            context.encoder.update_constant_buffer(&self.line_buffer, &line_data);
+            context
+                .encoder
+                .update_constant_buffer(&self.line_buffer, &line_data);
 
-            context.encoder.draw(&self.line_slice, &self.line_pso, &self.line_data);
+            context
+                .encoder
+                .draw(&self.line_slice, &self.line_pso, &self.line_data);
         }
 
         if boat.is_blinked() {
             return;
         }
 
-        let modelmat = Matrix4::from_axis_angle(Vector3::unit_z(), boat.angle) *
-            Matrix4::from_translation(boat.pos.extend(0.));
+        let modelmat = Matrix4::from_axis_angle(Vector3::unit_z(), boat.angle)
+            * Matrix4::from_translation(boat.pos.extend(0.));
 
         shape_draw.draw(context, &boat.shape, modelmat);
         shape_draw.draw(context, &boat.bridge_shape, modelmat);
@@ -469,15 +514,22 @@ impl<R> ShipDraw<R>
             } else {
                 0.66
             };
-            let modelmat = Matrix4::from_axis_angle(Vector3::unit_z(), Deg((boat.shield_count as f32) * -5.)) *
-                Matrix4::from_scale(size);
+            let modelmat =
+                Matrix4::from_axis_angle(Vector3::unit_z(), Deg((boat.shield_count as f32) * -5.))
+                    * Matrix4::from_scale(size);
 
             shield_draw.draw(context, modelmat);
         }
     }
 
-    pub fn draw<C>(&self, context: &mut EncoderContext<R, C>, shape_draw: &ShapeDraw<R>, shield_draw: &ShieldDraw<R>, ship: &Ship)
-        where C: gfx::CommandBuffer<R>,
+    pub fn draw<C>(
+        &self,
+        context: &mut EncoderContext<R, C>,
+        shape_draw: &ShapeDraw<R>,
+        shield_draw: &ShieldDraw<R>,
+        ship: &Ship,
+    ) where
+        C: gfx::CommandBuffer<R>,
     {
         ship.boats[0..ship.num_boats]
             .iter()
@@ -495,40 +547,58 @@ impl<R> ShipDraw<R>
                 Rad::atan2(diff.y, diff.x)
             };
             let rotation_mat = Matrix4::from_axis_angle(Vector3::unit_z(), angle);
-            let rotmat = Matrix4::from_translation(start_pos.extend(0.)) *
-                rotation_mat *
-                Matrix4::from_nonuniform_scale(dist, 0., 0.);
+            let rotmat = Matrix4::from_translation(start_pos.extend(0.))
+                * rotation_mat
+                * Matrix4::from_nonuniform_scale(dist, 0., 0.);
 
             let rotation = Rotation {
                 rotmat: rotmat.into(),
             };
-            context.encoder.update_constant_buffer(&self.rotation_buffer, &rotation);
+            context
+                .encoder
+                .update_constant_buffer(&self.rotation_buffer, &rotation);
 
-            context.encoder.draw(&self.ship_slice, &self.ship_pso, &self.ship_data);
+            context
+                .encoder
+                .draw(&self.ship_slice, &self.ship_pso, &self.ship_data);
 
             let shapemat = Matrix4::from_translation(ship.mid_pos().extend(0.)) * rotation_mat;
             shape_draw.draw(context, &ship.bridge_shape, shapemat);
         }
     }
 
-    pub fn draw_lives<C>(&self, context: &mut EncoderContext<R, C>, shape_draw: &ShapeDraw<R>, lives: u32, ship: &Ship)
-        where C: gfx::CommandBuffer<R>,
+    pub fn draw_lives<C>(
+        &self,
+        context: &mut EncoderContext<R, C>,
+        shape_draw: &ShapeDraw<R>,
+        lives: u32,
+        ship: &Ship,
+    ) where
+        C: gfx::CommandBuffer<R>,
     {
         let scale = Matrix4::from_scale(0.7);
-        (0..lives)
-            .fold(-12., |x, _| {
-                let translate = Matrix4::from_translation(Vector3::new(x, -9., 0.));
-                shape_draw.draw_front(context, &ship.boats[0].shape, scale * translate);
-                x + 0.7
-            });
+        (0..lives).fold(-12., |x, _| {
+            let translate = Matrix4::from_translation(Vector3::new(x, -9., 0.));
+            shape_draw.draw_front(context, &ship.boats[0].shape, scale * translate);
+            x + 0.7
+        });
     }
 
     pub fn draw_front<C>(&self, context: &mut EncoderContext<R, C>)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
-        context.encoder.draw(&self.sight_slice_a, &self.sight_pso, &self.sight_data);
-        context.encoder.draw(&self.sight_slice_b, &self.sight_pso, &self.sight_data);
-        context.encoder.draw(&self.sight_slice_c, &self.sight_pso, &self.sight_data);
-        context.encoder.draw(&self.sight_slice_d, &self.sight_pso, &self.sight_data);
+        context
+            .encoder
+            .draw(&self.sight_slice_a, &self.sight_pso, &self.sight_data);
+        context
+            .encoder
+            .draw(&self.sight_slice_b, &self.sight_pso, &self.sight_data);
+        context
+            .encoder
+            .draw(&self.sight_slice_c, &self.sight_pso, &self.sight_data);
+        context
+            .encoder
+            .draw(&self.sight_slice_d, &self.sight_pso, &self.sight_data);
     }
 }

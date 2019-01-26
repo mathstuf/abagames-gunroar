@@ -56,8 +56,7 @@ impl Appearance {
             if self.next_dist <= 0. {
                 self.next_dist += self.next_dist_interval;
                 if let Some(state) = EnemyState::appear(&spec, self.kind, field, enemies, rand) {
-                    enemies.get()
-                        .map(|enemy| enemy.init(spec, state));
+                    enemies.get().map(|enemy| enemy.init(spec, state));
                 }
             }
         }
@@ -114,7 +113,8 @@ impl Stage {
         self.rank_add = 0.;
         self.rank_velocity = 0.;
         self.rank_increment = RANK_INC_BASE * rank_inc_ratio;
-        self.density = ((rand.next_int((BLOCK_DENSITY_MAX - BLOCK_DENSITY_MIN + 1) as u32)) as i32) + BLOCK_DENSITY_MIN;
+        self.density = ((rand.next_int((BLOCK_DENSITY_MAX - BLOCK_DENSITY_MIN + 1) as u32)) as i32)
+            + BLOCK_DENSITY_MIN;
         self.boss_timer_base = 60 * 1000;
         self.reset_boss(context);
     }
@@ -136,7 +136,14 @@ impl Stage {
         self.boss_timer = Some(self.boss_timer_base);
     }
 
-    pub fn step(&mut self, field: &Field, ship: &Ship, enemies: &mut Pool<Enemy>, context: &mut GameStateContext, rand: &mut Rand) {
+    pub fn step(
+        &mut self,
+        field: &Field,
+        ship: &Ship,
+        enemies: &mut Pool<Enemy>,
+        context: &mut GameStateContext,
+        rand: &mut Rand,
+    ) {
         self.background_timer = self.background_timer.saturating_sub(1);
         if self.background_timer == 0 {
             if self.boss_mode() {
@@ -155,9 +162,7 @@ impl Stage {
         self.appearances
             .iter_mut()
             .filter(|appear| appear.spec.is_some())
-            .foreach(|appearances| {
-                appearances.step(field, enemies, rand)
-            })
+            .foreach(|appearances| appearances.step(field, enemies, rand))
     }
 
     fn boss_step(&mut self, enemies: &Pool<Enemy>, context: &mut GameStateContext) {
@@ -189,7 +194,14 @@ impl Stage {
         self.rank_base += self.rank_increment + self.rank_add * 0.0001;
     }
 
-    pub fn next_block_area(&mut self, field: &Field, ship: &Ship, enemies: &mut Pool<Enemy>, context: &mut GameStateContext, rand: &mut Rand) -> u32 {
+    pub fn next_block_area(
+        &mut self,
+        field: &Field,
+        ship: &Ship,
+        enemies: &mut Pool<Enemy>,
+        context: &mut GameStateContext,
+        rand: &mut Rand,
+    ) -> u32 {
         if self.boss_mode() {
             self.next_block_area_boss(field, ship, enemies, context, rand);
             0
@@ -199,11 +211,20 @@ impl Stage {
         }
     }
 
-    fn next_block_area_boss(&mut self, field: &Field, ship: &Ship, enemies: &mut Pool<Enemy>, context: &mut GameStateContext, rand: &mut Rand) {
+    fn next_block_area_boss(
+        &mut self,
+        field: &Field,
+        ship: &Ship,
+        enemies: &mut Pool<Enemy>,
+        context: &mut GameStateContext,
+        rand: &mut Rand,
+    ) {
         self.boss_app_count = self.boss_app_count.saturating_sub(1);
         if self.boss_app_count == 0 {
             let spec = EnemySpec::ship(self.rank, ShipClass::Boss, ship, rand);
-            if let Some(state) = EnemyState::appear(&spec, EnemyAppearance::Center, field, enemies, rand) {
+            if let Some(state) =
+                EnemyState::appear(&spec, EnemyAppearance::Center, field, enemies, rand)
+            {
                 if let Some(enemy) = enemies.get() {
                     enemy.init(spec, state);
                 } else {
@@ -211,22 +232,20 @@ impl Stage {
                 }
             }
         }
-        self.appearances
-            .par_iter_mut()
-            .for_each(Appearance::reset);
+        self.appearances.par_iter_mut().for_each(Appearance::reset);
     }
 
     fn next_block_area_regular(&mut self, ship: &Ship, rand: &mut Rand) {
         let no_small_ship = self.density < BLOCK_DENSITY_MAX && rand.next_int(2) == 0;
-        self.density = cmp::max(BLOCK_DENSITY_MIN, cmp::min(BLOCK_DENSITY_MAX, self.density + rand.next_int_signed(1)));
+        self.density = cmp::max(
+            BLOCK_DENSITY_MIN,
+            cmp::min(BLOCK_DENSITY_MAX, self.density + rand.next_int_signed(1)),
+        );
         self.num_batteries = ((self.density as f32) + rand.next_float_signed(1.) * 0.75) as u32;
         let mut rank_budget = self.rank;
-        let large_ship_factor = if no_small_ship {
-            1.5
-        } else {
-            0.5
-        };
-        let num_large_ships = (large_ship_factor * ( 2. - (self.density as f32) + rand.next_float_signed(1.) )) as i32;
+        let large_ship_factor = if no_small_ship { 1.5 } else { 0.5 };
+        let num_large_ships =
+            (large_ship_factor * (2. - (self.density as f32) + rand.next_float_signed(1.))) as i32;
 
         let appearance = match rand.next_int(2) {
             0 => EnemyAppearance::Top,
@@ -242,7 +261,12 @@ impl Stage {
             };
             rank_budget -= large_rank;
 
-            let spec = EnemySpec::ship(large_rank / (num_large_ships as f32), ShipClass::Large, ship, rand);
+            let spec = EnemySpec::ship(
+                large_rank / (num_large_ships as f32),
+                ShipClass::Large,
+                ship,
+                rand,
+            );
             self.appearances[0].init(spec, num_large_ships, appearance, rand);
         } else {
             self.appearances[0].reset();
@@ -250,7 +274,8 @@ impl Stage {
 
         if self.num_batteries > 0 {
             let platform_rank = rank_budget * (0.3 + rand.next_float(0.1));
-            self.platform_spec.init_platform(platform_rank / (self.num_batteries as f32), rand);
+            self.platform_spec
+                .init_platform(platform_rank / (self.num_batteries as f32), rand);
         }
 
         let appearance = match appearance {
@@ -259,7 +284,8 @@ impl Stage {
             _ => unreachable!(),
         };
 
-        let num_middle_ship = ((4. - (self.density as f32) + rand.next_float_signed(1.)) * 0.66) as i32;
+        let num_middle_ship =
+            ((4. - (self.density as f32) + rand.next_float_signed(1.)) * 0.66) as i32;
         let num_middle_ship = if no_small_ship {
             2 * num_middle_ship
         } else {
@@ -273,7 +299,12 @@ impl Stage {
             };
             rank_budget -= middle_rank;
 
-            let spec = EnemySpec::ship(middle_rank / (num_middle_ship as f32), ShipClass::Middle, ship, rand);
+            let spec = EnemySpec::ship(
+                middle_rank / (num_middle_ship as f32),
+                ShipClass::Middle,
+                ship,
+                rand,
+            );
             self.appearances[1].init(spec, num_middle_ship, appearance, rand);
         } else {
             self.appearances[1].reset()
@@ -282,7 +313,8 @@ impl Stage {
         if no_small_ship {
             self.appearances[2].reset();
         } else {
-            let num_small_ship = (( (3. + rank_budget).sqrt() * (1. + rand.next_float_signed(0.5)) * 2. ) as i32) + 1;
+            let num_small_ship =
+                (((3. + rank_budget).sqrt() * (1. + rand.next_float_signed(0.5)) * 2.) as i32) + 1;
             let num_small_ship = cmp::min(256, num_small_ship);
             let spec = EnemySpec::small_ship(rank_budget / (num_small_ship as f32), rand);
             self.appearances[2].init(spec, num_small_ship, EnemyAppearance::Top, rand);
@@ -312,7 +344,9 @@ impl Stage {
 
             let (block_pos, angle) = field.platform(i).peek();
             let pos = field.screen_pos(block_pos);
-            if let Some(state) = EnemyState::for_platform(&self.platform_spec, pos, angle, field, enemies) {
+            if let Some(state) =
+                EnemyState::for_platform(&self.platform_spec, pos, angle, field, enemies)
+            {
                 if let Some(enemy) = enemies.get() {
                     field.platform_mut(i).spawned();
                     enemy.init(self.platform_spec, state);
@@ -345,21 +379,26 @@ impl Stage {
     }
 
     pub fn draw<R, C>(&self, context: &mut EncoderContext<R, C>, letter: &Letter<R>)
-        where R: gfx::Resources,
-              C: gfx::CommandBuffer<R>,
+    where
+        R: gfx::Resources,
+        C: gfx::CommandBuffer<R>,
     {
-        letter.draw_number(context,
-                           (1000. * self.rank) as u32,
-                           letter::Style::White,
-                           letter::Location::new(Vector2::new(620., 10.), 10.),
-                           letter::NumberStyle {
-                               pad_to: None,
-                               prefix_char: Some('x'),
-                               floating_digits: Some(3),
-                           });
-        letter.draw_time(context,
-                         self.boss_timer(),
-                         letter::Style::White,
-                         letter::Location::new(Vector2::new(120., 20.), 7.));
+        letter.draw_number(
+            context,
+            (1000. * self.rank) as u32,
+            letter::Style::White,
+            letter::Location::new(Vector2::new(620., 10.), 10.),
+            letter::NumberStyle {
+                pad_to: None,
+                prefix_char: Some('x'),
+                floating_digits: Some(3),
+            },
+        );
+        letter.draw_time(
+            context,
+            self.boss_timer(),
+            letter::Style::White,
+            letter::Location::new(Vector2::new(120., 20.), 7.),
+        );
     }
 }

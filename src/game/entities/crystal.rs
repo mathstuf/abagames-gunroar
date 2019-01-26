@@ -62,9 +62,15 @@ impl Crystal {
 
         [
             Matrix4::from_translation((self.pos + r * Self::sin_cos(angle)).extend(0.)),
-            Matrix4::from_translation((self.pos + r * Self::sin_cos(angle + Rad::turn_div_4())).extend(0.)),
-            Matrix4::from_translation((self.pos + r * Self::sin_cos(angle + Rad::turn_div_2())).extend(0.)),
-            Matrix4::from_translation((self.pos + r * Self::sin_cos(angle - Rad::turn_div_4())).extend(0.)),
+            Matrix4::from_translation(
+                (self.pos + r * Self::sin_cos(angle + Rad::turn_div_4())).extend(0.),
+            ),
+            Matrix4::from_translation(
+                (self.pos + r * Self::sin_cos(angle + Rad::turn_div_2())).extend(0.),
+            ),
+            Matrix4::from_translation(
+                (self.pos + r * Self::sin_cos(angle - Rad::turn_div_4())).extend(0.),
+            ),
         ]
     }
 

@@ -8,8 +8,8 @@ use crates::gfx::traits::FactoryExt;
 
 use game::entities::field::{Block, Field};
 use game::entities::particles::{Wake, WakeDirection};
-use game::render::{EncoderContext, RenderContext};
 use game::render::{Brightness, ScreenTransform};
+use game::render::{EncoderContext, RenderContext};
 
 use std::str;
 
@@ -43,9 +43,7 @@ impl SmokeKind {
                     1.,
                 ]
             },
-            SmokeKind::Sand => {
-                [0.8, 0.8, 0.6, 0.6]
-            },
+            SmokeKind::Sand => [0.8, 0.8, 0.6, 0.6],
             SmokeKind::Spark => {
                 [
                     rand.next_float(0.3) + 0.7,
@@ -54,9 +52,7 @@ impl SmokeKind {
                     1.,
                 ]
             },
-            SmokeKind::Wake => {
-                [0.8, 0.6, 0.8, 0.6]
-            },
+            SmokeKind::Wake => [0.8, 0.6, 0.8, 0.6],
             SmokeKind::Smoke => {
                 [
                     rand.next_float(0.1) + 0.1,
@@ -73,7 +69,8 @@ impl SmokeKind {
                     1.,
                 ]
             },
-        }.into()
+        }
+        .into()
     }
 }
 
@@ -111,11 +108,27 @@ impl Smoke {
         Pool::new(MAX_SMOKE_SIZE, Self::new)
     }
 
-    pub fn init_2d(&mut self, pos: Vector2<f32>, vel: Vector3<f32>, kind: SmokeKind, count: u32, size: f32, rand: &mut Rand) {
+    pub fn init_2d(
+        &mut self,
+        pos: Vector2<f32>,
+        vel: Vector3<f32>,
+        kind: SmokeKind,
+        count: u32,
+        size: f32,
+        rand: &mut Rand,
+    ) {
         self.init(Vector3::new(pos.x, pos.y, 0.), vel, kind, count, size, rand)
     }
 
-    pub fn init(&mut self, pos: Vector3<f32>, vel: Vector3<f32>, kind: SmokeKind, count: u32, size: f32, rand: &mut Rand) {
+    pub fn init(
+        &mut self,
+        pos: Vector3<f32>,
+        vel: Vector3<f32>,
+        kind: SmokeKind,
+        count: u32,
+        size: f32,
+        rand: &mut Rand,
+    ) {
         self.pos = pos;
         self.vel = vel;
         self.kind = kind;
@@ -152,7 +165,8 @@ impl Smoke {
                 self.color *= 0.98;
             },
             SmokeKind::Spark => {
-                self.color.mul_assign_element_wise(Vector4::new(0.92, 0.92, 1., 0.95 as f32));
+                self.color
+                    .mul_assign_element_wise(Vector4::new(0.92, 0.92, 1., 0.95 as f32));
                 self.vel *= 0.9;
             },
             SmokeKind::Wake => {
@@ -180,23 +194,25 @@ impl Smoke {
                     let left_vec: Vector2<f32> = (angle + Rad::turn_div_4()).sin_cos().into();
                     let right_vec: Vector2<f32> = (angle - Rad::turn_div_4()).sin_cos().into();
                     let wake_pos = pos2d + left_vec * self.size * 0.25;
-                    wakes.get_force()
-                        .init(field,
-                              wake_pos,
-                              angle + Rad::turn_div_2() - Rad(0.2 + rand.next_float_signed(0.1)),
-                              speed * 0.33,
-                              20 + rand.next_int(12),
-                              self.size * (7. + rand.next_float(3.)),
-                              WakeDirection::Forward);
+                    wakes.get_force().init(
+                        field,
+                        wake_pos,
+                        angle + Rad::turn_div_2() - Rad(0.2 + rand.next_float_signed(0.1)),
+                        speed * 0.33,
+                        20 + rand.next_int(12),
+                        self.size * (7. + rand.next_float(3.)),
+                        WakeDirection::Forward,
+                    );
                     let wake_pos = pos2d + right_vec * self.size * 0.25;
-                    wakes.get_force()
-                        .init(field,
-                              wake_pos,
-                              angle + Rad::turn_div_2() - Rad(0.2 + rand.next_float_signed(0.1)),
-                              speed * 0.33,
-                              20 + rand.next_int(12),
-                              self.size * (7. + rand.next_float(3.)),
-                              WakeDirection::Forward);
+                    wakes.get_force().init(
+                        field,
+                        wake_pos,
+                        angle + Rad::turn_div_2() - Rad(0.2 + rand.next_float_signed(0.1)),
+                        speed * 0.33,
+                        20 + rand.next_int(12),
+                        self.size * (7. + rand.next_float(3.)),
+                        WakeDirection::Forward,
+                    );
                 }
             }
         }
@@ -233,7 +249,8 @@ gfx_defines! {
 }
 
 pub struct SmokeDraw<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
     slice: gfx::Slice<R>,
     pso: gfx::PipelineState<R, <pipe::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
@@ -241,12 +258,16 @@ pub struct SmokeDraw<R>
 }
 
 impl<R> SmokeDraw<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
-    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, TargetFormat>,
-                  context: &RenderContext<R>)
-                  -> Self
-        where F: gfx::Factory<R>,
+    pub fn new<F>(
+        factory: &mut F,
+        view: gfx::handle::RenderTargetView<R, TargetFormat>,
+        context: &RenderContext<R>,
+    ) -> Self
+    where
+        F: gfx::Factory<R>,
     {
         let data = [
             Vertex { diff: [-0.5, -0.5] },
@@ -256,21 +277,25 @@ impl<R> SmokeDraw<R>
         ];
 
         let vbuf = factory.create_vertex_buffer(&data);
-        let slice = abagames_util::slice_for_fan::<R, F>(factory,
-                                                         data.len() as u32);
+        let slice = abagames_util::slice_for_fan::<R, F>(factory, data.len() as u32);
 
-        let vert_source = str::from_utf8(include_bytes!("shader/smoke.glslv")).expect("invalid utf-8 in smoke vertex shader");
-        let frag_source = str::from_utf8(include_bytes!("shader/smoke.glslf")).expect("invalid utf-8 in smoke fragment shader");
+        let vert_source = str::from_utf8(include_bytes!("shader/smoke.glslv"))
+            .expect("invalid utf-8 in smoke vertex shader");
+        let frag_source = str::from_utf8(include_bytes!("shader/smoke.glslf"))
+            .expect("invalid utf-8 in smoke fragment shader");
         let size_str = format!("{}", MAX_SMOKE_SIZE);
-        let pso = factory.create_pipeline_simple(
-            vert_source.replace("NUM_SMOKES", &size_str).as_bytes(),
-            frag_source.replace("NUM_SMOKES", &size_str).as_bytes(),
-            pipe::new())
+        let pso = factory
+            .create_pipeline_simple(
+                vert_source.replace("NUM_SMOKES", &size_str).as_bytes(),
+                frag_source.replace("NUM_SMOKES", &size_str).as_bytes(),
+                pipe::new(),
+            )
             .expect("failed to create the pipeline for smoke");
 
         let data = pipe::Data {
             vbuf: vbuf,
-            smokes: factory.create_upload_buffer(MAX_SMOKE_SIZE)
+            smokes: factory
+                .create_upload_buffer(MAX_SMOKE_SIZE)
                 .expect("failed to create the buffer for smoke"),
             screen: context.perspective_screen_buffer.clone(),
             brightness: context.brightness_buffer.clone(),
@@ -285,12 +310,15 @@ impl<R> SmokeDraw<R>
     }
 
     pub fn prep_draw<F>(&mut self, factory: &mut F, smokes: &Pool<Smoke>)
-        where F: gfx::Factory<R>,
+    where
+        F: gfx::Factory<R>,
     {
-        let mut writer = factory.write_mapping(&self.data.smokes)
+        let mut writer = factory
+            .write_mapping(&self.data.smokes)
             .expect("could not get a writeable mapping to the smoke buffer");
 
-        let num_smokes = smokes.iter()
+        let num_smokes = smokes
+            .iter()
             .enumerate()
             .map(|(idx, smoke)| {
                 writer[idx] = PerSmoke {
@@ -305,7 +333,8 @@ impl<R> SmokeDraw<R>
     }
 
     pub fn draw<C>(&self, context: &mut EncoderContext<R, C>)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
         context.encoder.draw(&self.slice, &self.pso, &self.data);
     }

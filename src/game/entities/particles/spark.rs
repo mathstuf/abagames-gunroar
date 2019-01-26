@@ -6,8 +6,8 @@ use crates::cgmath::{Vector2, Vector3};
 use crates::gfx;
 use crates::gfx::traits::FactoryExt;
 
-use game::render::{EncoderContext, RenderContext};
 use game::render::{Brightness, ScreenTransform};
+use game::render::{EncoderContext, RenderContext};
 
 use std::str;
 
@@ -84,7 +84,8 @@ gfx_defines! {
 }
 
 pub struct SparkDraw<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
     slice: gfx::Slice<R>,
     pso: gfx::PipelineState<R, <pipe::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
@@ -92,12 +93,16 @@ pub struct SparkDraw<R>
 }
 
 impl<R> SparkDraw<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
-    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, TargetFormat>,
-                  context: &RenderContext<R>)
-                  -> Self
-        where F: gfx::Factory<R>,
+    pub fn new<F>(
+        factory: &mut F,
+        view: gfx::handle::RenderTargetView<R, TargetFormat>,
+        context: &RenderContext<R>,
+    ) -> Self
+    where
+        F: gfx::Factory<R>,
     {
         let data = [
             Vertex {
@@ -118,21 +123,25 @@ impl<R> SparkDraw<R>
         ];
 
         let vbuf = factory.create_vertex_buffer(&data);
-        let slice = abagames_util::slice_for_fan::<R, F>(factory,
-                                                         data.len() as u32);
+        let slice = abagames_util::slice_for_fan::<R, F>(factory, data.len() as u32);
 
-        let vert_source = str::from_utf8(include_bytes!("shader/spark.glslv")).expect("invalid utf-8 in spark vertex shader");
-        let frag_source = str::from_utf8(include_bytes!("shader/spark.glslf")).expect("invalid utf-8 in spark fragment shader");
+        let vert_source = str::from_utf8(include_bytes!("shader/spark.glslv"))
+            .expect("invalid utf-8 in spark vertex shader");
+        let frag_source = str::from_utf8(include_bytes!("shader/spark.glslf"))
+            .expect("invalid utf-8 in spark fragment shader");
         let size_str = format!("{}", MAX_SPARK_SIZE);
-        let pso = factory.create_pipeline_simple(
-            vert_source.replace("NUM_SPARKS", &size_str).as_bytes(),
-            frag_source.replace("NUM_SPARKS", &size_str).as_bytes(),
-            pipe::new())
+        let pso = factory
+            .create_pipeline_simple(
+                vert_source.replace("NUM_SPARKS", &size_str).as_bytes(),
+                frag_source.replace("NUM_SPARKS", &size_str).as_bytes(),
+                pipe::new(),
+            )
             .expect("failed to create the pipeline for spark");
 
         let data = pipe::Data {
             vbuf: vbuf,
-            sparks: factory.create_upload_buffer(MAX_SPARK_SIZE)
+            sparks: factory
+                .create_upload_buffer(MAX_SPARK_SIZE)
                 .expect("failed to create the pipeline for spark"),
             screen: context.perspective_screen_buffer.clone(),
             brightness: context.brightness_buffer.clone(),
@@ -147,12 +156,15 @@ impl<R> SparkDraw<R>
     }
 
     pub fn prep_draw<F>(&mut self, factory: &mut F, sparks: &Pool<Spark>)
-        where F: gfx::Factory<R>,
+    where
+        F: gfx::Factory<R>,
     {
-        let mut writer = factory.write_mapping(&self.data.sparks)
+        let mut writer = factory
+            .write_mapping(&self.data.sparks)
             .expect("could not get a writeable mapping to the spark buffer");
 
-        let num_sparks = sparks.iter()
+        let num_sparks = sparks
+            .iter()
             .enumerate()
             .map(|(idx, spark)| {
                 writer[idx] = PerSpark {
@@ -168,7 +180,8 @@ impl<R> SparkDraw<R>
     }
 
     pub fn draw<C>(&self, context: &mut EncoderContext<R, C>)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
         context.encoder.draw(&self.slice, &self.pso, &self.data);
     }

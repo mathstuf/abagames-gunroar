@@ -8,8 +8,8 @@ use crates::gfx::traits::FactoryExt;
 use crates::itertools::FoldWhile::{Continue, Done};
 use crates::itertools::Itertools;
 
-use game::render::{EncoderContext, RenderContext};
 use game::render::{Brightness, ScreenTransform};
+use game::render::{EncoderContext, RenderContext};
 
 use std::borrow::Cow;
 use std::iter;
@@ -107,9 +107,8 @@ impl SegmentData {
         let angle = Deg(self.deg % 180.);
         let trans = pos - size / 2.;
 
-        let boxmat =
-            Matrix4::from_translation(trans.extend(0.)) *
-            Matrix4::from_axis_angle(Vector3::unit_z(), angle);
+        let boxmat = Matrix4::from_translation(trans.extend(0.))
+            * Matrix4::from_axis_angle(Vector3::unit_z(), angle);
         LetterSegments {
             boxmat: boxmat.into(),
             size: size.into(),
@@ -440,7 +439,8 @@ impl Direction {
             Direction::Down => 90.,
             Direction::Left => 180.,
             Direction::Up => 270.,
-        }).into()
+        })
+        .into()
     }
 
     fn offset(&self, delta: Vector2<f32>) -> Vector2<f32> {
@@ -585,7 +585,8 @@ impl NumberStyle {
 }
 
 pub struct Letter<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
     outline_slice: gfx::Slice<R>,
     outline_pso: gfx::PipelineState<R, <pipe::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
@@ -598,12 +599,16 @@ pub struct Letter<R>
 }
 
 impl<R> Letter<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
-    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, TargetFormat>,
-                  context: &RenderContext<R>)
-                  -> Self
-        where F: gfx::Factory<R>,
+    pub fn new<F>(
+        factory: &mut F,
+        view: gfx::handle::RenderTargetView<R, TargetFormat>,
+        context: &RenderContext<R>,
+    ) -> Self
+    where
+        F: gfx::Factory<R>,
     {
         let vertex_data = [
             Vertex { pos: [-0.5,   0.], },
@@ -615,31 +620,37 @@ impl<R> Letter<R>
         ];
 
         let vbuf = factory.create_vertex_buffer(&vertex_data);
-        let outline_slice = abagames_util::slice_for_loop::<R, F>(factory,
-                                                                  vertex_data.len() as u32);
+        let outline_slice =
+            abagames_util::slice_for_loop::<R, F>(factory, vertex_data.len() as u32);
         let fan_slice = abagames_util::slice_for_fan::<R, F>(factory, vertex_data.len() as u32);
 
-        let program = factory.link_program(
-            include_bytes!("shader/letter.glslv"),
-            include_bytes!("shader/letter.glslf"))
+        let program = factory
+            .link_program(
+                include_bytes!("shader/letter.glslv"),
+                include_bytes!("shader/letter.glslf"),
+            )
             .expect("could not link the letter shader");
-        let outline_pso = factory.create_pipeline_from_program(
-            &program,
-            gfx::Primitive::LineStrip,
-            gfx::state::Rasterizer {
-                front_face: gfx::state::FrontFace::CounterClockwise,
-                cull_face: gfx::state::CullFace::Nothing,
-                method: gfx::state::RasterMethod::Line(1),
-                offset: None,
-                samples: None,
-            },
-            pipe::new())
+        let outline_pso = factory
+            .create_pipeline_from_program(
+                &program,
+                gfx::Primitive::LineStrip,
+                gfx::state::Rasterizer {
+                    front_face: gfx::state::FrontFace::CounterClockwise,
+                    cull_face: gfx::state::CullFace::Nothing,
+                    method: gfx::state::RasterMethod::Line(1),
+                    offset: None,
+                    samples: None,
+                },
+                pipe::new(),
+            )
             .expect("failed to create the outline pipeline for letter");
-        let fan_pso = factory.create_pipeline_from_program(
-            &program,
-            gfx::Primitive::TriangleList,
-            gfx::state::Rasterizer::new_fill(),
-            pipe::new())
+        let fan_pso = factory
+            .create_pipeline_from_program(
+                &program,
+                gfx::Primitive::TriangleList,
+                gfx::state::Rasterizer::new_fill(),
+                pipe::new(),
+            )
             .expect("failed to create the fill pipeline for letter");
 
         let color_buffer = factory.create_constant_buffer(1);
@@ -676,35 +687,48 @@ impl<R> Letter<R>
         }
     }
 
-    pub fn draw_letter<C>(&self, context: &mut EncoderContext<R, C>, letter: char,
-                          style: Style)
-        where C: gfx::CommandBuffer<R>,
+    pub fn draw_letter<C>(&self, context: &mut EncoderContext<R, C>, letter: char, style: Style)
+    where
+        C: gfx::CommandBuffer<R>,
     {
-        self.draw_letter_at(context,
-                            letter,
-                            style,
-                            Location::default())
+        self.draw_letter_at(context, letter, style, Location::default())
     }
 
-    pub fn draw_letter_at<C>(&self, context: &mut EncoderContext<R, C>, letter: char,
-                             style: Style, loc: Location)
-        where C: gfx::CommandBuffer<R>,
+    pub fn draw_letter_at<C>(
+        &self,
+        context: &mut EncoderContext<R, C>,
+        letter: char,
+        style: Style,
+        loc: Location,
+    ) where
+        C: gfx::CommandBuffer<R>,
     {
-        let drawmat =
-            Matrix4::from_translation(loc.position.extend(0.)) *
-            Matrix4::from_nonuniform_scale(loc.scale, loc.scale * loc.orientation.y_flip(), loc.scale) *
-            Matrix4::from_axis_angle(Vector3::unit_z(), -loc.direction.angle());
+        let drawmat = Matrix4::from_translation(loc.position.extend(0.))
+            * Matrix4::from_nonuniform_scale(
+                loc.scale,
+                loc.scale * loc.orientation.y_flip(),
+                loc.scale,
+            )
+            * Matrix4::from_axis_angle(Vector3::unit_z(), -loc.direction.angle());
         self.draw_letter_with(context, drawmat, letter, style, loc.screen)
     }
 
-    pub fn draw_letter_with<C>(&self, context: &mut EncoderContext<R, C>, matrix: Matrix4<f32>,
-                               letter: char, style: Style, screen: Screen)
-        where C: gfx::CommandBuffer<R>,
+    pub fn draw_letter_with<C>(
+        &self,
+        context: &mut EncoderContext<R, C>,
+        matrix: Matrix4<f32>,
+        letter: char,
+        style: Style,
+        screen: Screen,
+    ) where
+        C: gfx::CommandBuffer<R>,
     {
         let letter_trans = LetterTransforms {
             drawmat: matrix.into(),
         };
-        context.encoder.update_constant_buffer(&self.data_persp.letter, &letter_trans);
+        context
+            .encoder
+            .update_constant_buffer(&self.data_persp.letter, &letter_trans);
 
         let data = match screen {
             Screen::Perspective => &self.data_persp,
@@ -713,23 +737,33 @@ impl<R> Letter<R>
         self.draw_letter_segments(context, letter, style, data)
     }
 
-    pub fn draw_string<C>(&self, context: &mut EncoderContext<R, C>, string: &str,
-                          style: Style, loc: Location)
-        where C: gfx::CommandBuffer<R>,
+    pub fn draw_string<C>(
+        &self,
+        context: &mut EncoderContext<R, C>,
+        string: &str,
+        style: Style,
+        loc: Location,
+    ) where
+        C: gfx::CommandBuffer<R>,
     {
         let offset = LETTER_OFFSET * loc.scale;
 
-        string.chars()
-            .fold(loc.offset_by(offset / 2.), |loc, ch| {
-                self.draw_letter_at(context, ch, style, loc);
+        string.chars().fold(loc.offset_by(offset / 2.), |loc, ch| {
+            self.draw_letter_at(context, ch, style, loc);
 
-                loc.offset_by(loc.direction.offset(offset))
-            });
+            loc.offset_by(loc.direction.offset(offset))
+        });
     }
 
-    pub fn draw_number<C>(&self, context: &mut EncoderContext<R, C>, num: u32, style: Style,
-                          loc: Location, number_style: NumberStyle)
-        where C: gfx::CommandBuffer<R>,
+    pub fn draw_number<C>(
+        &self,
+        context: &mut EncoderContext<R, C>,
+        num: u32,
+        style: Style,
+        loc: Location,
+        number_style: NumberStyle,
+    ) where
+        C: gfx::CommandBuffer<R>,
     {
         let offset = LETTER_OFFSET * loc.scale;
         let new_loc = loc.offset_by(offset);
@@ -737,39 +771,43 @@ impl<R> Letter<R>
         let fp_offset_x = norm_digit_offset * 0.5;
         let fp_offset_y = offset.y * 0.25 * Vector2::unit_y();
 
-        let (loc, _, _) = iter::repeat(()).fold_while((new_loc, num, number_style),
-                                                      |(loc, num, mut number_style), _| {
-            let digit = Self::for_digit(num % 10);
-            let next_num = num / 10;
+        let (loc, _, _) = iter::repeat(())
+            .fold_while(
+                (new_loc, num, number_style),
+                |(loc, num, mut number_style), _| {
+                    let digit = Self::for_digit(num % 10);
+                    let next_num = num / 10;
 
-            let (digit_offset, fd) = if let Some(fd) = number_style.floating_digits {
-                let fp_loc = loc.offset_by(fp_offset_y).scaled_by(0.5);
-                self.draw_letter_at(context, digit, style, fp_loc);
-                let new_fp = fd - 1;
-                if new_fp == 0 {
-                    self.draw_letter_at(context, '.', style, fp_loc);
-                    (2. * fp_offset_x, None)
-                } else {
-                    (fp_offset_x, Some(new_fp))
-                }
-            } else {
-                self.draw_letter_at(context, digit, style, loc);
-                (norm_digit_offset, None)
-            };
+                    let (digit_offset, fd) = if let Some(fd) = number_style.floating_digits {
+                        let fp_loc = loc.offset_by(fp_offset_y).scaled_by(0.5);
+                        self.draw_letter_at(context, digit, style, fp_loc);
+                        let new_fp = fd - 1;
+                        if new_fp == 0 {
+                            self.draw_letter_at(context, '.', style, fp_loc);
+                            (2. * fp_offset_x, None)
+                        } else {
+                            (fp_offset_x, Some(new_fp))
+                        }
+                    } else {
+                        self.draw_letter_at(context, digit, style, loc);
+                        (norm_digit_offset, None)
+                    };
 
-            number_style.reduce_padding();
+                    number_style.reduce_padding();
 
-            let new_loc = loc.offset_by(-digit_offset);
-            let ctor = if next_num > 0 || number_style.is_necessary() {
-                Continue
-            } else {
-                Done
-            };
+                    let new_loc = loc.offset_by(-digit_offset);
+                    let ctor = if next_num > 0 || number_style.is_necessary() {
+                        Continue
+                    } else {
+                        Done
+                    };
 
-            number_style.with_digits(fd);
+                    number_style.with_digits(fd);
 
-            ctor((new_loc, next_num, number_style))
-        }).into_inner();
+                    ctor((new_loc, next_num, number_style))
+                },
+            )
+            .into_inner();
 
         if let Some(prefix) = number_style.prefix_char {
             let prefix_offset = loc.scale * LETTER_WIDTH * 0.2;
@@ -781,16 +819,18 @@ impl<R> Letter<R>
                 orientation: Orientation::Normal,
                 screen: loc.screen,
             };
-            self.draw_letter_at(context,
-                                prefix,
-                                style,
-                                prefix_loc);
+            self.draw_letter_at(context, prefix, style, prefix_loc);
         }
     }
 
-    pub fn draw_time<C>(&self, context: &mut EncoderContext<R, C>, time: u32, style: Style,
-                        loc: Location)
-        where C: gfx::CommandBuffer<R>,
+    pub fn draw_time<C>(
+        &self,
+        context: &mut EncoderContext<R, C>,
+        time: u32,
+        style: Style,
+        loc: Location,
+    ) where
+        C: gfx::CommandBuffer<R>,
     {
         let offset = loc.scale * LETTER_WIDTH * Vector2::unit_x();
         let offset_wide = offset * 1.3;
@@ -799,30 +839,17 @@ impl<R> Letter<R>
         (0..).fold_while((loc, time), |(loc, time), idx| {
             let new_time = if idx == 4 {
                 let letter = Self::for_digit(time % 6);
-                self.draw_letter_at(context,
-                                    letter,
-                                    style,
-                                    loc);
+                self.draw_letter_at(context, letter, style, loc);
                 time / 6
             } else {
                 let letter = Self::for_digit(time % 10);
-                self.draw_letter_at(context,
-                                    letter,
-                                    style,
-                                    loc);
+                self.draw_letter_at(context, letter, style, loc);
                 time / 10
             };
 
             let next_offset = if idx == 0 || (idx & 1) == 1 {
-                let ch = if idx == 3 {
-                    '\"'
-                } else {
-                    '\''
-                };
-                self.draw_letter_at(context,
-                                    ch,
-                                    style,
-                                    loc.offset_by(offset_quotes));
+                let ch = if idx == 3 { '\"' } else { '\'' };
+                self.draw_letter_at(context, ch, style, loc.offset_by(offset_quotes));
 
                 offset
             } else {
@@ -837,15 +864,23 @@ impl<R> Letter<R>
         });
     }
 
-    fn draw_letter_segments<C>(&self, context: &mut EncoderContext<R, C>, letter: char,
-                               style: Style, data: &pipe::Data<R>)
-        where C: gfx::CommandBuffer<R>,
+    fn draw_letter_segments<C>(
+        &self,
+        context: &mut EncoderContext<R, C>,
+        letter: char,
+        style: Style,
+        data: &pipe::Data<R>,
+    ) where
+        C: gfx::CommandBuffer<R>,
     {
-        SegmentData::segment_data_for(letter).iter()
+        SegmentData::segment_data_for(letter)
+            .iter()
             // Get the constant buffer for the segment.
             .map(SegmentData::constant_buffer)
             .foreach(|letter_data| {
-                context.encoder.update_constant_buffer(&data.segment, &letter_data);
+                context
+                    .encoder
+                    .update_constant_buffer(&data.segment, &letter_data);
 
                 // TODO: Factor color setting out for custom colors.
                 if style.is_fill() {
@@ -863,7 +898,9 @@ impl<R> Letter<R>
                     };
                     context.encoder.update_constant_buffer(&data.color, &color);
 
-                    context.encoder.draw(&self.outline_slice, &self.outline_pso, data);
+                    context
+                        .encoder
+                        .draw(&self.outline_slice, &self.outline_pso, data);
                 }
             });
     }

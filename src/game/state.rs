@@ -3,11 +3,11 @@
 
 use crates::abagames_util::{self, Audio, Input, Pool, Rand, Scancode, StepResult, TargetFormat};
 use crates::cgmath::Vector2;
-use crates::itertools::Itertools;
 use crates::gfx;
+use crates::itertools::Itertools;
 
-use game::render::{EncoderContext, RenderContext};
 use game::entities;
+use game::render::{EncoderContext, RenderContext};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum GameMode {
@@ -47,7 +47,8 @@ impl Default for State {
 }
 
 pub struct GameState<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
     state: State,
     lives: u32,
@@ -126,19 +127,17 @@ impl GameData {
 
     pub fn indicator_target(&mut self) -> f32 {
         let range = INDICATOR_Y_MAX - INDICATOR_Y_MIN;
-        self.indicator_target = abagames_util::wrap_inc_by(self.indicator_target,
-                                                           range,
-                                                           INDICATOR_Y_INTERVAL) +
-            INDICATOR_Y_MIN;
+        self.indicator_target =
+            abagames_util::wrap_inc_by(self.indicator_target, range, INDICATOR_Y_INTERVAL)
+                + INDICATOR_Y_MIN;
         self.indicator_target
     }
 
     pub fn indicator_target_decrement(&mut self) {
         let range = INDICATOR_Y_MAX - INDICATOR_Y_MIN;
-        self.indicator_target = abagames_util::wrap_dec_by(self.indicator_target,
-                                                           range,
-                                                           INDICATOR_Y_INTERVAL) +
-            INDICATOR_Y_MIN;
+        self.indicator_target =
+            abagames_util::wrap_dec_by(self.indicator_target, range, INDICATOR_Y_INTERVAL)
+                + INDICATOR_Y_MIN;
     }
 }
 
@@ -156,12 +155,17 @@ const INDICATOR_Y_MAX: f32 = 7.;
 const INDICATOR_Y_INTERVAL: f32 = 1.;
 
 impl<R> GameState<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
-    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, TargetFormat>,
-                  context: &RenderContext<R>, with_sound: bool)
-                  -> Self
-        where F: gfx::Factory<R>,
+    pub fn new<F>(
+        factory: &mut F,
+        view: gfx::handle::RenderTargetView<R, TargetFormat>,
+        context: &RenderContext<R>,
+        with_sound: bool,
+    ) -> Self
+    where
+        F: gfx::Factory<R>,
     {
         GameState {
             state: State::default(),
@@ -189,7 +193,11 @@ impl<R> GameState<R>
             wakes_draw: entities::particles::WakeDraw::new(factory, view.clone(), context),
             smokes_draw: entities::particles::SmokeDraw::new(factory, view.clone(), context),
             fragments_draw: entities::particles::FragmentDraw::new(factory, view.clone(), context),
-            spark_fragments_draw: entities::particles::SparkFragmentDraw::new(factory, view.clone(), context),
+            spark_fragments_draw: entities::particles::SparkFragmentDraw::new(
+                factory,
+                view.clone(),
+                context,
+            ),
             shape_draw: entities::shapes::ShapeDraw::new(factory, view.clone(), context),
             bullet_draw: entities::shapes::bullet::BulletDraw::new(factory, view.clone(), context),
             shield_draw: entities::shapes::shield::ShieldDraw::new(factory, view.clone(), context),
@@ -210,7 +218,8 @@ impl<R> GameState<R>
     }
 
     fn init_title(&mut self, context: &mut GameStateContext) {
-        context.audio
+        context
+            .audio
             .set_music_enabled(false)
             .set_sfx_enabled(false)
             .halt();
@@ -220,7 +229,8 @@ impl<R> GameState<R>
     }
 
     fn init_game(&mut self, context: &mut GameStateContext) {
-        context.audio
+        context
+            .audio
             .set_music_enabled(self.with_sound)
             .set_sfx_enabled(self.with_sound);
 
@@ -240,7 +250,15 @@ impl<R> GameState<R>
     pub fn step_title(&mut self, context: &mut GameStateContext, input: &Input) -> StepResult {
         self.title.step();
         self.field.step();
-        self.field.scroll(SCROLL_SPEED_BASE, entities::field::FieldMode::Demo, &mut self.stage, &mut self.enemies, &self.ship, context, &mut self.rand);
+        self.field.scroll(
+            SCROLL_SPEED_BASE,
+            entities::field::FieldMode::Demo,
+            &mut self.stage,
+            &mut self.enemies,
+            &self.ship,
+            context,
+            &mut self.rand,
+        );
 
         if input.keyboard.is_scancode_pressed(Scancode::Escape) {
             self.state = State::Playing;
@@ -256,66 +274,133 @@ impl<R> GameState<R>
         }
 
         self.field.step();
-        self.field.scroll(SCROLL_SPEED_BASE, entities::field::FieldMode::Demo, &mut self.stage, &mut self.enemies, &self.ship, context, &mut self.rand);
+        self.field.scroll(
+            SCROLL_SPEED_BASE,
+            entities::field::FieldMode::Demo,
+            &mut self.stage,
+            &mut self.enemies,
+            &self.ship,
+            context,
+            &mut self.rand,
+        );
         // self.ship.step();
         {
-            let (stage, field, ship, enemies, rand) = (&mut self.stage,
-                                                       &self.field,
-                                                       &self.ship,
-                                                       &mut self.enemies,
-                                                       &mut self.rand);
+            let (stage, field, ship, enemies, rand) = (
+                &mut self.stage,
+                &self.field,
+                &self.ship,
+                &mut self.enemies,
+                &mut self.rand,
+            );
             stage.step(field, ship, enemies, context, rand);
         }
         {
-            let (enemies, field, bullets, ship, smokes, sparks, spark_fragments, wakes, rand) =
-                (&mut self.enemies, &self.field, &mut self.bullets, &self.ship, &mut self.smokes, &mut self.sparks, &mut self.spark_fragments, &mut self.wakes, &mut self.rand);
-            enemies.run_ref(|ref mut enemy, other| enemy.step(field, bullets, ship, smokes, sparks, spark_fragments, wakes, other, context, rand));
+            let (enemies, field, bullets, ship, smokes, sparks, spark_fragments, wakes, rand) = (
+                &mut self.enemies,
+                &self.field,
+                &mut self.bullets,
+                &self.ship,
+                &mut self.smokes,
+                &mut self.sparks,
+                &mut self.spark_fragments,
+                &mut self.wakes,
+                &mut self.rand,
+            );
+            enemies.run_ref(|ref mut enemy, other| {
+                enemy.step(
+                    field,
+                    bullets,
+                    ship,
+                    smokes,
+                    sparks,
+                    spark_fragments,
+                    wakes,
+                    other,
+                    context,
+                    rand,
+                )
+            });
         }
         {
-            let (shots, field, stage, bullets, enemies, crystals, fragments, smokes, sparks, indicators, reel, rand) =
-                (&mut self.shots, &self.field, &self.stage, &mut self.bullets, &mut self.enemies, &mut self.crystals, &mut self.fragments, &mut self.smokes, &mut self.sparks, &mut self.indicators, &mut self.reel, &mut self.rand);
-            shots.run(|ref mut shot| shot.step(field, stage, bullets, enemies, crystals, fragments, smokes, sparks, indicators, reel, context, rand));
+            let (
+                shots,
+                field,
+                stage,
+                bullets,
+                enemies,
+                crystals,
+                fragments,
+                smokes,
+                sparks,
+                indicators,
+                reel,
+                rand,
+            ) = (
+                &mut self.shots,
+                &self.field,
+                &self.stage,
+                &mut self.bullets,
+                &mut self.enemies,
+                &mut self.crystals,
+                &mut self.fragments,
+                &mut self.smokes,
+                &mut self.sparks,
+                &mut self.indicators,
+                &mut self.reel,
+                &mut self.rand,
+            );
+            shots.run(|ref mut shot| {
+                shot.step(
+                    field, stage, bullets, enemies, crystals, fragments, smokes, sparks,
+                    indicators, reel, context, rand,
+                )
+            });
         }
         {
-            let (bullets, field, ship, smokes, wakes, rand) = (&mut self.bullets,
-                                                               &self.field,
-                                                               &self.ship,
-                                                               &mut self.smokes,
-                                                               &mut self.wakes,
-                                                               &mut self.rand);
+            let (bullets, field, ship, smokes, wakes, rand) = (
+                &mut self.bullets,
+                &self.field,
+                &self.ship,
+                &mut self.smokes,
+                &mut self.wakes,
+                &mut self.rand,
+            );
             bullets.run(|ref mut bullet| bullet.step(field, ship, smokes, wakes, rand));
         }
         {
-            let (crystals, ship) = (&mut self.crystals,
-                                    &self.ship);
+            let (crystals, ship) = (&mut self.crystals, &self.ship);
             crystals.run(|ref mut crystal| crystal.step(ship));
         }
         {
-            let (indicators, reel, rand) = (&mut self.indicators,
-                                            &mut self.reel,
-                                            &mut self.rand);
+            let (indicators, reel, rand) = (&mut self.indicators, &mut self.reel, &mut self.rand);
             indicators.run(|ref mut indicator| indicator.step(reel, context, rand));
         }
         self.sparks.run(entities::particles::Spark::step);
         {
-            let (smokes, field, wakes, rand) = (&mut self.smokes,
-                                                &self.field,
-                                                &mut self.wakes,
-                                                &mut self.rand);
+            let (smokes, field, wakes, rand) = (
+                &mut self.smokes,
+                &self.field,
+                &mut self.wakes,
+                &mut self.rand,
+            );
             smokes.run(|ref mut smoke| smoke.step(field, wakes, rand));
         }
         {
-            let (fragments, field, smokes, rand) = (&mut self.fragments,
-                                                    &self.field,
-                                                    &mut self.smokes,
-                                                    &mut self.rand);
+            let (fragments, field, smokes, rand) = (
+                &mut self.fragments,
+                &self.field,
+                &mut self.smokes,
+                &mut self.rand,
+            );
             fragments.run(|ref mut fragment| fragment.step(field, smokes, rand));
         }
         {
-            let (spark_fragments, field, smokes, rand) = (&mut self.spark_fragments,
-                                                          &self.field,
-                                                          &mut self.smokes,
-                                                          &mut self.rand);
+            let (spark_fragments, field, smokes, rand) = (
+                &mut self.spark_fragments,
+                &self.field,
+                &mut self.smokes,
+                &mut self.rand,
+            );
             spark_fragments.run(|ref mut spark_fragment| spark_fragment.step(field, smokes, rand));
         }
         {
@@ -332,7 +417,8 @@ impl<R> GameState<R>
     }
 
     pub fn prep_draw<F>(&mut self, factory: &mut F)
-        where F: gfx::Factory<R>,
+    where
+        F: gfx::Factory<R>,
     {
         match self.state {
             State::Title => self.prep_draw_title(factory),
@@ -341,20 +427,23 @@ impl<R> GameState<R>
     }
 
     pub fn prep_draw_title<F>(&mut self, factory: &mut F)
-        where F: gfx::Factory<R>,
+    where
+        F: gfx::Factory<R>,
     {
         self.field_draw.prep_draw(factory, &self.field);
     }
 
     pub fn prep_draw_game<F>(&mut self, factory: &mut F)
-        where F: gfx::Factory<R>,
+    where
+        F: gfx::Factory<R>,
     {
         self.field_draw.prep_draw(factory, &self.field);
         self.wakes_draw.prep_draw(factory, &self.wakes);
         self.sparks_draw.prep_draw(factory, &self.sparks);
         self.smokes_draw.prep_draw(factory, &self.smokes);
         // self.fragments_draw.prep_draw(factory, &self.fragments);
-        self.spark_fragments_draw.prep_draw(factory, &self.spark_fragments, &mut self.rand);
+        self.spark_fragments_draw
+            .prep_draw(factory, &self.spark_fragments, &mut self.rand);
         self.bullet_draw.prep_draw_crystals(factory, &self.crystals);
         {
             let (enemies, rand) = (&mut self.enemies, &mut self.rand);
@@ -366,7 +455,8 @@ impl<R> GameState<R>
     }
 
     pub fn draw<C>(&self, encoder: &mut EncoderContext<R, C>)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
         match self.state {
             State::Title => self.draw_title(encoder),
@@ -375,7 +465,8 @@ impl<R> GameState<R>
     }
 
     pub fn draw_title<C>(&self, encoder: &mut EncoderContext<R, C>)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
         self.field_draw.draw_panels(encoder);
 
@@ -386,14 +477,19 @@ impl<R> GameState<R>
         self.fragments_draw.draw(encoder, &self.fragments);
         self.spark_fragments_draw.draw(encoder);
         self.bullet_draw.draw_crystals(encoder);
-        self.enemies.iter().foreach(|enemy| enemy.draw(encoder, &self.shape_draw, &self.turret_draw, &self.letter));
+        self.enemies.iter().foreach(|enemy| {
+            enemy.draw(encoder, &self.shape_draw, &self.turret_draw, &self.letter)
+        });
         self.bullet_draw.draw_shots(encoder);
-        self.ship_draw.draw(encoder, &self.shape_draw, &self.shield_draw, &self.ship);
-        self.bullet_draw.draw_bullets(encoder, &self.field, &self.bullets);
+        self.ship_draw
+            .draw(encoder, &self.shape_draw, &self.shield_draw, &self.ship);
+        self.bullet_draw
+            .draw_bullets(encoder, &self.field, &self.bullets);
     }
 
     pub fn draw_game<C>(&self, encoder: &mut EncoderContext<R, C>)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
         self.field_draw.draw_panels(encoder);
         self.wakes_draw.draw(encoder);
@@ -402,14 +498,19 @@ impl<R> GameState<R>
         self.fragments_draw.draw(encoder, &self.fragments);
         self.spark_fragments_draw.draw(encoder);
         self.bullet_draw.draw_crystals(encoder);
-        self.enemies.iter().foreach(|enemy| enemy.draw(encoder, &self.shape_draw, &self.turret_draw, &self.letter));
+        self.enemies.iter().foreach(|enemy| {
+            enemy.draw(encoder, &self.shape_draw, &self.turret_draw, &self.letter)
+        });
         self.bullet_draw.draw_shots(encoder);
-        self.ship_draw.draw(encoder, &self.shape_draw, &self.shield_draw, &self.ship);
-        self.bullet_draw.draw_bullets(encoder, &self.field, &self.bullets);
+        self.ship_draw
+            .draw(encoder, &self.shape_draw, &self.shield_draw, &self.ship);
+        self.bullet_draw
+            .draw_bullets(encoder, &self.field, &self.bullets);
     }
 
     pub fn draw_luminous<C>(&self, encoder: &mut EncoderContext<R, C>)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
         // self.sparks_draw.draw_luminous(encoder);
         // self.spark_fragments_draw.draw_luminous(encoder);
@@ -417,13 +518,15 @@ impl<R> GameState<R>
     }
 
     pub fn draw_sidebars<C>(&self, encoder: &mut EncoderContext<R, C>)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
         self.field_draw.draw_sidebars(encoder);
     }
 
     pub fn draw_front<C>(&mut self, encoder: &mut EncoderContext<R, C>, data: &GameData)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
         match self.state {
             State::Title => self.draw_front_title(encoder, data),
@@ -432,37 +535,39 @@ impl<R> GameState<R>
     }
 
     pub fn draw_front_title<C>(&mut self, encoder: &mut EncoderContext<R, C>, data: &GameData)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
     }
 
     pub fn draw_front_game<C>(&mut self, encoder: &mut EncoderContext<R, C>, data: &GameData)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
         self.ship_draw.draw_front(encoder);
 
         let reel_size_offset = (REEL_SIZE_DEFAULT - data.reel_size) * 3.;
-        self.reel.draw(encoder,
-                       &self.letter,
-                       Vector2::new(11.5 + reel_size_offset,
-                                    -8.2 - reel_size_offset),
-                       data.reel_size,
-                       &mut self.rand);
+        self.reel.draw(
+            encoder,
+            &self.letter,
+            Vector2::new(11.5 + reel_size_offset, -8.2 - reel_size_offset),
+            data.reel_size,
+            &mut self.rand,
+        );
 
-        self.ship_draw.draw_lives(encoder, &self.shape_draw, self.lives, &self.ship);
+        self.ship_draw
+            .draw_lives(encoder, &self.shape_draw, self.lives, &self.ship);
 
-        let (indicators, letter) = (&mut self.indicators,
-                                    &self.letter);
+        let (indicators, letter) = (&mut self.indicators, &self.letter);
 
         indicators
             .iter_mut()
-            .foreach(|indicator| {
-                indicator.draw(encoder, letter)
-            })
+            .foreach(|indicator| indicator.draw(encoder, letter))
     }
 
     pub fn draw_ortho<C>(&self, encoder: &mut EncoderContext<R, C>)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
         match self.state {
             State::Title => self.draw_ortho_title(encoder),
@@ -471,7 +576,8 @@ impl<R> GameState<R>
     }
 
     pub fn draw_ortho_title<C>(&self, encoder: &mut EncoderContext<R, C>)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
         // TODO: Store this somewhere.
         let scores = Scores;
@@ -479,7 +585,8 @@ impl<R> GameState<R>
     }
 
     pub fn draw_ortho_game<C>(&self, encoder: &mut EncoderContext<R, C>)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
         self.stage.draw(encoder, &self.letter);
     }

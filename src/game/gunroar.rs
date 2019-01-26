@@ -74,21 +74,34 @@ impl<'a> Game for Gunroar<'a> {
 
     fn handle_event(&mut self, event: &Event) -> Result<bool, Error> {
         Ok(match *event {
-            Event::AppTerminating { .. } => true,
-            Event::AppWillEnterBackground { .. } |
-            Event::AppDidEnterBackground { .. } => {
+            Event::AppTerminating {
+                ..
+            } => true,
+            Event::AppWillEnterBackground {
+                ..
+            }
+            | Event::AppDidEnterBackground {
+                ..
+            } => {
                 self.backgrounded = true;
                 false
             },
-            Event::AppDidEnterForeground { .. } => {
+            Event::AppDidEnterForeground {
+                ..
+            } => {
                 self.backgrounded = false;
                 false
             },
-            Event::AppWillEnterForeground { .. } => {
+            Event::AppWillEnterForeground {
+                ..
+            } => {
                 // Ready...
                 false
             },
-            Event::Window { win_event: WindowEvent::Resized(width, height), .. } => {
+            Event::Window {
+                win_event: WindowEvent::Resized(width, height),
+                ..
+            } => {
                 self.info.video.resize((width as u32, height as u32).into());
                 false
             },

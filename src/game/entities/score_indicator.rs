@@ -85,8 +85,18 @@ impl ScoreIndicator {
         Pool::new(MAX_INDICATORS, Self::new)
     }
 
-    pub fn init<'a, I>(&mut self, value: u32, indicator: Indicator, pos: Vector2<f32>, scale: f32, targets: I, reel: &mut ScoreReel, context: &mut GameStateContext, rand: &mut Rand)
-        where I: IntoIterator<Item = &'a ScoreTarget>,
+    pub fn init<'a, I>(
+        &mut self,
+        value: u32,
+        indicator: Indicator,
+        pos: Vector2<f32>,
+        scale: f32,
+        targets: I,
+        reel: &mut ScoreReel,
+        context: &mut GameStateContext,
+        rand: &mut Rand,
+    ) where
+        I: IntoIterator<Item = &'a ScoreTarget>,
     {
         if let Some(target_count) = self.target_count {
             if let Indicator::Score = self.indicator_type {
@@ -104,7 +114,8 @@ impl ScoreIndicator {
         self.pos = pos;
         self.alpha = 0.1;
         self.target_count = Some(0);
-        let count = self.targets
+        let count = self
+            .targets
             .iter_mut()
             .set_from(targets.into_iter().cloned());
         self.target_count = Some(count);
@@ -112,7 +123,12 @@ impl ScoreIndicator {
         self.next_target(reel, context, rand);
     }
 
-    pub fn step(&mut self, reel: &mut ScoreReel, context: &mut GameStateContext, rand: &mut Rand) -> PoolRemoval {
+    pub fn step(
+        &mut self,
+        reel: &mut ScoreReel,
+        context: &mut GameStateContext,
+        rand: &mut Rand,
+    ) -> PoolRemoval {
         if self.target_count.is_none() {
             return PoolRemoval::Remove;
         }
@@ -175,7 +191,12 @@ impl ScoreIndicator {
         }
     }
 
-    fn next_target(&mut self, reel: &mut ScoreReel, context: &mut GameStateContext, rand: &mut Rand) -> PoolRemoval {
+    fn next_target(
+        &mut self,
+        reel: &mut ScoreReel,
+        context: &mut GameStateContext,
+        rand: &mut Rand,
+    ) -> PoolRemoval {
         if self.target_index > 0 {
             context.audio.mark_sfx("score_up");
         }
@@ -192,12 +213,16 @@ impl ScoreIndicator {
         let target = &self.targets[self.target_index];
         match target.flying_to {
             FlyingTo::Right => {
-                self.vel = Vector2::new(-0.3 + rand.next_float_signed(0.05),
-                                        rand.next_float_signed(0.1));
+                self.vel = Vector2::new(
+                    -0.3 + rand.next_float_signed(0.05),
+                    rand.next_float_signed(0.1),
+                );
             },
             FlyingTo::Bottom => {
-                self.vel = Vector2::new(rand.next_float_signed(0.1),
-                                        -0.3 + rand.next_float_signed(0.05));
+                self.vel = Vector2::new(
+                    rand.next_float_signed(0.1),
+                    -0.3 + rand.next_float_signed(0.05),
+                );
                 context.data.indicator_target_decrement();
             },
         }
@@ -209,21 +234,21 @@ impl ScoreIndicator {
     }
 
     pub fn draw<R, C>(&mut self, context: &mut EncoderContext<R, C>, letter: &Letter<R>)
-        where R: gfx::Resources,
-              C: gfx::CommandBuffer<R>,
+    where
+        R: gfx::Resources,
+        C: gfx::CommandBuffer<R>,
     {
         let number_style = match self.indicator_type {
             Indicator::Score => letter::NumberStyle::score(),
             Indicator::Multiplier => letter::NumberStyle::multiplier(),
         };
 
-        letter.draw_number(context,
-                           self.value as u32,
-                           letter::Style::Outline(&[self.alpha,
-                                                    self.alpha,
-                                                    self.alpha,
-                                                    1.]),
-                           letter::Location::new_persp(self.pos, self.scale),
-                           number_style);
+        letter.draw_number(
+            context,
+            self.value as u32,
+            letter::Style::Outline(&[self.alpha, self.alpha, self.alpha, 1.]),
+            letter::Location::new_persp(self.pos, self.scale),
+            number_style,
+        );
     }
 }

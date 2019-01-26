@@ -2,14 +2,14 @@
 // See accompanying LICENSE file for details.
 
 use crates::abagames_util::{self, Pool, PoolRemoval, Rand, TargetFormat};
-use crates::cgmath::{Angle, Rad, Vector2, Vector3, Matrix4};
+use crates::cgmath::{Angle, Matrix4, Rad, Vector2, Vector3};
 use crates::gfx;
 use crates::gfx::traits::FactoryExt;
 
 use game::entities::field::Field;
 use game::entities::particles::{Smoke, SmokeKind};
-use game::render::{EncoderContext, RenderContext};
 use game::render::{Brightness, ScreenTransform};
+use game::render::{EncoderContext, RenderContext};
 
 use std::str;
 
@@ -51,12 +51,18 @@ impl SparkFragment {
         self.has_smoke = rand.next_int(4) == 0;
     }
 
-    pub fn step(&mut self, field: &Field, smokes: &mut Pool<Smoke>, rand: &mut Rand) -> PoolRemoval {
+    pub fn step(
+        &mut self,
+        field: &Field,
+        smokes: &mut Pool<Smoke>,
+        rand: &mut Rand,
+    ) -> PoolRemoval {
         self.vel = [
             self.vel.x * 0.99,
             self.vel.y * 0.99,
             self.vel.z + (-0.08 - self.vel.z) * 0.01,
-        ].into();
+        ]
+        .into();
         self.pos += self.vel;
 
         if self.pos.z < 0. {
@@ -66,8 +72,14 @@ impl SparkFragment {
                 (SmokeKind::Wake, 0.66)
             };
 
-            smokes.get_force()
-                .init(self.pos, [0., 0., 0.].into(), kind, 60, self.size * size_factor, rand);
+            smokes.get_force().init(
+                self.pos,
+                [0., 0., 0.].into(),
+                kind,
+                60,
+                self.size * size_factor,
+                rand,
+            );
             return PoolRemoval::Remove;
         }
 
@@ -76,19 +88,25 @@ impl SparkFragment {
 
         self.count += 1;
         if self.has_smoke && self.count % 5 == 0 {
-            smokes.get()
-                .map(|smoke| {
-                    smoke.init(self.pos, [0., 0., 0.].into(), SmokeKind::Smoke, 90 + rand.next_int(60), self.size * 0.5, rand);
-                });
+            smokes.get().map(|smoke| {
+                smoke.init(
+                    self.pos,
+                    [0., 0., 0.].into(),
+                    SmokeKind::Smoke,
+                    90 + rand.next_int(60),
+                    self.size * 0.5,
+                    rand,
+                );
+            });
         }
 
         PoolRemoval::Keep
     }
 
     fn modelmat(&self) -> Matrix4<f32> {
-        Matrix4::from_translation(self.pos) *
-            Matrix4::from_nonuniform_scale(self.size, self.size, 1.) *
-            Matrix4::from_axis_angle(Vector3::unit_x(), -self.angle)
+        Matrix4::from_translation(self.pos)
+            * Matrix4::from_nonuniform_scale(self.size, self.size, 1.)
+            * Matrix4::from_axis_angle(Vector3::unit_x(), -self.angle)
     }
 }
 
@@ -119,7 +137,8 @@ gfx_defines! {
 }
 
 pub struct SparkFragmentDraw<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
     slice: gfx::Slice<R>,
     pso: gfx::PipelineState<R, <pipe::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
@@ -127,12 +146,16 @@ pub struct SparkFragmentDraw<R>
 }
 
 impl<R> SparkFragmentDraw<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
-    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, TargetFormat>,
-                  context: &RenderContext<R>)
-                  -> Self
-        where F: gfx::Factory<R>,
+    pub fn new<F>(
+        factory: &mut F,
+        view: gfx::handle::RenderTargetView<R, TargetFormat>,
+        context: &RenderContext<R>,
+    ) -> Self
+    where
+        F: gfx::Factory<R>,
     {
         let data = [
             Vertex { pos: [-0.25, -0.25] },
@@ -142,21 +165,29 @@ impl<R> SparkFragmentDraw<R>
         ];
 
         let vbuf = factory.create_vertex_buffer(&data);
-        let slice = abagames_util::slice_for_fan::<R, F>(factory,
-                                                         data.len() as u32);
+        let slice = abagames_util::slice_for_fan::<R, F>(factory, data.len() as u32);
 
-        let vert_source = str::from_utf8(include_bytes!("shader/spark_fragment.glslv")).expect("invalid utf-8 in spark fragment vertex shader");
-        let frag_source = str::from_utf8(include_bytes!("shader/spark_fragment.glslf")).expect("invalid utf-8 in spark fragment fragment shader");
+        let vert_source = str::from_utf8(include_bytes!("shader/spark_fragment.glslv"))
+            .expect("invalid utf-8 in spark fragment vertex shader");
+        let frag_source = str::from_utf8(include_bytes!("shader/spark_fragment.glslf"))
+            .expect("invalid utf-8 in spark fragment fragment shader");
         let size_str = format!("{}", MAX_SPARK_FRAGMENT_SIZE);
-        let pso = factory.create_pipeline_simple(
-            vert_source.replace("NUM_SPARK_FRAGMENTS", &size_str).as_bytes(),
-            frag_source.replace("NUM_SPARK_FRAGMENTS", &size_str).as_bytes(),
-            pipe::new())
+        let pso = factory
+            .create_pipeline_simple(
+                vert_source
+                    .replace("NUM_SPARK_FRAGMENTS", &size_str)
+                    .as_bytes(),
+                frag_source
+                    .replace("NUM_SPARK_FRAGMENTS", &size_str)
+                    .as_bytes(),
+                pipe::new(),
+            )
             .expect("failed to create the pipeline for spark");
 
         let data = pipe::Data {
             vbuf: vbuf,
-            spark_fragments: factory.create_upload_buffer(MAX_SPARK_FRAGMENT_SIZE)
+            spark_fragments: factory
+                .create_upload_buffer(MAX_SPARK_FRAGMENT_SIZE)
                 .expect("failed to create the pipeline for spark fragment"),
             screen: context.perspective_screen_buffer.clone(),
             brightness: context.brightness_buffer.clone(),
@@ -170,13 +201,20 @@ impl<R> SparkFragmentDraw<R>
         }
     }
 
-    pub fn prep_draw<F>(&mut self, factory: &mut F, spark_fragments: &Pool<SparkFragment>, rand: &mut Rand)
-        where F: gfx::Factory<R>,
+    pub fn prep_draw<F>(
+        &mut self,
+        factory: &mut F,
+        spark_fragments: &Pool<SparkFragment>,
+        rand: &mut Rand,
+    ) where
+        F: gfx::Factory<R>,
     {
-        let mut writer = factory.write_mapping(&self.data.spark_fragments)
+        let mut writer = factory
+            .write_mapping(&self.data.spark_fragments)
             .expect("could not get a writeable mapping to the spark fragment buffer");
 
-        let num_spark_fragments = spark_fragments.iter()
+        let num_spark_fragments = spark_fragments
+            .iter()
             .enumerate()
             .map(|(idx, spark_fragment)| {
                 writer[idx] = PerSparkFragment {
@@ -190,7 +228,8 @@ impl<R> SparkFragmentDraw<R>
     }
 
     pub fn draw<C>(&self, context: &mut EncoderContext<R, C>)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
         context.encoder.draw(&self.slice, &self.pso, &self.data);
     }

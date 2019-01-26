@@ -61,14 +61,24 @@ impl Shot {
             1
         };
         self.lance = lance;
-        self.collision = if lance {
-            (0.66, 0.66)
-        } else {
-            (0.33, 0.33)
-        }.into();
+        self.collision = if lance { (0.66, 0.66) } else { (0.33, 0.33) }.into();
     }
 
-    pub fn step(&mut self, field: &Field, stage: &Stage, bullets: &mut Pool<Bullet>, enemies: &mut Pool<Enemy>, crystals: &mut Pool<Crystal>, fragments: &mut Pool<Fragment>, smokes: &mut Pool<Smoke>, sparks: &mut Pool<Spark>, indicators: &mut Pool<ScoreIndicator>, reel: &mut ScoreReel, context: &mut GameStateContext, rand: &mut Rand) -> PoolRemoval {
+    pub fn step(
+        &mut self,
+        field: &Field,
+        stage: &Stage,
+        bullets: &mut Pool<Bullet>,
+        enemies: &mut Pool<Enemy>,
+        crystals: &mut Pool<Crystal>,
+        fragments: &mut Pool<Fragment>,
+        smokes: &mut Pool<Smoke>,
+        sparks: &mut Pool<Spark>,
+        indicators: &mut Pool<ScoreIndicator>,
+        reel: &mut ScoreReel,
+        context: &mut GameStateContext,
+        rand: &mut Rand,
+    ) -> PoolRemoval {
         self.count = self.count.saturating_add(1);
         if self.hit_count > 0 {
             self.hit_count = self.hit_count.saturating_add(1);
@@ -91,9 +101,9 @@ impl Shot {
         self.pos += angle_comps * speed;
         self.pos.y -= field.last_scroll_y();
 
-        let mut remove = field.block(self.pos).is_dry() ||
-            !field.is_in_outer_field(self.pos) ||
-            self.pos.y > FIELD_SIZE.y;
+        let mut remove = field.block(self.pos).is_dry()
+            || !field.is_in_outer_field(self.pos)
+            || self.pos.y > FIELD_SIZE.y;
 
         if !self.lance {
             bullets.run(|bullet| {
@@ -106,8 +116,12 @@ impl Shot {
                 }
             });
         }
-        let remove_enemy = enemies.iter_mut()
-            .any(|enemy| enemy.check_shot_hit(self, stage, bullets, crystals, fragments, smokes, sparks, indicators, reel, context, rand) == PoolRemoval::Remove);
+        let remove_enemy = enemies.iter_mut().any(|enemy| {
+            enemy.check_shot_hit(
+                self, stage, bullets, crystals, fragments, smokes, sparks, indicators, reel,
+                context, rand,
+            ) == PoolRemoval::Remove
+        });
 
         if remove_enemy {
             context.audio.mark_sfx("hit");
@@ -115,29 +129,50 @@ impl Shot {
 
         if remove {
             if self.lance {
-                (0..10)
-                    .foreach(|_| {
-                        let angle = self.angle + Rad(rand.next_float_signed(0.1));
-                        let angle_comps: Vector2<f32> = angle.sin_cos().into();
-                        let speed = rand.next_float(LANCE_SPEED);
-                        smokes.get_force()
-                            .init_2d(self.pos, (angle_comps * speed).extend(0.), SmokeKind::LanceSpark, 30 + rand.next_int(30), 1., rand);
-                        let angle = self.angle + Rad(rand.next_float_signed(0.1));
-                        let angle_comps: Vector2<f32> = angle.sin_cos().into();
-                        let speed = rand.next_float(LANCE_SPEED);
-                        smokes.get_force()
-                            .init_2d(self.pos, (-angle_comps * speed).extend(0.), SmokeKind::LanceSpark, 30 + rand.next_int(30), 1., rand);
-                    });
+                (0..10).foreach(|_| {
+                    let angle = self.angle + Rad(rand.next_float_signed(0.1));
+                    let angle_comps: Vector2<f32> = angle.sin_cos().into();
+                    let speed = rand.next_float(LANCE_SPEED);
+                    smokes.get_force().init_2d(
+                        self.pos,
+                        (angle_comps * speed).extend(0.),
+                        SmokeKind::LanceSpark,
+                        30 + rand.next_int(30),
+                        1.,
+                        rand,
+                    );
+                    let angle = self.angle + Rad(rand.next_float_signed(0.1));
+                    let angle_comps: Vector2<f32> = angle.sin_cos().into();
+                    let speed = rand.next_float(LANCE_SPEED);
+                    smokes.get_force().init_2d(
+                        self.pos,
+                        (-angle_comps * speed).extend(0.),
+                        SmokeKind::LanceSpark,
+                        30 + rand.next_int(30),
+                        1.,
+                        rand,
+                    );
+                });
             } else {
                 let angle = self.angle + Rad(rand.next_float_signed(0.5));
                 let angle_comps: Vector2<f32> = angle.sin_cos().into();
-                let color = Vector3::new(0.6 + rand.next_float_signed(0.4), 0.6 + rand.next_float_signed(0.4), 0.1);
-                sparks.get_force()
+                let color = Vector3::new(
+                    0.6 + rand.next_float_signed(0.4),
+                    0.6 + rand.next_float_signed(0.4),
+                    0.1,
+                );
+                sparks
+                    .get_force()
                     .init(self.pos, angle_comps * SHOT_SPEED, color, 20);
                 let angle = self.angle + Rad(rand.next_float_signed(0.5));
                 let angle_comps: Vector2<f32> = angle.sin_cos().into();
-                let color = Vector3::new(0.6 + rand.next_float_signed(0.4), 0.6 + rand.next_float_signed(0.4), 0.1);
-                sparks.get_force()
+                let color = Vector3::new(
+                    0.6 + rand.next_float_signed(0.4),
+                    0.6 + rand.next_float_signed(0.4),
+                    0.1,
+                );
+                sparks
+                    .get_force()
                     .init(self.pos, -angle_comps * SHOT_SPEED, color, 20);
             }
 
@@ -177,8 +212,8 @@ impl Shot {
     }
 
     pub fn modelmat(&self) -> Matrix4<f32> {
-        Matrix4::from_translation(self.pos.extend(0.)) *
-            Matrix4::from_axis_angle(Vector3::unit_z(), self.angle) *
-            Matrix4::from_axis_angle(Vector3::unit_y(), Deg((self.count * 31) as f32))
+        Matrix4::from_translation(self.pos.extend(0.))
+            * Matrix4::from_axis_angle(Vector3::unit_z(), self.angle)
+            * Matrix4::from_axis_angle(Vector3::unit_y(), Deg((self.count * 31) as f32))
     }
 }

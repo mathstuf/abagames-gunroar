@@ -17,7 +17,8 @@ gfx_defines! {
 }
 
 pub struct RenderContext<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
     brightness: f32,
 
@@ -27,10 +28,12 @@ pub struct RenderContext<R>
 }
 
 impl<R> RenderContext<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
     pub fn new<F>(factory: &mut F, brightness: f32) -> Self
-        where F: gfx::Factory<R>,
+    where
+        F: gfx::Factory<R>,
     {
         RenderContext {
             brightness: brightness,
@@ -42,7 +45,8 @@ impl<R> RenderContext<R>
     }
 
     pub fn update<C>(&self, context: &mut EncoderContext<R, C>)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
         let eye = Point3::new(0., 0., 13.);
         let center = Point3::new(0., 0., 0.);
@@ -51,18 +55,22 @@ impl<R> RenderContext<R>
         let perspective_screen = ScreenTransform {
             screenmat: (context.perspective_matrix * Matrix4::look_at(eye, center, up)).into(),
         };
-        context.encoder
+        context
+            .encoder
             .update_constant_buffer(&self.perspective_screen_buffer, &perspective_screen);
 
         let orthographic_screen = ScreenTransform {
             screenmat: context.orthographic_matrix.into(),
         };
-        context.encoder
+        context
+            .encoder
             .update_constant_buffer(&self.orthographic_screen_buffer, &orthographic_screen);
 
         let brightness = Brightness {
             brightness: self.brightness,
         };
-        context.encoder.update_constant_buffer(&self.brightness_buffer, &brightness);
+        context
+            .encoder
+            .update_constant_buffer(&self.brightness_buffer, &brightness);
     }
 }

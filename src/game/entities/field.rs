@@ -11,8 +11,8 @@ use crates::rayon::prelude::*;
 use game::entities::enemy::Enemy;
 use game::entities::ship::Ship;
 use game::entities::stage::Stage;
-use game::render::{EncoderContext, RenderContext};
 use game::render::{Brightness, ScreenTransform};
+use game::render::{EncoderContext, RenderContext};
 use game::state::GameStateContext;
 
 use std::f32;
@@ -214,7 +214,8 @@ impl From<u32> for GroundType {
 }
 
 fn between<T>(low: T, expect: T, high: T) -> bool
-    where T: PartialOrd,
+where
+    T: PartialOrd,
 {
     low <= expect && expect < high
 }
@@ -342,30 +343,41 @@ impl Field {
 
     pub fn block(&self, pos: Vector2<f32>) -> Block {
         let y = pos.y - self.screen_y.fract();
-        let block_x = ((pos.x + (BLOCK_WIDTH * (SCREEN_BLOCK_SIZE_X as f32) / 2.)) / BLOCK_WIDTH) as i32;
-        let block_y = (self.screen_y + (-y + (BLOCK_WIDTH * (SCREEN_BLOCK_SIZE_Y as f32) / 2.)) / BLOCK_WIDTH) as i32;
+        let block_x =
+            ((pos.x + (BLOCK_WIDTH * (SCREEN_BLOCK_SIZE_X as f32) / 2.)) / BLOCK_WIDTH) as i32;
+        let block_y = (self.screen_y
+            + (-y + (BLOCK_WIDTH * (SCREEN_BLOCK_SIZE_Y as f32) / 2.)) / BLOCK_WIDTH)
+            as i32;
 
         if !between(0, block_x, BLOCK_SIZE_X as i32) {
             return Block::Shore;
         }
 
-        let block_y = block_y + if block_y < 0 {
-            BLOCK_SIZE_Y as i32
-        } else if block_y >= (BLOCK_SIZE_Y as i32) {
-            -(BLOCK_SIZE_Y as i32)
-        } else {
-            0
-        };
+        let block_y = block_y
+            + if block_y < 0 {
+                BLOCK_SIZE_Y as i32
+            } else if block_y >= (BLOCK_SIZE_Y as i32) {
+                -(BLOCK_SIZE_Y as i32)
+            } else {
+                0
+            };
 
         self.blocks[block_x as usize][block_y as usize]
     }
 
     pub fn screen_pos(&self, block_pos: Vector2<usize>) -> Vector2<f32> {
         let y = self.screen_y.fract();
-        let block_y = abagames_util::wrap_dec_by(block_pos.y, BLOCK_SIZE_Y, self.screen_y.trunc() as usize);
+        let block_y =
+            abagames_util::wrap_dec_by(block_pos.y, BLOCK_SIZE_Y, self.screen_y.trunc() as usize);
 
-        Vector2::new((block_pos.x as f32) * BLOCK_WIDTH - BLOCK_WIDTH * ((SCREEN_BLOCK_SIZE_X / 2) as f32) + BLOCK_WIDTH / 2.,
-                     ((block_y as f32) - BLOCK_SIZE_Y_F32) * -BLOCK_WIDTH + BLOCK_WIDTH * ((SCREEN_BLOCK_SIZE_Y / 2) as f32) + y - BLOCK_WIDTH / 2.)
+        Vector2::new(
+            (block_pos.x as f32) * BLOCK_WIDTH - BLOCK_WIDTH * ((SCREEN_BLOCK_SIZE_X / 2) as f32)
+                + BLOCK_WIDTH / 2.,
+            ((block_y as f32) - BLOCK_SIZE_Y_F32) * -BLOCK_WIDTH
+                + BLOCK_WIDTH * ((SCREEN_BLOCK_SIZE_Y / 2) as f32)
+                + y
+                - BLOCK_WIDTH / 2.,
+        )
     }
 
     pub fn is_in_field(&self, pos: Vector2<f32>) -> bool {
@@ -373,10 +385,7 @@ impl Field {
     }
 
     pub fn is_in_field_no_top(&self, pos: Vector2<f32>) -> bool {
-        true &&
-            -FIELD_SIZE.x <= pos.x &&
-            pos.x <= FIELD_SIZE.x &&
-            -FIELD_SIZE.y <= pos.y
+        -FIELD_SIZE.x <= pos.x && pos.x <= FIELD_SIZE.x && -FIELD_SIZE.y <= pos.y
     }
 
     pub fn is_in_outer_field(&self, pos: Vector2<f32>) -> bool {
@@ -384,18 +393,14 @@ impl Field {
     }
 
     pub fn is_in_outer_field_no_top(&self, pos: Vector2<f32>) -> bool {
-        true &&
-            -FIELD_OUTER_SIZE.x <= pos.x &&
-            pos.x <= FIELD_OUTER_SIZE.x &&
-            -FIELD_OUTER_SIZE.y <= pos.y
+        -FIELD_OUTER_SIZE.x <= pos.x && pos.x <= FIELD_OUTER_SIZE.x && -FIELD_OUTER_SIZE.y <= pos.y
     }
 
     pub fn is_in_outer_height_field(&self, pos: Vector2<f32>) -> bool {
-        true &&
-            -FIELD_SIZE.x <= pos.x &&
-            pos.x <= FIELD_SIZE.x &&
-            -FIELD_OUTER_SIZE.y <= pos.y &&
-            pos.y <= FIELD_OUTER_SIZE.y
+        -FIELD_SIZE.x <= pos.x
+            && pos.x <= FIELD_SIZE.x
+            && -FIELD_OUTER_SIZE.y <= pos.y
+            && pos.y <= FIELD_OUTER_SIZE.y
     }
 
     pub fn last_scroll_y(&self) -> f32 {
@@ -407,7 +412,16 @@ impl Field {
             abagames_util::wrap_inc_by(self.color_step, TIME_COLOR_SIZE as f32, TIME_CHANGE_RATIO);
     }
 
-    pub fn scroll(&mut self, speed: f32, mode: FieldMode, stage: &mut Stage, enemies: &mut Pool<Enemy>, ship: &Ship, context: &mut GameStateContext, rand: &mut Rand) {
+    pub fn scroll(
+        &mut self,
+        speed: f32,
+        mode: FieldMode,
+        stage: &mut Stage,
+        enemies: &mut Pool<Enemy>,
+        ship: &Ship,
+        context: &mut GameStateContext,
+        rand: &mut Rand,
+    ) {
         self.last_scroll_y = speed;
         self.screen_y = abagames_util::wrap_dec_by(self.screen_y, BLOCK_SIZE_Y as f32, speed);
         self.block_count -= speed;
@@ -440,13 +454,15 @@ impl Field {
         let rows = (0..NEXT_BLOCK_AREA_SIZE)
             .map(|y| abagames_util::wrap_inc_by(y, BLOCK_SIZE_Y, nby))
             .collect::<Vec<_>>();
-        let indices = rows.iter()
+        let indices = rows
+            .iter()
             .cloned()
             .cartesian_product(0..BLOCK_SIZE_X)
             .collect::<Vec<_>>();
 
         // Clear out the blocks in the current strip.
-        indices.iter()
+        indices
+            .iter()
             .foreach(|&(y, x)| self.blocks[x][y] = Block::DeepWater);
 
         // Add ground.
@@ -454,53 +470,55 @@ impl Field {
         (0..density).foreach(|_| self.add_ground(ground_type, rand));
 
         // Clear out the blocks at the edges of the current strip.
-        indices.iter()
+        indices
+            .iter()
             .filter(|&&(y, _)| y == nby || y == nby + NEXT_BLOCK_AREA_SIZE - 1)
             .foreach(|&(y, x)| self.blocks[x][y] = Block::DeepWater);
 
         self.num_platforms = 0;
-        rows.into_iter()
-            .foreach(|y| {
-                for x in 0..BLOCK_SIZE_X {
-                    if self.blocks[x][y] == Block::Beach &&
-                       self.count_around_block(x, y, Block::Beach) <= 1 {
-                        self.blocks[x][y] = Block::Water;
-                    }
-                }
-                for x in (0..BLOCK_SIZE_X).rev() {
-                    if self.blocks[x][y] == Block::Beach &&
-                       self.count_around_block(x, y, Block::Beach) <= 1 {
-                        self.blocks[x][y] = Block::Water;
-                    }
-                }
-
-                (0..BLOCK_SIZE_X)
-                    .foreach(|x| {
-                        let count = self.count_around_block(x, y, Block::Beach);
-                        let new_block = self.blocks[x][y].transform_for_count(count);
-
-                        // FIXME: Use (2..BLOCK_SIZE_X - 2).contains(x)
-                        if new_block == Block::Shore && between(2, x, BLOCK_SIZE_X - 2) {
-                            let pos = Vector2::new(x, y);
-                            if let Some(angle) = self.platform_angle(pos, rand) {
-                                self.platforms[self.num_platforms].init(pos, angle);
-                                self.num_platforms += 1;
-                            }
-                        }
-                    })
-            });
-
-        indices.iter()
-            .foreach(|&(y, x)| {
-                if self.blocks[x][y] == Block::DeepWater &&
-                   self.count_around_block(x, y, Block::Shore) > 0 {
+        rows.into_iter().foreach(|y| {
+            for x in 0..BLOCK_SIZE_X {
+                if self.blocks[x][y] == Block::Beach
+                    && self.count_around_block(x, y, Block::Beach) <= 1
+                {
                     self.blocks[x][y] = Block::Water;
-                } else if self.blocks[x][y] == Block::DeepInland &&
-                          self.count_around_block(x, y, Block::Inland) > 0 {
-                    self.blocks[x][y] = Block::Inland;
                 }
-                self.create_panel(x, y, rand);
-            });
+            }
+            for x in (0..BLOCK_SIZE_X).rev() {
+                if self.blocks[x][y] == Block::Beach
+                    && self.count_around_block(x, y, Block::Beach) <= 1
+                {
+                    self.blocks[x][y] = Block::Water;
+                }
+            }
+
+            (0..BLOCK_SIZE_X).foreach(|x| {
+                let count = self.count_around_block(x, y, Block::Beach);
+                let new_block = self.blocks[x][y].transform_for_count(count);
+
+                // FIXME: Use (2..BLOCK_SIZE_X - 2).contains(x)
+                if new_block == Block::Shore && between(2, x, BLOCK_SIZE_X - 2) {
+                    let pos = Vector2::new(x, y);
+                    if let Some(angle) = self.platform_angle(pos, rand) {
+                        self.platforms[self.num_platforms].init(pos, angle);
+                        self.num_platforms += 1;
+                    }
+                }
+            })
+        });
+
+        indices.iter().foreach(|&(y, x)| {
+            if self.blocks[x][y] == Block::DeepWater
+                && self.count_around_block(x, y, Block::Shore) > 0
+            {
+                self.blocks[x][y] = Block::Water;
+            } else if self.blocks[x][y] == Block::DeepInland
+                && self.count_around_block(x, y, Block::Inland) > 0
+            {
+                self.blocks[x][y] = Block::Inland;
+            }
+            self.create_panel(x, y, rand);
+        });
     }
 
     fn platform_angle(&mut self, pos: Vector2<usize>, rand: &mut Rand) -> Option<Rad<f32>> {
@@ -509,19 +527,27 @@ impl Field {
             .into_iter()
             .filter_map(|i| {
                 let new_i = abagames_util::wrap_inc_by(i, 4, d);
-                let (ox, oy) = ((pos.x as i32) + ANGLE_BLOCK_OFFSET[new_i][0],
-                                (pos.y as i32) + ANGLE_BLOCK_OFFSET[new_i][1]);
+                let (ox, oy) = (
+                    (pos.x as i32) + ANGLE_BLOCK_OFFSET[new_i][0],
+                    (pos.y as i32) + ANGLE_BLOCK_OFFSET[new_i][1],
+                );
                 if self.check_block(ox, oy, Block::Shore).unwrap_or(true) {
                     let prev = abagames_util::wrap_dec(new_i, 4);
                     let next = abagames_util::wrap_inc(new_i, 4);
 
-                    let prev_block_ok = self.check_block(ox + ANGLE_BLOCK_OFFSET[prev][0],
-                                                         oy + ANGLE_BLOCK_OFFSET[prev][1],
-                                                         Block::Shore)
+                    let prev_block_ok = self
+                        .check_block(
+                            ox + ANGLE_BLOCK_OFFSET[prev][0],
+                            oy + ANGLE_BLOCK_OFFSET[prev][1],
+                            Block::Shore,
+                        )
                         .unwrap_or(true);
-                    let next_block_ok = self.check_block(ox + ANGLE_BLOCK_OFFSET[next][0],
-                                                         oy + ANGLE_BLOCK_OFFSET[next][1],
-                                                         Block::Shore)
+                    let next_block_ok = self
+                        .check_block(
+                            ox + ANGLE_BLOCK_OFFSET[next][0],
+                            oy + ANGLE_BLOCK_OFFSET[next][1],
+                            Block::Shore,
+                        )
                         .unwrap_or(true);
 
                     let angle_offset = match (prev_block_ok, next_block_ok) {
@@ -551,14 +577,14 @@ impl Field {
                 }
             },
         } as isize;
-        let mut cy = (rand.next_int((NEXT_BLOCK_AREA_SIZE_F32 * 0.6) as u32) +
-                      ((NEXT_BLOCK_AREA_SIZE_F32 * 0.2) as u32)) as isize;
+        let mut cy = (rand.next_int((NEXT_BLOCK_AREA_SIZE_F32 * 0.6) as u32)
+            + ((NEXT_BLOCK_AREA_SIZE_F32 * 0.2) as u32)) as isize;
         cy += self.next_block_y as isize;
 
-        let width = (rand.next_int((BLOCK_SIZE_X_F32 * 0.33) as u32) +
-                     ((BLOCK_SIZE_X_F32 * 0.33) as u32)) as isize;
-        let height = (rand.next_int((NEXT_BLOCK_AREA_SIZE_F32 * 0.24) as u32) +
-                      ((NEXT_BLOCK_AREA_SIZE_F32 * 0.33) as u32)) as isize;
+        let width = (rand.next_int((BLOCK_SIZE_X_F32 * 0.33) as u32)
+            + ((BLOCK_SIZE_X_F32 * 0.33) as u32)) as isize;
+        let height = (rand.next_int((NEXT_BLOCK_AREA_SIZE_F32 * 0.24) as u32)
+            + ((NEXT_BLOCK_AREA_SIZE_F32 * 0.33) as u32)) as isize;
 
         cx -= width / 2;
         cy -= height / 2;
@@ -576,10 +602,7 @@ impl Field {
             .foreach(|(y, x)| {
                 // Determine if there should be an island seeded at this location.
                 let island_choice = {
-                    let mut hw_rand = || {
-                        (rand.next_float(0.2) + 0.2,
-                         rand.next_float(0.3) + 0.4)
-                    };
+                    let mut hw_rand = || (rand.next_float(0.2) + 0.2, rand.next_float(0.3) + 0.4);
 
                     [y - cy, cy + height - 1 - y]
                         .into_iter()
@@ -606,9 +629,10 @@ impl Field {
             self.check_block(x32 + 1, y32, threshold).unwrap_or(false),
             self.check_block(x32, y32 + 1, threshold).unwrap_or(false),
             self.check_block(x32 - 1, y32, threshold).unwrap_or(false),
-        ].into_iter()
-            .filter(|&&b| b)
-            .count()
+        ]
+        .into_iter()
+        .filter(|&&b| b)
+        .count()
     }
 
     fn check_block(&self, x: i32, mut y: i32, threshold: Block) -> Option<bool> {
@@ -675,7 +699,8 @@ gfx_defines! {
 }
 
 pub struct FieldDraw<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
     sidebar_bundle: gfx::Bundle<R, sidebar_pipe::Data<R>>,
     panel_bundle: gfx::Bundle<R, panel_pipe::Data<R>>,
@@ -683,12 +708,16 @@ pub struct FieldDraw<R>
 }
 
 impl<R> FieldDraw<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
-    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, TargetFormat>,
-                  context: &RenderContext<R>)
-                  -> Self
-        where F: gfx::Factory<R>,
+    pub fn new<F>(
+        factory: &mut F,
+        view: gfx::handle::RenderTargetView<R, TargetFormat>,
+        context: &RenderContext<R>,
+    ) -> Self
+    where
+        F: gfx::Factory<R>,
     {
         let sidebar_data = [
             Position { pos: [SIDEWALL_X1,  SIDEWALL_Y], },
@@ -698,8 +727,8 @@ impl<R> FieldDraw<R>
         ];
 
         let sidebar_vbuf = factory.create_vertex_buffer(&sidebar_data);
-        let mut sidebar_slice = abagames_util::slice_for_fan::<R, F>(factory,
-                                                                     sidebar_data.len() as u32);
+        let mut sidebar_slice =
+            abagames_util::slice_for_fan::<R, F>(factory, sidebar_data.len() as u32);
         sidebar_slice.instances = Some((2, 0));
 
         let sidebar_instance_data = [
@@ -709,10 +738,12 @@ impl<R> FieldDraw<R>
 
         let sidebar_instance_buffer = factory.create_vertex_buffer(&sidebar_instance_data);
 
-        let sidebar_pso = factory.create_pipeline_simple(
-            include_bytes!("shader/field_sidebar.glslv"),
-            include_bytes!("shader/field_sidebar.glslf"),
-            sidebar_pipe::new())
+        let sidebar_pso = factory
+            .create_pipeline_simple(
+                include_bytes!("shader/field_sidebar.glslv"),
+                include_bytes!("shader/field_sidebar.glslf"),
+                sidebar_pipe::new(),
+            )
             .expect("failed to create the pipeline for field_sidebar");
 
         let sidebar_data = sidebar_pipe::Data {
@@ -730,22 +761,26 @@ impl<R> FieldDraw<R>
         ];
 
         let panel_vbuf = factory.create_vertex_buffer(&panel_data);
-        let mut panel_slice = abagames_util::slice_for_fan::<R, F>(factory,
-                                                                   panel_data.len() as u32);
+        let mut panel_slice =
+            abagames_util::slice_for_fan::<R, F>(factory, panel_data.len() as u32);
         let num_panel_instances = BLOCK_SIZE_Y * BLOCK_SIZE_X * 2;
         panel_slice.instances = Some((num_panel_instances as gfx::InstanceCount, 0));
 
-        let panel_instances =
-            factory.create_buffer(num_panel_instances,
-                                  gfx::buffer::Role::Vertex,
-                                  gfx::memory::Usage::Upload,
-                                  gfx::memory::Bind::empty())
-                .expect("failed to create the buffer for panels");
+        let panel_instances = factory
+            .create_buffer(
+                num_panel_instances,
+                gfx::buffer::Role::Vertex,
+                gfx::memory::Usage::Upload,
+                gfx::memory::Bind::empty(),
+            )
+            .expect("failed to create the buffer for panels");
 
-        let panel_pso = factory.create_pipeline_simple(
-            include_bytes!("shader/field_panel.glslv"),
-            include_bytes!("shader/field_panel.glslf"),
-            panel_pipe::new())
+        let panel_pso = factory
+            .create_pipeline_simple(
+                include_bytes!("shader/field_panel.glslv"),
+                include_bytes!("shader/field_panel.glslf"),
+                panel_pipe::new(),
+            )
             .expect("failed to create the pipeline for field_panel");
 
         let panel_data = panel_pipe::Data {
@@ -764,7 +799,8 @@ impl<R> FieldDraw<R>
     }
 
     pub fn prep_draw<F>(&mut self, factory: &mut F, field: &Field)
-        where F: gfx::Factory<R>,
+    where
+        F: gfx::Factory<R>,
     {
         let color_index = field.color_step as usize;
         let next_color_index = abagames_util::wrap_inc(color_index, TIME_COLOR_SIZE);
@@ -778,8 +814,8 @@ impl<R> FieldDraw<R>
 
         let screen_y_base = abagames_util::wrap_dec(field.screen_y as usize, BLOCK_SIZE_Y);
         let offset_x_base = -BLOCK_WIDTH * (SCREEN_BLOCK_SIZE_X as f32) / 2.;
-        let offset_y_base = BLOCK_WIDTH * (SCREEN_BLOCK_SIZE_Y as f32) / 2. + BLOCK_WIDTH +
-                            field.screen_y.fract();
+        let offset_y_base =
+            BLOCK_WIDTH * (SCREEN_BLOCK_SIZE_Y as f32) / 2. + BLOCK_WIDTH + field.screen_y.fract();
 
         // FIXME: Use inclusive syntax.
         let y_info = (0..SCREEN_BLOCK_SIZE_Y + NEXT_BLOCK_AREA_SIZE + 1).map(|block_y| {
@@ -792,7 +828,8 @@ impl<R> FieldDraw<R>
             .map(|block_x| (block_x, offset_x_base + (block_x as f32) * BLOCK_WIDTH))
             .collect::<Vec<_>>();
 
-        y_info.cartesian_product(x_info)
+        y_info
+            .cartesian_product(x_info)
             .foreach(|((block_y, offset_y), (block_x, offset_x))| {
                 let panel = &field.panels[block_x][block_y];
 
@@ -800,7 +837,9 @@ impl<R> FieldDraw<R>
                 let base_pos = &panel.position;
                 let base_idx = 2 * (block_y * BLOCK_SIZE_X + block_x);
 
-                let mut writer = factory.write_mapping(&self.panel_instances).expect("could not get a writable mapping to the panel buffer");
+                let mut writer = factory
+                    .write_mapping(&self.panel_instances)
+                    .expect("could not get a writable mapping to the panel buffer");
                 writer[base_idx] = PerPanel {
                     pos: [base_pos.x, -base_pos.y, base_pos.z],
                     diff_factor: PANEL_WIDTH,
@@ -817,13 +856,15 @@ impl<R> FieldDraw<R>
     }
 
     pub fn draw_sidebars<C>(&self, context: &mut EncoderContext<R, C>)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
         self.sidebar_bundle.encode(context.encoder);
     }
 
     pub fn draw_panels<C>(&self, context: &mut EncoderContext<R, C>)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
         self.panel_bundle.encode(context.encoder);
     }

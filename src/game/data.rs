@@ -3,13 +3,19 @@
 
 macro_rules! music {
     ( $name:expr ) => {
-        ($name, include_bytes!(concat!("sounds/musics/", $name, ".ogg")))
+        (
+            $name,
+            include_bytes!(concat!("sounds/musics/", $name, ".ogg")),
+        )
     };
 }
 
 macro_rules! sfx {
     ( $name:expr, $channel:expr ) => {
-        ($name, include_bytes!(concat!("sounds/chunks/", $name, ".wav")))
+        (
+            $name,
+            include_bytes!(concat!("sounds/chunks/", $name, ".wav")),
+        )
     };
 }
 

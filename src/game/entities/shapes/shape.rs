@@ -16,8 +16,8 @@ use crates::gfx::traits::FactoryExt;
 use crates::itertools::Itertools;
 use crates::rayon::prelude::*;
 
-use game::render::{EncoderContext, RenderContext};
 use game::render::{Brightness, ScreenTransform};
+use game::render::{EncoderContext, RenderContext};
 
 use std::collections::hash_map::HashMap;
 use std::ops::Deref;
@@ -45,7 +45,9 @@ impl ShapeKind {
     /// Whether the shape indicates a destroyed object or not.
     fn is_destroyed(&self) -> bool {
         match *self {
-            ShapeKind::ShipDestroyed | ShapeKind::PlatformDestroyed | ShapeKind::TurretDestroyed => true,
+            ShapeKind::ShipDestroyed
+            | ShapeKind::PlatformDestroyed
+            | ShapeKind::TurretDestroyed => true,
             _ => false,
         }
     }
@@ -55,8 +57,12 @@ impl ShapeKind {
     /// This is used to select the appropriate element index array for the shape.
     fn loop_category(&self) -> LoopCategory {
         match *self {
-            ShapeKind::Ship | ShapeKind::ShipDamaged | ShapeKind::ShipDestroyed => LoopCategory::Ship,
-            ShapeKind::Turret | ShapeKind::TurretDamaged | ShapeKind::TurretDestroyed => LoopCategory::Turret,
+            ShapeKind::Ship | ShapeKind::ShipDamaged | ShapeKind::ShipDestroyed => {
+                LoopCategory::Ship
+            },
+            ShapeKind::Turret | ShapeKind::TurretDamaged | ShapeKind::TurretDestroyed => {
+                LoopCategory::Turret
+            },
             _ => LoopCategory::Other,
         }
     }
@@ -75,8 +81,8 @@ enum LoopCategory {
 impl LoopCategory {
     /// Whether the category uses the given index or not.
     fn uses_index(&self, i: usize) -> bool {
-        !((*self != LoopCategory::Ship && POINT_NUM_Q25 < i && i <= POINT_NUM_Q35) ||
-          (*self == LoopCategory::Turret && (i <= POINT_NUM_Q15 || POINT_NUM_Q45 < i)))
+        !((*self != LoopCategory::Ship && POINT_NUM_Q25 < i && i <= POINT_NUM_Q35)
+            || (*self == LoopCategory::Turret && (i <= POINT_NUM_Q15 || POINT_NUM_Q45 < i)))
     }
 }
 
@@ -89,8 +95,9 @@ enum Closure {
 
 impl Closure {
     fn make_slice<R, F>(&self, factory: &mut F, size: u32) -> gfx::Slice<R>
-        where R: gfx::Resources,
-              F: gfx::Factory<R>,
+    where
+        R: gfx::Resources,
+        F: gfx::Factory<R>,
     {
         match *self {
             Closure::Open => abagames_util::slice_for_loop(factory, size),
@@ -99,8 +106,9 @@ impl Closure {
     }
 
     fn make_slice_with<R, F>(&self, factory: &mut F, data: Vec<u16>) -> gfx::Slice<R>
-        where R: gfx::Resources,
-              F: gfx::Factory<R>,
+    where
+        R: gfx::Resources,
+        F: gfx::Factory<R>,
     {
         match *self {
             Closure::Open => abagames_util::slice_for_loop_with(factory, &data),
@@ -147,10 +155,10 @@ impl SliceKind {
     /// The closure used by the slice.
     fn closure(&self) -> Closure {
         match *self {
-            SliceKind::ShipLoop(closure) |
-            SliceKind::TurretLoop(closure) |
-            SliceKind::OtherLoop(closure) |
-            SliceKind::SquareLoop(closure) => closure,
+            SliceKind::ShipLoop(closure)
+            | SliceKind::TurretLoop(closure)
+            | SliceKind::OtherLoop(closure)
+            | SliceKind::SquareLoop(closure) => closure,
             SliceKind::Pillar => Closure::Open,
         }
     }
@@ -167,10 +175,9 @@ impl SliceKind {
 
     /// The buffer to use for a slice.
     fn index_buffer(&self) -> SliceBuffer {
-        self.loop_category()
-            .map_or(SliceBuffer::All, |category| {
-                SliceBuffer::Loop(self.loop_index_buffer(category))
-            })
+        self.loop_category().map_or(SliceBuffer::All, |category| {
+            SliceBuffer::Loop(self.loop_index_buffer(category))
+        })
     }
 
     /// A cache of slices to use for shapes which are drawn.
@@ -178,8 +185,9 @@ impl SliceKind {
     /// This needs to be done so that the draw method can remain non-mutable. It also allows all
     /// resource allocation to occur at the beginning of the program.
     fn slices<R, F>(factory: &mut F) -> HashMap<SliceKind, gfx::Slice<R>>
-        where R: gfx::Resources,
-              F: gfx::Factory<R>,
+    where
+        R: gfx::Resources,
+        F: gfx::Factory<R>,
     {
         // Open versions must be occur before closed versions because they create the index array
         // since they have an additional element in their element arrays. The open versions then
@@ -196,24 +204,28 @@ impl SliceKind {
             SliceKind::Pillar,
         ];
 
-        slice_kinds.into_iter()
+        slice_kinds
+            .into_iter()
             .map(|&kind| {
                 let closure = kind.closure();
 
-                (kind, match kind.index_buffer() {
-                    SliceBuffer::Loop(data) => closure.make_slice_with(factory, data),
-                    SliceBuffer::All => {
-                        // Get the number of vertices for the slice.
-                        let size = match kind {
-                            SliceKind::SquareLoop(_) => SQUARE_LOOP_SIZE,
-                            SliceKind::Pillar => PILLAR_POINT_NUM,
-                            // Loops always use buffers.
-                            _ => unreachable!(),
-                        };
+                (
+                    kind,
+                    match kind.index_buffer() {
+                        SliceBuffer::Loop(data) => closure.make_slice_with(factory, data),
+                        SliceBuffer::All => {
+                            // Get the number of vertices for the slice.
+                            let size = match kind {
+                                SliceKind::SquareLoop(_) => SQUARE_LOOP_SIZE,
+                                SliceKind::Pillar => PILLAR_POINT_NUM,
+                                // Loops always use buffers.
+                                _ => unreachable!(),
+                            };
 
-                        closure.make_slice(factory, size as u32)
+                            closure.make_slice(factory, size as u32)
+                        },
                     },
-                })
+                )
             })
             .collect()
     }
@@ -242,17 +254,22 @@ impl ShapeCategory {
     /// The kind of slice to use for the shape.
     fn slice_kind(&self) -> SliceKind {
         match *self {
-            ShapeCategory::Loop { category, closure } => {
+            ShapeCategory::Loop {
+                category,
+                closure,
+            } => {
                 match category {
                     LoopCategory::Ship => SliceKind::ShipLoop(closure),
                     LoopCategory::Turret => SliceKind::TurretLoop(closure),
                     LoopCategory::Other => SliceKind::OtherLoop(closure),
                 }
             },
-            ShapeCategory::SquareLoop { closure, .. } => {
-                SliceKind::SquareLoop(closure)
-            },
-            ShapeCategory::Pillar { .. } => SliceKind::Pillar,
+            ShapeCategory::SquareLoop {
+                closure, ..
+            } => SliceKind::SquareLoop(closure),
+            ShapeCategory::Pillar {
+                ..
+            } => SliceKind::Pillar,
         }
     }
 }
@@ -375,7 +392,13 @@ pub struct BaseShape {
 }
 
 impl BaseShape {
-    pub fn new(kind: ShapeKind, size: f32, distance_ratio: f32, spiny_ratio: f32, color: Vector3<f32>) -> Self {
+    pub fn new(
+        kind: ShapeKind,
+        size: f32,
+        distance_ratio: f32,
+        spiny_ratio: f32,
+        color: Vector3<f32>,
+    ) -> Self {
         let mut shape = BaseShape {
             kind: kind,
             distance_ratio: distance_ratio,
@@ -392,30 +415,32 @@ impl BaseShape {
 
         if shape.kind != ShapeKind::Bridge {
             let category = shape.kind.loop_category();
-            LOOP_DATA.iter()
-                .foreach(|data| {
-                    let i = data.index;
-                    if !category.uses_index(data.index) {
-                        return;
-                    }
+            LOOP_DATA.iter().foreach(|data| {
+                let i = data.index;
+                if !category.uses_index(data.index) {
+                    return;
+                }
 
-                    let distance_factor = 1. - shape.distance_ratio;
-                    let (sin, cos) = data.angle.sin_cos();
-                    let rotate = Vector2::new(sin * distance_factor, cos);
-                    let base_pos = Vector2::new(data.pos.x * distance_factor, data.pos.y);
-                    let pos = size * (rotate * (1. - shape.spiny_ratio) + base_pos * shape.spiny_ratio);
+                let distance_factor = 1. - shape.distance_ratio;
+                let (sin, cos) = data.angle.sin_cos();
+                let rotate = Vector2::new(sin * distance_factor, cos);
+                let base_pos = Vector2::new(data.pos.x * distance_factor, data.pos.y);
+                let pos = size * (rotate * (1. - shape.spiny_ratio) + base_pos * shape.spiny_ratio);
 
-                    if i == POINT_NUM_Q18 || i == POINT_NUM_Q38 ||
-                       i == POINT_NUM_Q58 || i == POINT_NUM_Q78 {
-                        shape.pillars[shape.num_pillars] = pos * 0.8;
-                        shape.num_pillars += 1;
-                    }
-                    shape.points[shape.num_points] = ShapePoint {
-                        pos: pos,
-                        angle: data.angle,
-                    };
-                    shape.num_points += 1;
-                })
+                if i == POINT_NUM_Q18
+                    || i == POINT_NUM_Q38
+                    || i == POINT_NUM_Q58
+                    || i == POINT_NUM_Q78
+                {
+                    shape.pillars[shape.num_pillars] = pos * 0.8;
+                    shape.num_pillars += 1;
+                }
+                shape.points[shape.num_points] = ShapePoint {
+                    pos: pos,
+                    angle: data.angle,
+                };
+                shape.num_points += 1;
+            })
         }
 
         shape
@@ -513,8 +538,11 @@ impl Shape {
         }
 
         match self.base.kind {
-            ShapeKind::Ship | ShapeKind::ShipRoundTail | ShapeKind::ShipShadow |
-            ShapeKind::ShipDamaged | ShapeKind::ShipDestroyed => {
+            ShapeKind::Ship
+            | ShapeKind::ShipRoundTail
+            | ShapeKind::ShipShadow
+            | ShapeKind::ShipDamaged
+            | ShapeKind::ShipDestroyed => {
                 let color = if self.base.kind.is_destroyed() {
                     self.color
                 } else {
@@ -566,7 +594,14 @@ impl Shape {
         })
     }
 
-    fn add_square_loop(&mut self, size_factor: f32, z: f32, color: Vector3<f32>, closure: Closure, y_ratio: f32) {
+    fn add_square_loop(
+        &mut self,
+        size_factor: f32,
+        z: f32,
+        color: Vector3<f32>,
+        closure: Closure,
+        y_ratio: f32,
+    ) {
         self.add_command(ShapeCommand {
             category: ShapeCategory::SquareLoop {
                 y_ratio: y_ratio,
@@ -714,13 +749,17 @@ gfx_defines! {
 }
 
 pub struct ShapeDraw<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
-    loop_outline_pso: gfx::PipelineState<R, <loop_pipe::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
+    loop_outline_pso:
+        gfx::PipelineState<R, <loop_pipe::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
     loop_fan_pso: gfx::PipelineState<R, <loop_pipe::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
 
-    square_loop_outline_pso: gfx::PipelineState<R, <square_loop_pipe::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
-    square_loop_fan_pso: gfx::PipelineState<R, <square_loop_pipe::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
+    square_loop_outline_pso:
+        gfx::PipelineState<R, <square_loop_pipe::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
+    square_loop_fan_pso:
+        gfx::PipelineState<R, <square_loop_pipe::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
 
     pillar_pso: gfx::PipelineState<R, <pillar_pipe::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
 
@@ -740,14 +779,19 @@ pub struct ShapeDraw<R>
 }
 
 impl<R> ShapeDraw<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
-    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, TargetFormat>,
-                  context: &RenderContext<R>)
-                  -> Self
-        where F: gfx::Factory<R>,
+    pub fn new<F>(
+        factory: &mut F,
+        view: gfx::handle::RenderTargetView<R, TargetFormat>,
+        context: &RenderContext<R>,
+    ) -> Self
+    where
+        F: gfx::Factory<R>,
     {
-        let loop_vertex_data = LOOP_DATA.par_iter()
+        let loop_vertex_data = LOOP_DATA
+            .par_iter()
             .map(|data| {
                 Sweep {
                     angle: data.angle.0,
@@ -757,29 +801,36 @@ impl<R> ShapeDraw<R>
             .collect::<Vec<_>>();
         let loop_vbuf = factory.create_vertex_buffer(&loop_vertex_data);
 
-        let frag_shader = factory.create_shader_pixel(include_bytes!("shader/uniform3.glslf"))
+        let frag_shader = factory
+            .create_shader_pixel(include_bytes!("shader/uniform3.glslf"))
             .expect("failed to compile the fragment shader for base shapes");
-        let loop_shader = factory.create_shader_vertex(include_bytes!("shader/loop.glslv"))
+        let loop_shader = factory
+            .create_shader_vertex(include_bytes!("shader/loop.glslv"))
             .expect("failed to compile the loop shader for base shapes");
-        let loop_program = factory.create_program(&gfx::ShaderSet::Simple(loop_shader, frag_shader.clone()))
+        let loop_program = factory
+            .create_program(&gfx::ShaderSet::Simple(loop_shader, frag_shader.clone()))
             .expect("failed to link the loop shader");
-        let loop_outline_pso = factory.create_pipeline_from_program(
-            &loop_program,
-            gfx::Primitive::LineStrip,
-            gfx::state::Rasterizer {
-                front_face: gfx::state::FrontFace::CounterClockwise,
-                cull_face: gfx::state::CullFace::Nothing,
-                method: gfx::state::RasterMethod::Line(1),
-                offset: None,
-                samples: None,
-            },
-            loop_pipe::new())
+        let loop_outline_pso = factory
+            .create_pipeline_from_program(
+                &loop_program,
+                gfx::Primitive::LineStrip,
+                gfx::state::Rasterizer {
+                    front_face: gfx::state::FrontFace::CounterClockwise,
+                    cull_face: gfx::state::CullFace::Nothing,
+                    method: gfx::state::RasterMethod::Line(1),
+                    offset: None,
+                    samples: None,
+                },
+                loop_pipe::new(),
+            )
             .expect("failed to create the outline pipeline for loop");
-        let loop_fan_pso = factory.create_pipeline_from_program(
-            &loop_program,
-            gfx::Primitive::TriangleList,
-            gfx::state::Rasterizer::new_fill(),
-            loop_pipe::new())
+        let loop_fan_pso = factory
+            .create_pipeline_from_program(
+                &loop_program,
+                gfx::Primitive::TriangleList,
+                gfx::state::Rasterizer::new_fill(),
+                loop_pipe::new(),
+            )
             .expect("failed to create the fan pipeline for loop");
 
         let square_loop_vertex_data = (0..SQUARE_LOOP_SIZE + 1)
@@ -791,27 +842,36 @@ impl<R> ShapeDraw<R>
             .collect::<Vec<_>>();
         let square_loop_vbuf = factory.create_vertex_buffer(&square_loop_vertex_data);
 
-        let square_loop_shader = factory.create_shader_vertex(include_bytes!("shader/square_loop.glslv"))
+        let square_loop_shader = factory
+            .create_shader_vertex(include_bytes!("shader/square_loop.glslv"))
             .expect("failed to compile the square loop shader for base shapes");
-        let square_loop_program = factory.create_program(&gfx::ShaderSet::Simple(square_loop_shader, frag_shader.clone()))
+        let square_loop_program = factory
+            .create_program(&gfx::ShaderSet::Simple(
+                square_loop_shader,
+                frag_shader.clone(),
+            ))
             .expect("failed to link the square loop shader");
-        let square_loop_outline_pso = factory.create_pipeline_from_program(
-            &square_loop_program,
-            gfx::Primitive::LineStrip,
-            gfx::state::Rasterizer {
-                front_face: gfx::state::FrontFace::CounterClockwise,
-                cull_face: gfx::state::CullFace::Nothing,
-                method: gfx::state::RasterMethod::Line(1),
-                offset: None,
-                samples: None,
-            },
-            square_loop_pipe::new())
+        let square_loop_outline_pso = factory
+            .create_pipeline_from_program(
+                &square_loop_program,
+                gfx::Primitive::LineStrip,
+                gfx::state::Rasterizer {
+                    front_face: gfx::state::FrontFace::CounterClockwise,
+                    cull_face: gfx::state::CullFace::Nothing,
+                    method: gfx::state::RasterMethod::Line(1),
+                    offset: None,
+                    samples: None,
+                },
+                square_loop_pipe::new(),
+            )
             .expect("failed to create the outline pipeline for square loop");
-        let square_loop_fan_pso = factory.create_pipeline_from_program(
-            &square_loop_program,
-            gfx::Primitive::TriangleList,
-            gfx::state::Rasterizer::new_fill(),
-            square_loop_pipe::new())
+        let square_loop_fan_pso = factory
+            .create_pipeline_from_program(
+                &square_loop_program,
+                gfx::Primitive::TriangleList,
+                gfx::state::Rasterizer::new_fill(),
+                square_loop_pipe::new(),
+            )
             .expect("failed to create the outline pipeline for square loop");
 
         let pillar_vertex_data = (0..PILLAR_POINT_NUM)
@@ -823,15 +883,19 @@ impl<R> ShapeDraw<R>
             .collect::<Vec<_>>();
         let pillar_vbuf = factory.create_vertex_buffer(&pillar_vertex_data);
 
-        let pillar_shader = factory.create_shader_vertex(include_bytes!("shader/pillar.glslv"))
+        let pillar_shader = factory
+            .create_shader_vertex(include_bytes!("shader/pillar.glslv"))
             .expect("failed to compile the pillar shader for base shapes");
-        let pillar_program = factory.create_program(&gfx::ShaderSet::Simple(pillar_shader, frag_shader.clone()))
+        let pillar_program = factory
+            .create_program(&gfx::ShaderSet::Simple(pillar_shader, frag_shader.clone()))
             .expect("failed to link the pillar shader");
-        let pillar_pso = factory.create_pipeline_from_program(
-            &pillar_program,
-            gfx::Primitive::TriangleList,
-            gfx::state::Rasterizer::new_fill(),
-            pillar_pipe::new())
+        let pillar_pso = factory
+            .create_pipeline_from_program(
+                &pillar_program,
+                gfx::Primitive::TriangleList,
+                gfx::state::Rasterizer::new_fill(),
+                pillar_pipe::new(),
+            )
             .expect("failed to create the outline pipeline for pillar");
 
         let modelmat = factory.create_constant_buffer(1);
@@ -932,7 +996,8 @@ impl<R> ShapeDraw<R>
     }
 
     fn draw_command<C>(&self, encoder: &mut gfx::Encoder<R, C>, command: &ShapeCommand, front: bool)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
         let color = Color {
             color: command.color.into(),
@@ -945,10 +1010,14 @@ impl<R> ShapeDraw<R>
         encoder.update_constant_buffer(&self.shape, &shape);
 
         let cmd_category = &command.category;
-        let slice = self.slice_map.get(&cmd_category.slice_kind())
+        let slice = self
+            .slice_map
+            .get(&cmd_category.slice_kind())
             .expect("expected to have a slice for a command");
         match *cmd_category {
-            ShapeCategory::Loop { closure, .. } => {
+            ShapeCategory::Loop {
+                closure, ..
+            } => {
                 let pso = match closure {
                     Closure::Open => &self.loop_outline_pso,
                     Closure::Closed => &self.loop_fan_pso,
@@ -961,7 +1030,10 @@ impl<R> ShapeDraw<R>
 
                 encoder.draw(slice, pso, data)
             },
-            ShapeCategory::SquareLoop { y_ratio, closure } => {
+            ShapeCategory::SquareLoop {
+                y_ratio,
+                closure,
+            } => {
                 let square_loop = SquareLoop {
                     y_ratio: y_ratio,
                 };
@@ -979,7 +1051,9 @@ impl<R> ShapeDraw<R>
 
                 encoder.draw(slice, pso, data)
             },
-            ShapeCategory::Pillar { pos } => {
+            ShapeCategory::Pillar {
+                pos,
+            } => {
                 let pillar = Pillar {
                     pos: pos.into(),
                 };
@@ -996,8 +1070,14 @@ impl<R> ShapeDraw<R>
         }
     }
 
-    fn draw_shape<C>(&self, context: &mut EncoderContext<R, C>, shape: &Shape, modelmat: Matrix4<f32>, front: bool)
-        where C: gfx::CommandBuffer<R>,
+    fn draw_shape<C>(
+        &self,
+        context: &mut EncoderContext<R, C>,
+        shape: &Shape,
+        modelmat: Matrix4<f32>,
+        front: bool,
+    ) where
+        C: gfx::CommandBuffer<R>,
     {
         let modelmat = ModelMat {
             modelmat: modelmat.into(),
@@ -1009,24 +1089,35 @@ impl<R> ShapeDraw<R>
             distance_ratio: shape.base.distance_ratio,
             spiny_ratio: shape.base.spiny_ratio,
         };
-        context.encoder.update_constant_buffer(&self.modelmat, &modelmat);
+        context
+            .encoder
+            .update_constant_buffer(&self.modelmat, &modelmat);
         context.encoder.update_constant_buffer(&self.size, &size);
-        context.encoder.update_constant_buffer(&self.loop_data.loop_, &loop_);
+        context
+            .encoder
+            .update_constant_buffer(&self.loop_data.loop_, &loop_);
 
-        shape.commands
+        shape
+            .commands
             .iter()
             .take(shape.num_commands)
             .foreach(|command| self.draw_command(context.encoder, command, front))
     }
 
     pub fn draw<C>(&self, context: &mut EncoderContext<R, C>, shape: &Shape, modelmat: Matrix4<f32>)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
         self.draw_shape(context, shape, modelmat, false)
     }
 
-    pub fn draw_front<C>(&self, context: &mut EncoderContext<R, C>, shape: &Shape, modelmat: Matrix4<f32>)
-        where C: gfx::CommandBuffer<R>,
+    pub fn draw_front<C>(
+        &self,
+        context: &mut EncoderContext<R, C>,
+        shape: &Shape,
+        modelmat: Matrix4<f32>,
+    ) where
+        C: gfx::CommandBuffer<R>,
     {
         self.draw_shape(context, shape, modelmat, true)
     }

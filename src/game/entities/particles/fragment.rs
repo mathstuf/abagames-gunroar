@@ -9,8 +9,8 @@ use crates::itertools::Itertools;
 
 use game::entities::field::Field;
 use game::entities::particles::{Smoke, SmokeKind};
-use game::render::{EncoderContext, RenderContext};
 use game::render::{Brightness, ScreenTransform};
+use game::render::{EncoderContext, RenderContext};
 
 use std::str;
 
@@ -46,7 +46,12 @@ impl Fragment {
         self.angle_rate = Rad(rand.next_float_signed(Rad::<f32>::full_turn().0 / 18.));
     }
 
-    pub fn step(&mut self, field: &Field, smokes: &mut Pool<Smoke>, rand: &mut Rand) -> PoolRemoval {
+    pub fn step(
+        &mut self,
+        field: &Field,
+        smokes: &mut Pool<Smoke>,
+        rand: &mut Rand,
+    ) -> PoolRemoval {
         if !field.is_in_outer_field(self.pos.truncate()) {
             return PoolRemoval::Remove;
         }
@@ -55,7 +60,8 @@ impl Fragment {
             self.vel.x * 0.96,
             self.vel.y * 0.96,
             self.vel.z + (-0.04 - self.vel.z) * 0.01,
-        ].into();
+        ]
+        .into();
         self.pos += self.vel;
 
         if self.pos.z < 0. {
@@ -64,8 +70,14 @@ impl Fragment {
             } else {
                 (SmokeKind::Wake, 0.66)
             };
-            smokes.get_force()
-                .init(self.pos, [0., 0., 0.].into(), kind, 60, self.size * size_factor, rand);
+            smokes.get_force().init(
+                self.pos,
+                [0., 0., 0.].into(),
+                kind,
+                60,
+                self.size * size_factor,
+                rand,
+            );
             return PoolRemoval::Remove;
         }
         self.pos.y -= field.last_scroll_y();
@@ -75,9 +87,9 @@ impl Fragment {
     }
 
     fn modelmat(&self) -> Matrix4<f32> {
-        Matrix4::from_translation(self.pos) *
-            Matrix4::from_axis_angle(Vector3::unit_x(), -self.angle) *
-            Matrix4::from_nonuniform_scale(self.size, self.size, 1.)
+        Matrix4::from_translation(self.pos)
+            * Matrix4::from_axis_angle(Vector3::unit_x(), -self.angle)
+            * Matrix4::from_nonuniform_scale(self.size, self.size, 1.)
     }
 }
 
@@ -112,7 +124,8 @@ gfx_defines! {
 }
 
 pub struct FragmentDraw<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
     fan_slice: gfx::Slice<R>,
     fan_pso: gfx::PipelineState<R, <pipe::Data<R> as gfx::pso::PipelineData<R>>::Meta>,
@@ -124,12 +137,16 @@ pub struct FragmentDraw<R>
 }
 
 impl<R> FragmentDraw<R>
-    where R: gfx::Resources,
+where
+    R: gfx::Resources,
 {
-    pub fn new<F>(factory: &mut F, view: gfx::handle::RenderTargetView<R, TargetFormat>,
-                  context: &RenderContext<R>)
-                  -> Self
-        where F: gfx::Factory<R>,
+    pub fn new<F>(
+        factory: &mut F,
+        view: gfx::handle::RenderTargetView<R, TargetFormat>,
+        context: &RenderContext<R>,
+    ) -> Self
+    where
+        F: gfx::Factory<R>,
     {
         let data = [
             Vertex { pos: [-0.5, -0.25] },
@@ -139,31 +156,36 @@ impl<R> FragmentDraw<R>
         ];
 
         let vbuf = factory.create_vertex_buffer(&data);
-        let outline_slice = abagames_util::slice_for_loop::<R, F>(factory,
-                                                                  data.len() as u32);
+        let outline_slice = abagames_util::slice_for_loop::<R, F>(factory, data.len() as u32);
         let fan_slice = abagames_util::slice_for_fan::<R, F>(factory, data.len() as u32);
 
-        let program = factory.link_program(
-            include_bytes!("shader/fragment.glslv"),
-            include_bytes!("shader/fragment.glslf"))
+        let program = factory
+            .link_program(
+                include_bytes!("shader/fragment.glslv"),
+                include_bytes!("shader/fragment.glslf"),
+            )
             .expect("could not link the fragment shader");
-        let outline_pso = factory.create_pipeline_from_program(
-            &program,
-            gfx::Primitive::LineStrip,
-            gfx::state::Rasterizer {
-                front_face: gfx::state::FrontFace::CounterClockwise,
-                cull_face: gfx::state::CullFace::Nothing,
-                method: gfx::state::RasterMethod::Line(1),
-                offset: None,
-                samples: None,
-            },
-            pipe::new())
+        let outline_pso = factory
+            .create_pipeline_from_program(
+                &program,
+                gfx::Primitive::LineStrip,
+                gfx::state::Rasterizer {
+                    front_face: gfx::state::FrontFace::CounterClockwise,
+                    cull_face: gfx::state::CullFace::Nothing,
+                    method: gfx::state::RasterMethod::Line(1),
+                    offset: None,
+                    samples: None,
+                },
+                pipe::new(),
+            )
             .expect("failed to create the outline pipeline for letter");
-        let fan_pso = factory.create_pipeline_from_program(
-            &program,
-            gfx::Primitive::TriangleList,
-            gfx::state::Rasterizer::new_fill(),
-            pipe::new())
+        let fan_pso = factory
+            .create_pipeline_from_program(
+                &program,
+                gfx::Primitive::TriangleList,
+                gfx::state::Rasterizer::new_fill(),
+                pipe::new(),
+            )
             .expect("failed to create the fill pipeline for letter");
 
         let data = pipe::Data {
@@ -187,26 +209,36 @@ impl<R> FragmentDraw<R>
     }
 
     pub fn draw<C>(&self, context: &mut EncoderContext<R, C>, fragments: &Pool<Fragment>)
-        where C: gfx::CommandBuffer<R>,
+    where
+        C: gfx::CommandBuffer<R>,
     {
-        fragments.iter()
-            .foreach(|fragment| {
-                let modelmat = ModelMat {
-                    modelmat: fragment.modelmat().into(),
-                };
-                context.encoder.update_constant_buffer(&self.data.modelmat, &modelmat);
+        fragments.iter().foreach(|fragment| {
+            let modelmat = ModelMat {
+                modelmat: fragment.modelmat().into(),
+            };
+            context
+                .encoder
+                .update_constant_buffer(&self.data.modelmat, &modelmat);
 
-                let alpha = Alpha {
-                    alpha: 0.5,
-                };
-                context.encoder.update_constant_buffer(&self.data.alpha, &alpha);
-                context.encoder.draw(&self.fan_slice, &self.fan_pso, &self.data);
+            let alpha = Alpha {
+                alpha: 0.5,
+            };
+            context
+                .encoder
+                .update_constant_buffer(&self.data.alpha, &alpha);
+            context
+                .encoder
+                .draw(&self.fan_slice, &self.fan_pso, &self.data);
 
-                let alpha = Alpha {
-                    alpha: 0.9,
-                };
-                context.encoder.update_constant_buffer(&self.data.alpha, &alpha);
-                context.encoder.draw(&self.outline_slice, &self.outline_pso, &self.data);
-            });
+            let alpha = Alpha {
+                alpha: 0.9,
+            };
+            context
+                .encoder
+                .update_constant_buffer(&self.data.alpha, &alpha);
+            context
+                .encoder
+                .draw(&self.outline_slice, &self.outline_pso, &self.data);
+        });
     }
 }
