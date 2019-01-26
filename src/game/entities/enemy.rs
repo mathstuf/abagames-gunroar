@@ -89,11 +89,10 @@ impl BaseEnemySpec {
 
             shapes: EnemyShapes::new(EnemyKind::SmallShip),
 
-            turret_groups: [TurretGroupSpecBuilder::default().into(); MAX_TURRET_GROUPS],
+            turret_groups: [TurretGroupSpec::default(); MAX_TURRET_GROUPS],
             num_turret_groups: 0,
 
-            moving_turret_groups: [MovingTurretGroupSpecBuilder::default().into();
-                MAX_MOVING_TURRET_GROUPS],
+            moving_turret_groups: [MovingTurretGroupSpec::default(); MAX_MOVING_TURRET_GROUPS],
             num_moving_turret_groups: 0,
         }
     }

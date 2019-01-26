@@ -761,12 +761,31 @@ pub struct TurretGroupSpec {
 }
 
 impl TurretGroupSpec {
+    fn new() -> Self {
+        TurretGroupSpec {
+            spec: TurretSpec::new(),
+            offset: (0., 0.).into(),
+            count: 1,
+            alignment: TurretGroupAlignment::Round,
+            align_width: 0.,
+            align: Rad(0.),
+            radius: 0.,
+            distance_ratio: 0.,
+        }
+    }
+
     pub fn set_color(&mut self, color: Vector3<f32>) {
         self.spec.shapes.set_color(color);
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+impl Default for TurretGroupSpec {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[derive(Debug, Default, Clone, Copy)]
 pub struct TurretGroupSpecBuilder {
     spec: TurretGroupSpec,
 }
@@ -814,23 +833,6 @@ impl TurretGroupSpecBuilder {
     }
 }
 
-impl Default for TurretGroupSpecBuilder {
-    fn default() -> Self {
-        TurretGroupSpecBuilder {
-            spec: TurretGroupSpec {
-                spec: TurretSpec::new(),
-                offset: (0., 0.).into(),
-                count: 1,
-                alignment: TurretGroupAlignment::Round,
-                align_width: 0.,
-                align: Rad(0.),
-                radius: 0.,
-                distance_ratio: 0.,
-            },
-        }
-    }
-}
-
 impl From<TurretGroupSpecBuilder> for TurretGroupSpec {
     fn from(builder: TurretGroupSpecBuilder) -> Self {
         builder.spec
@@ -866,7 +868,7 @@ pub struct TurretGroup {
 impl TurretGroup {
     pub fn new() -> Self {
         TurretGroup {
-            spec: TurretGroupSpecBuilder::default().into(),
+            spec: TurretGroupSpec::default(),
             turrets: [Turret::new(); MAX_TURRETS_GROUP],
         }
     }
@@ -1081,7 +1083,35 @@ pub struct MovingTurretGroupSpec {
     x_reverse: f32,
 }
 
-#[derive(Debug, Clone, Copy)]
+impl MovingTurretGroupSpec {
+    fn new() -> Self {
+        MovingTurretGroupSpec {
+            spec: TurretSpec::new(),
+            count: 1,
+            align: Rad::full_turn(),
+            align_amplitude: 0.,
+            align_amplitude_velocity: Rad(0.),
+            radius_base: 2.,
+            radius_amplitude: 0.,
+            radius_amplitude_velocity: Rad(0.),
+            data: MovingTurretData::Roll(RollData {
+                roll_velocity: Rad(0.),
+                roll_amplitude: Rad(0.),
+                roll_amplitude_velocity: Rad(0.),
+            }),
+            distance_ratio: 0.,
+            x_reverse: 1.,
+        }
+    }
+}
+
+impl Default for MovingTurretGroupSpec {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[derive(Debug, Default, Clone, Copy)]
 pub struct MovingTurretGroupSpecBuilder {
     spec: MovingTurretGroupSpec,
 }
@@ -1163,30 +1193,6 @@ impl MovingTurretGroupSpecBuilder {
     }
 }
 
-impl Default for MovingTurretGroupSpecBuilder {
-    fn default() -> Self {
-        MovingTurretGroupSpecBuilder {
-            spec: MovingTurretGroupSpec {
-                spec: TurretSpec::new(),
-                count: 1,
-                align: Rad::full_turn(),
-                align_amplitude: 0.,
-                align_amplitude_velocity: Rad(0.),
-                radius_base: 2.,
-                radius_amplitude: 0.,
-                radius_amplitude_velocity: Rad(0.),
-                data: MovingTurretData::Roll(RollData {
-                    roll_velocity: Rad(0.),
-                    roll_amplitude: Rad(0.),
-                    roll_amplitude_velocity: Rad(0.),
-                }),
-                distance_ratio: 0.,
-                x_reverse: 1.,
-            },
-        }
-    }
-}
-
 impl From<MovingTurretGroupSpecBuilder> for MovingTurretGroupSpec {
     fn from(builder: MovingTurretGroupSpecBuilder) -> Self {
         builder.spec
@@ -1234,7 +1240,7 @@ pub struct MovingTurretGroup {
 impl MovingTurretGroup {
     pub fn new() -> Self {
         MovingTurretGroup {
-            spec: MovingTurretGroupSpecBuilder::default().into(),
+            spec: MovingTurretGroupSpec::default(),
             radius: 0.,
             radius_amplitude: Rad(0.),
             angle: Rad(0.),
