@@ -12,10 +12,7 @@ macro_rules! music {
 
 macro_rules! sfx {
     ( $name:expr, $channel:expr ) => {
-        (
-            $name,
-            include_bytes!(concat!("sounds/chunks/", $name, ".wav")),
-        )
+        ($name, include_bytes!(concat!("sounds/chunks/", $name, ".wav")), $channel)
     };
 }
 
@@ -27,7 +24,7 @@ lazy_static! {
         music!("gr3"),
     ];
 
-    pub static ref SFX_DATA: Vec<(&'static str, &'static [u8])> = vec![
+    pub static ref SFX_DATA: Vec<(&'static str, &'static [u8], i32)> = vec![
         sfx!("destroyed", 4),
         sfx!("explode", 6),
         sfx!("hit", 2),

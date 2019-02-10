@@ -52,7 +52,6 @@ where
 {
     state: State,
     lives: u32,
-    with_sound: bool,
 
     rand: Rand,
 
@@ -141,8 +140,8 @@ impl GameData {
     }
 }
 
-pub struct GameStateContext<'a> {
-    pub audio: &'a mut Audio,
+pub struct GameStateContext<'a, 'b: 'a> {
+    pub audio: Option<&'a mut Audio<'b>>,
 
     pub data: &'a mut GameData,
 }
@@ -162,7 +161,6 @@ where
         factory: &mut F,
         view: gfx::handle::RenderTargetView<R, TargetFormat>,
         context: &RenderContext<R>,
-        with_sound: bool,
     ) -> Self
     where
         F: gfx::Factory<R>,
@@ -170,7 +168,6 @@ where
         GameState {
             state: State::default(),
             lives: 2,
-            with_sound: with_sound,
 
             rand: Rand::new(),
 
@@ -218,22 +215,17 @@ where
     }
 
     fn init_title(&mut self, context: &mut GameStateContext) {
-        context
-            .audio
-            .set_music_enabled(false)
-            .set_sfx_enabled(false)
-            .halt();
+        if let Some(ref mut audio) = context.audio {
+            audio.set_music_enabled(false)
+                .set_sfx_enabled(false)
+                .halt();
+        }
 
         self.title.init();
         self.field.init(&mut self.rand);
     }
 
     fn init_game(&mut self, context: &mut GameStateContext) {
-        context
-            .audio
-            .set_music_enabled(self.with_sound)
-            .set_sfx_enabled(self.with_sound);
-
         self.stage.init(1., context, &mut self.rand);
         self.field.init(&mut self.rand);
         // self.ship.init();
@@ -411,7 +403,7 @@ where
         self.reel.step();
 
         context.data.update_reel();
-        context.audio.play_sfx();
+        context.audio.as_mut().map(|audio| audio.play_sfx());
 
         StepResult::Slowdown(0.)
     }

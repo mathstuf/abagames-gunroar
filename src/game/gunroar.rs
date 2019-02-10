@@ -1,12 +1,11 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-use crates::abagames_util::{Audio, Event, Game, Input, Resources, SdlInfo, StepResult};
+use crates::abagames_util::{Event, Game, Input, Resources, SdlInfo, StepResult};
 use crates::sdl2::event::WindowEvent;
 
 use std::fmt::{self, Display};
 
-use game::data;
 use game::render::RenderContext;
 use game::state::{GameData, GameState, GameStateContext};
 
@@ -19,36 +18,32 @@ impl Display for Error {
     }
 }
 
-pub struct Gunroar<'a> {
+pub struct Gunroar<'a, 'b: 'a> {
     global_render: RenderContext<Resources>,
     state: GameState<Resources>,
 
-    info: &'a mut SdlInfo,
-    audio: Audio,
+    info: &'a mut SdlInfo<'b>,
 
     backgrounded: bool,
 
     data: GameData,
 }
 
-impl<'a> Gunroar<'a> {
-    pub fn new(info: &'a mut SdlInfo, brightness: f32, with_sound: bool) -> Self {
+impl<'a, 'b> Gunroar<'a, 'b> {
+    pub fn new(info: &'a mut SdlInfo<'b>, brightness: f32) -> Self {
         let (render, state) = {
             let (factory, view) = info.video.factory_view();
             let render = RenderContext::new(factory, brightness);
-            let state = GameState::new(factory, view.clone(), &render, with_sound);
+            let state = GameState::new(factory, view.clone(), &render);
 
             (render, state)
         };
-        let audio = Audio::new(data::MUSIC_DATA.iter(), data::SFX_DATA.iter())
-            .expect("failed to decode audio data?");
 
         Gunroar {
             global_render: render,
             state: state,
 
             info: info,
-            audio: audio,
 
             backgrounded: false,
 
@@ -57,12 +52,12 @@ impl<'a> Gunroar<'a> {
     }
 }
 
-impl<'a> Game for Gunroar<'a> {
+impl<'a, 'b> Game for Gunroar<'a, 'b> {
     type Error = Error;
 
     fn init(&mut self) -> Result<(), Error> {
         let mut context = GameStateContext {
-            audio: &mut self.audio,
+            audio: self.info.audio.as_mut(),
 
             data: &mut self.data,
         };
@@ -111,7 +106,7 @@ impl<'a> Game for Gunroar<'a> {
 
     fn step(&mut self, input: &Input) -> Result<StepResult, Error> {
         let mut context = GameStateContext {
-            audio: &mut self.audio,
+            audio: self.info.audio.as_mut(),
 
             data: &mut self.data,
         };

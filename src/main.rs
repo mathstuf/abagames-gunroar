@@ -123,13 +123,15 @@ fn try_main() -> Result<(), Error> {
 
     let mut builder = SdlBuilder::new("gunroar")?;
     let (mut info, mainloop) = builder
+        .with_audio(!matches.is_present("NO_SOUND"))
         //.windowed_mode(matches.is_present("WINDOWED"))
         .windowed_mode(true)
+        .with_music(game::data::MUSIC_DATA.iter())
+        .with_sfx(game::data::SFX_DATA.iter())
         .build()?;
     let game = Gunroar::new(
         &mut info,
         brightness / 100.,
-        !matches.is_present("NO_SOUND"),
     );
     mainloop.run(game)?;
 
