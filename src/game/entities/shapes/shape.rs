@@ -372,7 +372,8 @@ impl ShapePoint {
 }
 
 /// The most number of commands any shape will require for drawing.
-const MAX_SHAPE_COMMANDS: usize = 5;
+const MAX_SHAPE_COMMANDS_U8: u8 = 5;
+const MAX_SHAPE_COMMANDS: usize = MAX_SHAPE_COMMANDS_U8 as usize;
 /// The number of pillars in a turret.
 const NUM_PILLARS: usize = 4;
 
@@ -481,7 +482,7 @@ pub struct Shape {
     collision: Collision,
 
     commands: [ShapeCommand; MAX_SHAPE_COMMANDS],
-    num_commands: usize,
+    num_commands: u8,
 }
 
 impl Shape {
@@ -627,7 +628,8 @@ impl Shape {
 
     /// Queue a command for drawing.
     fn add_command(&mut self, command: ShapeCommand) {
-        self.commands[self.num_commands] = command;
+        assert!(self.num_commands < MAX_SHAPE_COMMANDS_U8);
+        self.commands[self.num_commands as usize] = command;
         self.num_commands += 1;
     }
 }
@@ -1104,7 +1106,7 @@ where
         shape
             .commands
             .iter()
-            .take(shape.num_commands)
+            .take(shape.num_commands as usize)
             .foreach(|command| self.draw_command(context.encoder, command, front))
     }
 

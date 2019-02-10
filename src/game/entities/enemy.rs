@@ -56,21 +56,23 @@ impl EnemyKind {
     }
 }
 
-const MAX_TURRET_GROUPS: usize = 10;
-const MAX_MOVING_TURRET_GROUPS: usize = 4;
+const MAX_TURRET_GROUPS_U8: u8 = 10;
+const MAX_TURRET_GROUPS: usize = MAX_TURRET_GROUPS_U8 as usize;
+const MAX_MOVING_TURRET_GROUPS_U8: u8 = 4;
+const MAX_MOVING_TURRET_GROUPS: usize = MAX_MOVING_TURRET_GROUPS_U8 as usize;
 
 #[derive(Debug, Clone, Copy)]
-struct BaseEnemySpec {
+pub struct BaseEnemySpec {
     kind: EnemyKind,
     distance_ratio: f32,
 
     shapes: EnemyShapes,
 
     turret_groups: [TurretGroupSpec; MAX_TURRET_GROUPS],
-    num_turret_groups: usize,
+    num_turret_groups: u8,
 
     moving_turret_groups: [MovingTurretGroupSpec; MAX_MOVING_TURRET_GROUPS],
-    num_moving_turret_groups: usize,
+    num_moving_turret_groups: u8,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -274,18 +276,20 @@ impl BaseEnemySpec {
     fn recolor(&mut self, color_factor: f32) {
         let color = EnemyShapes::color(color_factor);
         self.shapes.set_color(color);
-        self.turret_groups[0..self.num_turret_groups]
+        self.turret_groups[0..self.num_turret_groups as usize]
             .par_iter_mut()
             .for_each(|group| group.set_color(color));
     }
 
     fn add_turret_group(&mut self, spec: TurretGroupSpec) {
-        self.turret_groups[self.num_turret_groups] = spec;
+        assert!(self.num_turret_groups < MAX_TURRET_GROUPS_U8);
+        self.turret_groups[self.num_turret_groups as usize] = spec;
         self.num_turret_groups += 1;
     }
 
     fn add_moving_turret_group(&mut self, spec: MovingTurretGroupSpec) {
-        self.moving_turret_groups[self.num_moving_turret_groups] = spec;
+        assert!(self.num_moving_turret_groups < MAX_MOVING_TURRET_GROUPS_U8);
+        self.moving_turret_groups[self.num_moving_turret_groups as usize] = spec;
         self.num_moving_turret_groups += 1;
     }
 }
@@ -974,11 +978,11 @@ impl EnemySpec {
     }
 
     pub fn turret_group_specs(&self) -> &[TurretGroupSpec] {
-        &self.spec.turret_groups[0..self.spec.num_turret_groups]
+        &self.spec.turret_groups[0..self.spec.num_turret_groups as usize]
     }
 
     pub fn moving_turret_group_specs(&self) -> &[MovingTurretGroupSpec] {
-        &self.spec.moving_turret_groups[0..self.spec.num_moving_turret_groups]
+        &self.spec.moving_turret_groups[0..self.spec.num_moving_turret_groups as usize]
     }
 
     fn shield(&self) -> u32 {
