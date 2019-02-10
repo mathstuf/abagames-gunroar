@@ -384,8 +384,7 @@ pub struct BaseShape {
     size: f32,
     color: Vector3<f32>,
 
-    pillars: [Vector2<f32>; NUM_PILLARS],
-    num_pillars: usize,
+    pillars: Option<[Vector2<f32>; NUM_PILLARS]>,
 
     points: [ShapePoint; POINT_NUM],
     num_points: usize,
@@ -406,12 +405,13 @@ impl BaseShape {
             size: size,
             color: color,
 
-            pillars: [(0., 0.).into(); NUM_PILLARS],
-            num_pillars: 0,
+            pillars: None,
 
             points: [ShapePoint::new(); POINT_NUM],
             num_points: 0,
         };
+
+        let mut num_pillars = 0;
 
         if shape.kind != ShapeKind::Bridge {
             let category = shape.kind.loop_category();
@@ -432,8 +432,10 @@ impl BaseShape {
                     || i == POINT_NUM_Q58
                     || i == POINT_NUM_Q78
                 {
-                    shape.pillars[shape.num_pillars] = pos * 0.8;
-                    shape.num_pillars += 1;
+                    shape.pillars
+                        .get_or_insert_with(|| [(0., 0.).into(); NUM_PILLARS])
+                        [num_pillars] = pos * 0.8;
+                    num_pillars += 1;
                 }
                 shape.points[shape.num_points] = ShapePoint {
                     pos: pos,
@@ -558,10 +560,11 @@ impl Shape {
             ShapeKind::Platform | ShapeKind::PlatformDamaged | ShapeKind::PlatformDestroyed => {
                 let color = 0.4 * self.base.color;
                 let size = self.size * 0.2;
+                let pillars = self.base.pillars.as_ref().expect("Platform enemies should have pillars.");
                 (0..3).fold(0., |z, _| {
                     let new_z = z - height / 3.;
-                    for pillar in 0..self.base.num_pillars {
-                        let pos = self.base.pillars[pillar];
+                    for pillar in 0..NUM_PILLARS {
+                        let pos = pillars[pillar];
                         self.add_pillar(size, new_z, color, pos)
                     }
                     new_z
