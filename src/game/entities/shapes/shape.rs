@@ -572,13 +572,13 @@ impl Shape {
             ShapeKind::Bridge | ShapeKind::Turret | ShapeKind::TurretDamaged => {
                 let outline_color = 0.6 * self.base.color;
                 let fill_color = 0.25 * self.base.color;
-                let (size, y_ratio) = if self.base.kind == ShapeKind::Bridge {
-                    (self.size, 1.)
+                let (z, y_ratio) = if self.base.kind == ShapeKind::Bridge {
+                    (height, 1.)
                 } else {
-                    (self.size / 4., 3.)
+                    (height / 2., 3.)
                 };
-                self.add_square_loop(0.67, size, outline_color, Closure::Open, y_ratio);
-                self.add_square_loop(0.67, size, fill_color, Closure::Closed, y_ratio);
+                self.add_square_loop(0.67, z, outline_color, Closure::Open, y_ratio);
+                self.add_square_loop(0.67, z, fill_color, Closure::Closed, y_ratio);
             },
             ShapeKind::TurretDestroyed => (),
         }
