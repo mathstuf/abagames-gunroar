@@ -17,30 +17,33 @@ lazy_static! {
         0.,
         (0.8, 0.33, 0.66).into()
     );
+
+    static ref NORMAL_SHAPE: Shape = Shape::new_collidable(&NORMAL);
+    static ref DAMAGED_SHAPE: Shape = Shape::new(&DAMAGED);
 }
 
 #[derive(Debug, Clone, Copy)]
 pub struct TurretShapes {
-    normal: Shape,
-    damaged: Shape,
+    normal: &'static Shape,
+    damaged: &'static Shape,
     destroyed: Shape,
 }
 
 impl TurretShapes {
     pub fn new() -> Self {
         TurretShapes {
-            normal: Shape::new_collidable(&NORMAL),
-            damaged: Shape::new(&DAMAGED),
+            normal: &*NORMAL_SHAPE,
+            damaged: &*DAMAGED_SHAPE,
             destroyed: Shape::new(&DESTROYED),
         }
     }
 
     pub fn normal(&self) -> &Shape {
-        &self.normal
+        self.normal
     }
 
     pub fn damaged(&self) -> &Shape {
-        &self.damaged
+        self.damaged
     }
 
     pub fn destroyed(&self) -> &Shape {
