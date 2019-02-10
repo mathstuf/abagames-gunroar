@@ -245,8 +245,8 @@ enum ShapeCategory {
         y_ratio: f32,
         closure: Closure,
     },
-    Pillar {
-        pos: Vector2<f32>,
+    Pillars {
+        pos: [Vector2<f32>; NUM_PILLARS],
     },
 }
 
@@ -267,7 +267,7 @@ impl ShapeCategory {
             ShapeCategory::SquareLoop {
                 closure, ..
             } => SliceKind::SquareLoop(closure),
-            ShapeCategory::Pillar {
+            ShapeCategory::Pillars {
                 ..
             } => SliceKind::Pillar,
         }
@@ -290,8 +290,9 @@ struct ShapeCommand {
 impl ShapeCommand {
     const fn new() -> Self {
         ShapeCommand {
-            category: ShapeCategory::Pillar {
-                pos: Vector2::new(0., 0.),
+            category: ShapeCategory::SquareLoop {
+                y_ratio: 0.,
+                closure: Closure::Open,
             },
             color: Vector3::new(0., 0., 0.),
             size_factor: 0.,
@@ -371,7 +372,7 @@ impl ShapePoint {
 }
 
 /// The most number of commands any shape will require for drawing.
-const MAX_SHAPE_COMMANDS: usize = 14;
+const MAX_SHAPE_COMMANDS: usize = 5;
 /// The number of pillars in a turret.
 const NUM_PILLARS: usize = 4;
 
@@ -563,10 +564,7 @@ impl Shape {
                 let pillars = self.base.pillars.as_ref().expect("Platform enemies should have pillars.");
                 (0..3).fold(0., |z, _| {
                     let new_z = z - height / 3.;
-                    for pillar in 0..NUM_PILLARS {
-                        let pos = pillars[pillar];
-                        self.add_pillar(size, new_z, color, pos)
-                    }
+                    self.add_pillars(size, new_z, color, *pillars);
                     new_z
                 });
             },
@@ -616,9 +614,9 @@ impl Shape {
         })
     }
 
-    fn add_pillar(&mut self, size_factor: f32, z: f32, color: Vector3<f32>, pos: Vector2<f32>) {
+    fn add_pillars(&mut self, size_factor: f32, z: f32, color: Vector3<f32>, pos: [Vector2<f32>; NUM_PILLARS]) {
         self.add_command(ShapeCommand {
-            category: ShapeCategory::Pillar {
+            category: ShapeCategory::Pillars {
                 pos: pos,
             },
             color: color,
@@ -1054,21 +1052,24 @@ where
 
                 encoder.draw(slice, pso, data)
             },
-            ShapeCategory::Pillar {
+            ShapeCategory::Pillars {
                 pos,
             } => {
-                let pillar = Pillar {
-                    pos: pos.into(),
-                };
-                encoder.update_constant_buffer(&self.pillar_data.pillar, &pillar);
+                pos.iter()
+                    .for_each(|&pos| {
+                        let pillar = Pillar {
+                            pos: pos.into(),
+                        };
+                        encoder.update_constant_buffer(&self.pillar_data.pillar, &pillar);
 
-                let data = if front {
-                    &self.pillar_data_front
-                } else {
-                    &self.pillar_data
-                };
+                        let data = if front {
+                            &self.pillar_data_front
+                        } else {
+                            &self.pillar_data
+                        };
 
-                encoder.draw(slice, &self.pillar_pso, data)
+                        encoder.draw(slice, &self.pillar_pso, data)
+                    })
             },
         }
     }
