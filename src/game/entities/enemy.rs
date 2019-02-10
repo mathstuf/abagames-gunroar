@@ -1459,7 +1459,7 @@ impl EnemyState {
 
     fn check_front<'a, I>(&self, current: bool, spec: &EnemySpec, field: &Field, enemies: I) -> bool
     where
-        I: Clone + IntoIterator<Item = &'a Enemy>,
+        I: Clone + Iterator<Item = &'a Enemy>,
     {
         let angle: Vector2<f32> = self.angle.sin_cos().into();
         let angle = spec.size * angle;
@@ -1474,7 +1474,6 @@ impl EnemyState {
 
             enemies
                 .clone()
-                .into_iter()
                 .filter_map(|enemy| {
                     if !enemy.spec.is_large() {
                         None
