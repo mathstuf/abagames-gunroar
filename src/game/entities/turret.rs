@@ -44,15 +44,15 @@ struct TurretParams {
 }
 
 impl TurretKind {
-    fn is_sub(&self) -> bool {
-        match *self {
+    fn is_sub(self) -> bool {
+        match self {
             TurretKind::Sub | TurretKind::SubDestructive => true,
             _ => false,
         }
     }
 
-    fn init_spec_phase1(&self, rank: f32, spec: &mut TurretSpec, rand: &mut Rand) -> f32 {
-        match *self {
+    fn init_spec_phase1(self, rank: f32, spec: &mut TurretSpec, rand: &mut Rand) -> f32 {
+        match self {
             TurretKind::Small => {
                 spec.min_range = 8.;
                 spec.bullet_shape = BulletShapeKind::Small;
@@ -103,8 +103,8 @@ impl TurretKind {
         }
     }
 
-    fn init_spec_phase2(&self, rank: f32, spec: &mut TurretSpec, rand: &mut Rand) {
-        let params = match *self {
+    fn init_spec_phase2(self, rank: f32, spec: &mut TurretSpec, rand: &mut Rand) {
+        let params = match self {
             TurretKind::Main => {
                 TurretParams {
                     size_offset: 0.42,
@@ -334,11 +334,11 @@ pub struct TurretScore {
 }
 
 impl TurretScore {
-    pub fn score(&self) -> u32 {
+    pub fn score(self) -> u32 {
         self.score
     }
 
-    pub fn multiplier(&self) -> f32 {
+    pub fn multiplier(self) -> f32 {
         self.multiplier
     }
 }

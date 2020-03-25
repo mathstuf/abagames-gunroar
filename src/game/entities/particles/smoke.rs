@@ -26,8 +26,8 @@ pub enum SmokeKind {
 }
 
 impl SmokeKind {
-    fn color(&self, rand: &mut Rand) -> Vector4<f32> {
-        match *self {
+    fn color(self, rand: &mut Rand) -> Vector4<f32> {
+        match self {
             SmokeKind::Fire => {
                 [
                     rand.next_float(0.1) + 0.9,

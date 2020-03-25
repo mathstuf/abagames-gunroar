@@ -128,8 +128,8 @@ pub enum Block {
 }
 
 impl Block {
-    fn factor(&self) -> f32 {
-        match *self {
+    fn factor(self) -> f32 {
+        match self {
             Block::DeepWater => -3.,
             Block::Water => -2.,
             Block::Shore => -1.,
@@ -139,8 +139,8 @@ impl Block {
         }
     }
 
-    fn color_index(&self) -> usize {
-        match *self {
+    fn color_index(self) -> usize {
+        match self {
             Block::DeepWater => 0,
             Block::Water => 1,
             Block::Shore => 2,
@@ -151,8 +151,8 @@ impl Block {
     }
 
     #[rustfmt::skip]
-    pub fn is_dry(&self) -> bool {
-        match *self {
+    pub fn is_dry(self) -> bool {
+        match self {
             Block::DeepWater
             | Block::Water
             | Block::Shore
@@ -163,8 +163,8 @@ impl Block {
     }
 
     #[rustfmt::skip]
-    pub fn is_land(&self) -> bool {
-        match *self {
+    pub fn is_land(self) -> bool {
+        match self {
             Block::DeepWater
             | Block::Water
             | Block::Shore => false,

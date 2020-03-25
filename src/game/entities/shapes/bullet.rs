@@ -23,8 +23,8 @@ pub enum BulletShapeKind {
 }
 
 impl BulletShapeKind {
-    fn outline_color(&self) -> [f32; 3] {
-        match *self {
+    fn outline_color(self) -> [f32; 3] {
+        match self {
             BulletShapeKind::Normal => [1., 1., 0.3],
             BulletShapeKind::Small => [0.6, 0.9, 0.3],
             BulletShapeKind::MovingTurret => [0.7, 0.5, 0.9],
@@ -33,8 +33,8 @@ impl BulletShapeKind {
         .into()
     }
 
-    fn fill_color(&self) -> [f32; 3] {
-        match *self {
+    fn fill_color(self) -> [f32; 3] {
+        match self {
             BulletShapeKind::Normal => [0.5, 0.2, 0.1],
             BulletShapeKind::Small => [0.2, 0.4, 0.1],
             BulletShapeKind::MovingTurret => [0.2, 0.2, 0.3],
@@ -42,8 +42,8 @@ impl BulletShapeKind {
         }
     }
 
-    pub fn is_destructible(&self) -> bool {
-        *self == BulletShapeKind::Destructible
+    pub fn is_destructible(self) -> bool {
+        self == BulletShapeKind::Destructible
     }
 }
 

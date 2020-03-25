@@ -432,8 +432,8 @@ pub enum Direction {
 }
 
 impl Direction {
-    fn angle(&self) -> Rad<f32> {
-        Deg(match *self {
+    fn angle(self) -> Rad<f32> {
+        Deg(match self {
             Direction::Right => 0.,
             Direction::Down => 90.,
             Direction::Left => 180.,
@@ -442,11 +442,11 @@ impl Direction {
         .into()
     }
 
-    fn offset(&self, delta: Vector2<f32>) -> Vector2<f32> {
+    fn offset(self, delta: Vector2<f32>) -> Vector2<f32> {
         let dx = delta.x * Vector2::unit_x();
         let dy = delta.y * Vector2::unit_y();
 
-        match *self {
+        match self {
             Direction::Right => dx,
             Direction::Down => dy,
             Direction::Left => -dx,
@@ -578,7 +578,7 @@ impl NumberStyle {
         self.floating_digits = digits;
     }
 
-    fn is_necessary(&self) -> bool {
+    fn is_necessary(self) -> bool {
         self.pad_to.is_some() || self.floating_digits.is_some()
     }
 }

@@ -44,8 +44,8 @@ pub enum ShapeKind {
 
 impl ShapeKind {
     /// Whether the shape indicates a destroyed object or not.
-    fn is_destroyed(&self) -> bool {
-        match *self {
+    fn is_destroyed(self) -> bool {
+        match self {
             ShapeKind::ShipDestroyed
             | ShapeKind::PlatformDestroyed
             | ShapeKind::TurretDestroyed => true,
@@ -56,8 +56,8 @@ impl ShapeKind {
     /// The loop category of the shape.
     ///
     /// This is used to select the appropriate element index array for the shape.
-    fn loop_category(&self) -> LoopCategory {
-        match *self {
+    fn loop_category(self) -> LoopCategory {
+        match self {
             ShapeKind::Ship | ShapeKind::ShipDamaged | ShapeKind::ShipDestroyed => {
                 LoopCategory::Ship
             },
@@ -81,9 +81,9 @@ enum LoopCategory {
 
 impl LoopCategory {
     /// Whether the category uses the given index or not.
-    fn uses_index(&self, i: usize) -> bool {
-        !((*self != LoopCategory::Ship && POINT_NUM_Q25 < i && i <= POINT_NUM_Q35)
-            || (*self == LoopCategory::Turret && (i <= POINT_NUM_Q15 || POINT_NUM_Q45 < i)))
+    fn uses_index(self, i: usize) -> bool {
+        !((self != LoopCategory::Ship && POINT_NUM_Q25 < i && i <= POINT_NUM_Q35)
+            || (self == LoopCategory::Turret && (i <= POINT_NUM_Q15 || POINT_NUM_Q45 < i)))
     }
 }
 
@@ -95,23 +95,23 @@ enum Closure {
 }
 
 impl Closure {
-    fn make_slice<R, F>(&self, factory: &mut F, size: u32) -> gfx::Slice<R>
+    fn make_slice<R, F>(self, factory: &mut F, size: u32) -> gfx::Slice<R>
     where
         R: gfx::Resources,
         F: gfx::Factory<R>,
     {
-        match *self {
+        match self {
             Closure::Open => abagames_util::slice_for_loop(factory, size),
             Closure::Closed => abagames_util::slice_for_fan(factory, size),
         }
     }
 
-    fn make_slice_with<R, F>(&self, factory: &mut F, data: Vec<u16>) -> gfx::Slice<R>
+    fn make_slice_with<R, F>(self, factory: &mut F, data: Vec<u16>) -> gfx::Slice<R>
     where
         R: gfx::Resources,
         F: gfx::Factory<R>,
     {
-        match *self {
+        match self {
             Closure::Open => abagames_util::slice_for_loop_with(factory, &data),
             Closure::Closed => abagames_util::slice_for_fan_with(factory, &data),
         }
@@ -141,7 +141,7 @@ enum SliceBuffer {
 
 impl SliceKind {
     /// The indicies to use for a given loop category.
-    fn loop_index_buffer(&self, category: LoopCategory) -> Vec<u16> {
+    fn loop_index_buffer(self, category: LoopCategory) -> Vec<u16> {
         (0..POINT_NUM)
             .filter_map(|i| {
                 if category.uses_index(i) {
@@ -154,8 +154,8 @@ impl SliceKind {
     }
 
     /// The closure used by the slice.
-    fn closure(&self) -> Closure {
-        match *self {
+    fn closure(self) -> Closure {
+        match self {
             SliceKind::ShipLoop(closure)
             | SliceKind::TurretLoop(closure)
             | SliceKind::OtherLoop(closure)
@@ -165,8 +165,8 @@ impl SliceKind {
     }
 
     /// The loop category of the slice.
-    fn loop_category(&self) -> Option<LoopCategory> {
-        match *self {
+    fn loop_category(self) -> Option<LoopCategory> {
+        match self {
             SliceKind::ShipLoop(_) => Some(LoopCategory::Ship),
             SliceKind::TurretLoop(_) => Some(LoopCategory::Turret),
             SliceKind::OtherLoop(_) => Some(LoopCategory::Other),
@@ -175,7 +175,7 @@ impl SliceKind {
     }
 
     /// The buffer to use for a slice.
-    fn index_buffer(&self) -> SliceBuffer {
+    fn index_buffer(self) -> SliceBuffer {
         self.loop_category().map_or(SliceBuffer::All, |category| {
             SliceBuffer::Loop(self.loop_index_buffer(category))
         })

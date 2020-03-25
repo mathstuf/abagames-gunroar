@@ -37,16 +37,16 @@ pub enum EnemyKind {
 }
 
 impl EnemyKind {
-    fn is_ship(&self) -> bool {
-        if let EnemyKind::Platform = *self {
+    fn is_ship(self) -> bool {
+        if let EnemyKind::Platform = self {
             false
         } else {
             true
         }
     }
 
-    fn is_small(&self) -> bool {
-        if let EnemyKind::SmallShip = *self {
+    fn is_small(self) -> bool {
+        if let EnemyKind::SmallShip = self {
             true
         } else {
             false
@@ -363,20 +363,20 @@ pub enum ShipClass {
 }
 
 impl ShipClass {
-    fn score(&self) -> u32 {
-        match *self {
+    fn score(self) -> u32 {
+        match self {
             ShipClass::Middle => 100,
             ShipClass::Large => 300,
             ShipClass::Boss => 1000,
         }
     }
 
-    fn is_large(&self) -> bool {
-        ShipClass::Large == *self
+    fn is_large(self) -> bool {
+        ShipClass::Large == self
     }
 
-    fn is_boss(&self) -> bool {
-        ShipClass::Boss == *self
+    fn is_boss(self) -> bool {
+        ShipClass::Boss == self
     }
 }
 
@@ -1058,8 +1058,8 @@ impl TurnDirection {
         }
     }
 
-    fn factor(&self) -> f32 {
-        match *self {
+    fn factor(self) -> f32 {
+        match self {
             TurnDirection::CounterClockwise => -1.,
             TurnDirection::Clockwise => 1.,
         }
