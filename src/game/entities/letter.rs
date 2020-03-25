@@ -9,6 +9,7 @@ use cgmath::{Deg, ElementWise, Matrix4, Rad, Vector2, Vector3};
 use gfx;
 use gfx::traits::FactoryExt;
 use gfx::*;
+use log::warn;
 
 use crate::game::render::{Brightness, ScreenTransform};
 use crate::game::render::{EncoderContext, RenderContext};
@@ -416,7 +417,11 @@ impl SegmentData {
             '\"' => 41,
             '!' => 42,
             '/' => 43,
-            ' ' | _ => return &[],
+            ' ' => return &[],
+            c => {
+                warn!("letter: unsupported character {} ({})", c, ch);
+                return &[];
+            },
         } as usize;
 
         LETTER_DATA[idx]
