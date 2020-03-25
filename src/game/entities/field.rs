@@ -523,7 +523,6 @@ impl Field {
     fn platform_angle(&mut self, pos: Vector2<usize>, rand: &mut Rand) -> Option<Rad<f32>> {
         let d = rand.next_int(4) as usize;
         (0..4)
-            .into_iter()
             .filter_map(|i| {
                 let new_i = abagames_util::wrap_inc_by(i, 4, d);
                 let (ox, oy) = (
