@@ -123,9 +123,7 @@ impl Shot {
         });
 
         if remove_enemy {
-            context.audio
-                .as_mut()
-                .map(|audio| audio.mark_sfx("hit"));
+            context.audio.as_mut().map(|audio| audio.mark_sfx("hit"));
         }
 
         if remove {

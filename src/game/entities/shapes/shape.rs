@@ -435,9 +435,10 @@ impl BaseShape {
                     || i == POINT_NUM_Q58
                     || i == POINT_NUM_Q78
                 {
-                    shape.pillars
-                        .get_or_insert_with(|| [(0., 0.).into(); NUM_PILLARS])
-                        [num_pillars] = pos * 0.8;
+                    shape
+                        .pillars
+                        .get_or_insert_with(|| [(0., 0.).into(); NUM_PILLARS])[num_pillars] =
+                        pos * 0.8;
                     num_pillars += 1;
                 }
                 shape.points[shape.num_points] = ShapePoint {
@@ -563,7 +564,11 @@ impl Shape {
             ShapeKind::Platform | ShapeKind::PlatformDamaged | ShapeKind::PlatformDestroyed => {
                 let color = 0.4 * self.base.color;
                 let size = self.size * 0.2;
-                let pillars = self.base.pillars.as_ref().expect("Platform enemies should have pillars.");
+                let pillars = self
+                    .base
+                    .pillars
+                    .as_ref()
+                    .expect("Platform enemies should have pillars.");
                 (0..3).fold(0., |z, _| {
                     let new_z = z - height / 3.;
                     self.add_pillars(size, new_z, color, *pillars);
@@ -616,7 +621,13 @@ impl Shape {
         })
     }
 
-    fn add_pillars(&mut self, size_factor: f32, z: f32, color: Vector3<f32>, pos: [Vector2<f32>; NUM_PILLARS]) {
+    fn add_pillars(
+        &mut self,
+        size_factor: f32,
+        z: f32,
+        color: Vector3<f32>,
+        pos: [Vector2<f32>; NUM_PILLARS],
+    ) {
         self.add_command(ShapeCommand {
             category: ShapeCategory::Pillars {
                 pos: pos,
@@ -1058,21 +1069,20 @@ where
             ShapeCategory::Pillars {
                 pos,
             } => {
-                pos.iter()
-                    .for_each(|&pos| {
-                        let pillar = Pillar {
-                            pos: pos.into(),
-                        };
-                        encoder.update_constant_buffer(&self.pillar_data.pillar, &pillar);
+                pos.iter().for_each(|&pos| {
+                    let pillar = Pillar {
+                        pos: pos.into(),
+                    };
+                    encoder.update_constant_buffer(&self.pillar_data.pillar, &pillar);
 
-                        let data = if front {
-                            &self.pillar_data_front
-                        } else {
-                            &self.pillar_data
-                        };
+                    let data = if front {
+                        &self.pillar_data_front
+                    } else {
+                        &self.pillar_data
+                    };
 
-                        encoder.draw(slice, &self.pillar_pso, data)
-                    })
+                    encoder.draw(slice, &self.pillar_pso, data)
+                })
             },
         }
     }

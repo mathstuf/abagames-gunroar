@@ -539,7 +539,9 @@ where
             .iter()
             .for_each(|boat| self.draw_boat(context, shape_draw, shield_draw, boat));
 
-        if /*ship.mode.uses_two_ships() &&*/ !ship.boats[0].is_in_reset() {
+        if
+        /*ship.mode.uses_two_ships() &&*/
+        !ship.boats[0].is_in_reset() {
             let start_pos = ship.boats[0].pos;
             let end_pos = ship.boats[1].pos;
             let dist = start_pos.distance(end_pos);

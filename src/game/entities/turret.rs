@@ -575,7 +575,10 @@ impl Turret {
         context: &mut GameStateContext,
         rand: &mut Rand,
     ) -> TurretScore {
-        context.audio.as_mut().map(|audio| audio.mark_sfx("turret_destroyed"));
+        context
+            .audio
+            .as_mut()
+            .map(|audio| audio.mark_sfx("turret_destroyed"));
         self.destroyed_count = Some(0);
 
         (0..6).for_each(|_| {

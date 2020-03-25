@@ -14,7 +14,11 @@ macro_rules! music {
 
 macro_rules! sfx {
     ( $name:expr, $channel:expr ) => {
-        ($name, include_bytes!(concat!("sounds/chunks/", $name, ".wav")), $channel)
+        (
+            $name,
+            include_bytes!(concat!("sounds/chunks/", $name, ".wav")),
+            $channel,
+        )
     };
 }
 

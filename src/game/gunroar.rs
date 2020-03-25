@@ -10,8 +10,7 @@ use crate::game::state::{GameData, GameState, GameStateContext};
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Error)]
 #[error("Error")]
-pub enum Error {
-}
+pub enum Error {}
 
 pub struct Gunroar<'a, 'b: 'a> {
     global_render: RenderContext<Resources>,

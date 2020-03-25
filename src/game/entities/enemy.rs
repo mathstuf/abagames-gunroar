@@ -1516,7 +1516,10 @@ impl EnemyState {
             .and_then(|destroy| destroy.step(rand));
 
         if let Some(interval) = interval {
-            context.audio.as_mut().map(|audio| audio.mark_sfx("explode"));
+            context
+                .audio
+                .as_mut()
+                .map(|audio| audio.mark_sfx("explode"));
 
             let n = cmp::min(
                 48,
@@ -1838,9 +1841,7 @@ impl EnemyState {
         } else {
             "destroyed.wav"
         };
-        context.audio
-            .as_mut()
-            .map(|audio| audio.mark_sfx(sfx));
+        context.audio.as_mut().map(|audio| audio.mark_sfx(sfx));
 
         let (score, res) = if self.data.destroy() {
             let mut num_bullets = 0;
@@ -2062,8 +2063,8 @@ impl Enemy {
             true
         } else {
             let angle_comps: Vector2<f32> = angle.sin_cos().into();
-            let res = iter::repeat(())
-                .try_fold((0., check_size, true), |(offset, check_size, _), _| {
+            let res =
+                iter::repeat(()).try_fold((0., check_size, true), |(offset, check_size, _), _| {
                     if check_size < 0.2 {
                         Err((offset, check_size, false))
                     } else {

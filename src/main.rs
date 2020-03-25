@@ -103,10 +103,7 @@ fn try_main() -> Result<(), SdlError> {
         .with_music(game::data::MUSIC_DATA.iter())
         .with_sfx(game::data::SFX_DATA.iter())
         .build()?;
-    let game = Gunroar::new(
-        &mut info,
-        brightness / 100.,
-    );
+    let game = Gunroar::new(&mut info, brightness / 100.);
     mainloop.run(game)?;
 
     Ok(())

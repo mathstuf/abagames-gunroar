@@ -18,7 +18,6 @@ lazy_static! {
         0.,
         (0.8, 0.33, 0.66).into()
     );
-
     static ref NORMAL_SHAPE: Shape = Shape::new_collidable(&NORMAL);
     static ref DAMAGED_SHAPE: Shape = Shape::new(&DAMAGED);
 }

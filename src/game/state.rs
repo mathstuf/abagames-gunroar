@@ -214,9 +214,7 @@ where
 
     fn init_title(&mut self, context: &mut GameStateContext) {
         if let Some(ref mut audio) = context.audio {
-            audio.set_music_enabled(false)
-                .set_sfx_enabled(false)
-                .halt();
+            audio.set_music_enabled(false).set_sfx_enabled(false).halt();
         }
 
         self.title.init();

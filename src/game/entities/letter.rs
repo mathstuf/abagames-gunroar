@@ -771,42 +771,41 @@ where
         let fp_offset_x = norm_digit_offset * 0.5;
         let fp_offset_y = offset.y * 0.25 * Vector2::unit_y();
 
-        let res = iter::repeat(())
-            .try_fold(
-                (new_loc, num, number_style),
-                |(loc, num, mut number_style), _| {
-                    let digit = Self::for_digit(num % 10);
-                    let next_num = num / 10;
+        let res = iter::repeat(()).try_fold(
+            (new_loc, num, number_style),
+            |(loc, num, mut number_style), _| {
+                let digit = Self::for_digit(num % 10);
+                let next_num = num / 10;
 
-                    let (digit_offset, fd) = if let Some(fd) = number_style.floating_digits {
-                        let fp_loc = loc.offset_by(fp_offset_y).scaled_by(0.5);
-                        self.draw_letter_at(context, digit, style, fp_loc);
-                        let new_fp = fd - 1;
-                        if new_fp == 0 {
-                            self.draw_letter_at(context, '.', style, fp_loc);
-                            (2. * fp_offset_x, None)
-                        } else {
-                            (fp_offset_x, Some(new_fp))
-                        }
+                let (digit_offset, fd) = if let Some(fd) = number_style.floating_digits {
+                    let fp_loc = loc.offset_by(fp_offset_y).scaled_by(0.5);
+                    self.draw_letter_at(context, digit, style, fp_loc);
+                    let new_fp = fd - 1;
+                    if new_fp == 0 {
+                        self.draw_letter_at(context, '.', style, fp_loc);
+                        (2. * fp_offset_x, None)
                     } else {
-                        self.draw_letter_at(context, digit, style, loc);
-                        (norm_digit_offset, None)
-                    };
+                        (fp_offset_x, Some(new_fp))
+                    }
+                } else {
+                    self.draw_letter_at(context, digit, style, loc);
+                    (norm_digit_offset, None)
+                };
 
-                    number_style.reduce_padding();
+                number_style.reduce_padding();
 
-                    let new_loc = loc.offset_by(-digit_offset);
-                    let ctor = if next_num > 0 || number_style.is_necessary() {
-                        Ok
-                    } else {
-                        Err
-                    };
+                let new_loc = loc.offset_by(-digit_offset);
+                let ctor = if next_num > 0 || number_style.is_necessary() {
+                    Ok
+                } else {
+                    Err
+                };
 
-                    number_style.with_digits(fd);
+                number_style.with_digits(fd);
 
-                    ctor((new_loc, next_num, number_style))
-                },
-            );
+                ctor((new_loc, next_num, number_style))
+            },
+        );
         let (loc, _, _) = match res {
             Ok(r) | Err(r) => r,
         };
