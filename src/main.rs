@@ -1,6 +1,13 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
+// Sometimes the mirroring of logic in this structure is fine.
+#![allow(clippy::collapsible_if)]
+// Yeah…someday, this will be looked at more.
+#![allow(clippy::too_many_arguments)]
+// https://github.com/rust-lang/rust-clippy/issues/5253
+#![allow(clippy::suspicious_map)]
+
 use abagames_util::{SdlBuilder, SdlError};
 use clap::{crate_version, App, Arg};
 use log::{self, Level, LevelFilter, Log, Metadata, Record};
