@@ -1847,7 +1847,7 @@ impl EnemyState {
             let mut num_bullets = 0;
             bullets.run(|ref mut bullet| {
                 if bullet.index() == self.index {
-                    bullet.into_crystal(crystals);
+                    bullet.crystalize(crystals);
                     num_bullets += 1;
                     PoolRemoval::Remove
                 } else {

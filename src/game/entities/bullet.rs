@@ -201,7 +201,7 @@ impl Bullet {
         }
     }
 
-    pub fn into_crystal(&mut self, crystals: &mut Pool<Crystal>) {
+    pub fn crystalize(&mut self, crystals: &mut Pool<Crystal>) {
         if let Some(crystal) = crystals.get() {
             crystal.init(self.pos);
         }
