@@ -398,11 +398,13 @@ impl Turret {
         self.pos = pos;
         self.base_angle = angle;
 
-        self.destroyed_count.as_mut().map(|count| *count += 1);
+        if let Some(count) = self.destroyed_count.as_mut() {
+            *count += 1;
+        }
         if let Some(count) = self.destroyed_count {
             let interval = 5 + count / 12;
             if interval < 60 && count % interval == 0 {
-                smokes.get().map(|smoke| {
+                if let Some(smoke) = smokes.get() {
                     smoke.init_2d(
                         self.pos,
                         Vector3::new(0., 0., 0.01 + rand.next_float(0.01)),
@@ -411,7 +413,7 @@ impl Turret {
                         self.spec.size,
                         rand,
                     );
-                });
+                }
             }
 
             return TurretState::Dead;
@@ -500,7 +502,7 @@ impl Turret {
             && ship_dist > self.spec.min_range
         {
             let mut bullet_angle = self.base_angle + self.angle;
-            smokes.get().map(|smoke| {
+            if let Some(smoke) = smokes.get() {
                 let angle_comps: Vector2<f32> = bullet_angle.sin_cos().into();
                 smoke.init_2d(
                     self.pos,
@@ -510,7 +512,7 @@ impl Turret {
                     self.spec.size * 2.,
                     rand,
                 );
-            });
+            }
 
             let nway = if self.spec.nway_change && self.burst_count % 2 == 1 {
                 self.spec.nway - 1
@@ -521,7 +523,7 @@ impl Turret {
             bullet_angle -= Rad(self.spec.nway_angle.0 * (((nway - 1) / 2) as f32));
 
             (0..nway).fold(bullet_angle, |angle, _| {
-                bullets.get().map(|bullet| {
+                if let Some(bullet) = bullets.get() {
                     bullet.init(
                         self.index,
                         self.pos,
@@ -533,7 +535,7 @@ impl Turret {
                         fire_speed,
                         fire_angle,
                     );
-                });
+                }
                 angle + self.spec.nway_angle
             });
 

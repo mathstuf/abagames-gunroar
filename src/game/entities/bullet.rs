@@ -184,7 +184,7 @@ impl Bullet {
     ) -> PoolRemoval {
         let offset = shot.pos() - self.pos();
         if offset.x.abs() + offset.y.abs() < 0.5 {
-            smokes.get().map(|smoke| {
+            if let Some(smoke) = smokes.get() {
                 let angle_comps: Vector2<f32> = self.angle.sin_cos().into();
                 smoke.init_2d(
                     shot.pos(),
@@ -194,7 +194,7 @@ impl Bullet {
                     self.size * 0.5,
                     rand,
                 );
-            });
+            }
             PoolRemoval::Remove
         } else {
             PoolRemoval::Keep
@@ -202,7 +202,9 @@ impl Bullet {
     }
 
     pub fn into_crystal(&mut self, crystals: &mut Pool<Crystal>) {
-        crystals.get().map(|crystal| crystal.init(self.pos));
+        if let Some(crystal) = crystals.get() {
+            crystal.init(self.pos);
+        }
         self.done = true;
     }
 

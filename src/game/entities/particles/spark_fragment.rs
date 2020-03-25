@@ -89,7 +89,7 @@ impl SparkFragment {
 
         self.count += 1;
         if self.has_smoke && self.count % 5 == 0 {
-            smokes.get().map(|smoke| {
+            if let Some(smoke) = smokes.get() {
                 smoke.init(
                     self.pos,
                     [0., 0., 0.].into(),
@@ -98,7 +98,7 @@ impl SparkFragment {
                     self.size * 0.5,
                     rand,
                 );
-            });
+            }
         }
 
         PoolRemoval::Keep
