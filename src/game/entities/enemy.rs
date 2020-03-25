@@ -37,16 +37,16 @@ pub enum EnemyKind {
 }
 
 impl EnemyKind {
-    fn is_ship(&self) -> bool {
-        if let EnemyKind::Platform = *self {
+    fn is_ship(self) -> bool {
+        if let EnemyKind::Platform = self {
             false
         } else {
             true
         }
     }
 
-    fn is_small(&self) -> bool {
-        if let EnemyKind::SmallShip = *self {
+    fn is_small(self) -> bool {
+        if let EnemyKind::SmallShip = self {
             true
         } else {
             false
@@ -363,20 +363,20 @@ pub enum ShipClass {
 }
 
 impl ShipClass {
-    fn score(&self) -> u32 {
-        match *self {
+    fn score(self) -> u32 {
+        match self {
             ShipClass::Middle => 100,
             ShipClass::Large => 300,
             ShipClass::Boss => 1000,
         }
     }
 
-    fn is_large(&self) -> bool {
-        ShipClass::Large == *self
+    fn is_large(self) -> bool {
+        ShipClass::Large == self
     }
 
-    fn is_boss(&self) -> bool {
-        ShipClass::Boss == *self
+    fn is_boss(self) -> bool {
+        ShipClass::Boss == self
     }
 }
 
@@ -560,12 +560,12 @@ impl EnemySpec {
                 };
 
                 ShipTurretCount {
-                    main: main,
-                    sub: sub,
-                    size: size,
+                    main,
+                    sub,
+                    size,
                     rank: turret_rank,
-                    moving_ratio: moving_ratio,
-                    speed: speed,
+                    moving_ratio,
+                    speed,
                     turn_velocity: turn_vel,
                 }
             },
@@ -581,12 +581,12 @@ impl EnemySpec {
                 let ratio = 0.25 + rand.next_float(0.5);
 
                 ShipTurretCount {
-                    main: main,
-                    sub: sub,
-                    size: size,
+                    main,
+                    sub,
+                    size,
                     rank: rank * (1. - ratio),
                     moving_ratio: 3. * ratio,
-                    speed: speed,
+                    speed,
                     turn_velocity: turn_vel,
                 }
             },
@@ -602,19 +602,19 @@ impl EnemySpec {
                 let ratio = 0.2 + rand.next_float(0.3);
 
                 ShipTurretCount {
-                    main: main,
-                    sub: sub,
-                    size: size,
+                    main,
+                    sub,
+                    size,
                     rank: rank * (1. - ratio),
                     moving_ratio: 2.5 * ratio,
-                    speed: speed,
+                    speed,
                     turn_velocity: turn_vel,
                 }
             },
         };
         self.resize(count.size);
         self.spec_data = EnemySpecData::Ship(ShipData {
-            class: class,
+            class,
             speed: count.speed,
             turn_velocity: count.turn_velocity,
         });
@@ -658,7 +658,7 @@ impl EnemySpec {
                         self.spec.add_turret_group(builder.into());
                         self.spec.add_turret_group(mirror.into());
 
-                        if num_front_main_turret * 2 + 1 <= count.main {
+                        if num_front_main_turret * 2 < count.main {
                             let num_rear_main_turret = (count.main - num_front_main_turret * 2) / 2;
                             builder
                                 .init_spec(main_turret_rank, TurretKind::Main, rand)
@@ -747,7 +747,7 @@ impl EnemySpec {
                         self.spec.add_turret_group(builder.into());
                         self.spec.add_turret_group(mirror.into());
 
-                        if (num_front_sub_turret + num_mid_sub_turret) * 2 + 1 <= count.sub {
+                        if (num_front_sub_turret + num_mid_sub_turret) * 2 < count.sub {
                             let num_rear_sub_turret =
                                 (count.sub - (num_front_sub_turret + num_mid_sub_turret) * 2) / 2;
                             let turret_kind = if rand.next_int(2) == 0 {
@@ -834,7 +834,7 @@ impl EnemySpec {
                         self.spec.add_turret_group(builder.into());
                         self.spec.add_turret_group(mirror.into());
 
-                        if num_front_sub_turret * 2 + 1 <= count.sub {
+                        if num_front_sub_turret * 2 < count.sub {
                             let turret_kind = if rand.next_int(2) == 0 {
                                 TurretKind::Sub
                             } else {
@@ -897,7 +897,7 @@ impl EnemySpec {
                     main: 0,
                     front: (size * (0.5 + rand.next_float_signed(0.2)) + 1.) as u32,
                     side: 2 * ((size * (0.5 + rand.next_float_signed(0.2)) + 1.) as u32),
-                    rank: rank,
+                    rank,
                     moving_ratio: 0.,
                 }
             },
@@ -906,7 +906,7 @@ impl EnemySpec {
                     main: (size * (1. + rand.next_float_signed(0.33)) + 1.) as u32,
                     front: 0,
                     side: 0,
-                    rank: rank,
+                    rank,
                     moving_ratio: 0.,
                 }
             },
@@ -1058,8 +1058,8 @@ impl TurnDirection {
         }
     }
 
-    fn factor(&self) -> f32 {
-        match *self {
+    fn factor(self) -> f32 {
+        match self {
             TurnDirection::CounterClockwise => -1.,
             TurnDirection::Clockwise => 1.,
         }
@@ -1473,9 +1473,7 @@ impl EnemyState {
             enemies
                 .clone()
                 .filter_map(|enemy| {
-                    if !enemy.spec.is_large() {
-                        None
-                    } else if enemy.state.is_destroyed() {
+                    if !enemy.spec.is_large() || enemy.state.is_destroyed() {
                         None
                     } else {
                         Some(enemy.collides(pos - enemy.state.pos, enemy.state.angle, 1.))
@@ -1725,12 +1723,10 @@ impl EnemyState {
                         if !self.check_front(false, spec, field, other_enemies) {
                             self.angle += ship.turn_velocity * ship.turn_direction.factor();
                             data.speed *= 0.98;
+                        } else if data.destroyed.is_some() {
+                            data.speed *= 0.98;
                         } else {
-                            if data.destroyed.is_some() {
-                                data.speed *= 0.98;
-                            } else {
-                                data.speed += (spec_data.speed - data.speed) * 0.01;
-                            }
+                            data.speed += (spec_data.speed - data.speed) * 0.01;
                         }
                     },
                 }
@@ -1847,7 +1843,7 @@ impl EnemyState {
             let mut num_bullets = 0;
             bullets.run(|ref mut bullet| {
                 if bullet.index() == self.index {
-                    bullet.into_crystal(crystals);
+                    bullet.crystalize(crystals);
                     num_bullets += 1;
                     PoolRemoval::Remove
                 } else {

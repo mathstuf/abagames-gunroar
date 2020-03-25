@@ -9,6 +9,7 @@ use cgmath::{Deg, ElementWise, Matrix4, Rad, Vector2, Vector3};
 use gfx;
 use gfx::traits::FactoryExt;
 use gfx::*;
+use log::warn;
 
 use crate::game::render::{Brightness, ScreenTransform};
 use crate::game::render::{EncoderContext, RenderContext};
@@ -116,7 +117,7 @@ impl SegmentData {
 }
 
 #[rustfmt::skip]
-const LETTER_DATA: [&'static [SegmentData]; 44] = [
+const LETTER_DATA: [&[SegmentData]; 44] = [
     &[
         SegmentData { pos: Vector2::new(0., 1.15), size: Vector2::new(0.65, 0.3), deg: 0., },
         SegmentData { pos: Vector2::new(-0.6, 0.55), size: Vector2::new(0.65, 0.3), deg: 90., },
@@ -416,7 +417,11 @@ impl SegmentData {
             '\"' => 41,
             '!' => 42,
             '/' => 43,
-            ' ' | _ => return &[],
+            ' ' => return &[],
+            c => {
+                warn!("letter: unsupported character {} ({})", c, ch);
+                return &[];
+            },
         } as usize;
 
         LETTER_DATA[idx]
@@ -432,8 +437,8 @@ pub enum Direction {
 }
 
 impl Direction {
-    fn angle(&self) -> Rad<f32> {
-        Deg(match *self {
+    fn angle(self) -> Rad<f32> {
+        Deg(match self {
             Direction::Right => 0.,
             Direction::Down => 90.,
             Direction::Left => 180.,
@@ -442,11 +447,11 @@ impl Direction {
         .into()
     }
 
-    fn offset(&self, delta: Vector2<f32>) -> Vector2<f32> {
+    fn offset(self, delta: Vector2<f32>) -> Vector2<f32> {
         let dx = delta.x * Vector2::unit_x();
         let dy = delta.y * Vector2::unit_y();
 
-        match *self {
+        match self {
             Direction::Right => dx,
             Direction::Down => dy,
             Direction::Left => -dx,
@@ -488,8 +493,8 @@ pub struct Location {
 impl Location {
     pub const fn new(position: Vector2<f32>, scale: f32) -> Self {
         Location {
-            position: position,
-            scale: scale,
+            position,
+            scale,
             direction: Direction::Right,
             orientation: Orientation::Normal,
             screen: Screen::Orthographic,
@@ -498,8 +503,8 @@ impl Location {
 
     pub const fn new_persp(position: Vector2<f32>, scale: f32) -> Self {
         Location {
-            position: position,
-            scale: scale,
+            position,
+            scale,
             direction: Direction::Right,
             orientation: Orientation::Normal,
             screen: Screen::Perspective,
@@ -578,7 +583,7 @@ impl NumberStyle {
         self.floating_digits = digits;
     }
 
-    fn is_necessary(&self) -> bool {
+    fn is_necessary(self) -> bool {
         self.pad_to.is_some() || self.floating_digits.is_some()
     }
 }
@@ -666,7 +671,7 @@ where
             out_color: view.clone(),
         };
         let data_persp = pipe::Data {
-            vbuf: vbuf,
+            vbuf,
             color: color_buffer,
             screen: context.perspective_screen_buffer.clone(),
             brightness: context.brightness_buffer.clone(),
@@ -676,14 +681,14 @@ where
         };
 
         Letter {
-            outline_slice: outline_slice,
-            outline_pso: outline_pso,
+            outline_slice,
+            outline_pso,
 
-            fan_slice: fan_slice,
-            fan_pso: fan_pso,
+            fan_slice,
+            fan_pso,
 
-            data_ortho: data_ortho,
-            data_persp: data_persp,
+            data_ortho,
+            data_persp,
         }
     }
 

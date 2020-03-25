@@ -349,7 +349,7 @@ where
             .create_program(&gfx::ShaderSet::Simple(line_shader, frag_shader.clone()))
             .expect("failed to link the line shader");
         let sight_program = factory
-            .create_program(&gfx::ShaderSet::Simple(sight_shader, frag_shader.clone()))
+            .create_program(&gfx::ShaderSet::Simple(sight_shader, frag_shader))
             .expect("failed to link the sight shader");
 
         let ship_pso = factory
@@ -421,23 +421,23 @@ where
         };
 
         ShipDraw {
-            ship_slice: ship_slice,
-            ship_pso: ship_pso,
-            ship_data: ship_data,
-            rotation_buffer: rotation_buffer,
+            ship_slice,
+            ship_pso,
+            ship_data,
+            rotation_buffer,
 
-            line_slice: line_slice,
-            line_pso: line_pso,
-            line_data: line_data,
-            line_buffer: line_buffer,
+            line_slice,
+            line_pso,
+            line_data,
+            line_buffer,
 
-            sight_slice_a: sight_slice_a,
-            sight_slice_b: sight_slice_b,
-            sight_slice_c: sight_slice_c,
-            sight_slice_d: sight_slice_d,
-            sight_pso: sight_pso,
-            sight_instances: sight_instances,
-            sight_data: sight_data,
+            sight_slice_a,
+            sight_slice_b,
+            sight_slice_c,
+            sight_slice_d,
+            sight_pso,
+            sight_instances,
+            sight_data,
         }
     }
 

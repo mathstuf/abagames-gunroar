@@ -44,15 +44,15 @@ struct TurretParams {
 }
 
 impl TurretKind {
-    fn is_sub(&self) -> bool {
-        match *self {
+    fn is_sub(self) -> bool {
+        match self {
             TurretKind::Sub | TurretKind::SubDestructive => true,
             _ => false,
         }
     }
 
-    fn init_spec_phase1(&self, rank: f32, spec: &mut TurretSpec, rand: &mut Rand) -> f32 {
-        match *self {
+    fn init_spec_phase1(self, rank: f32, spec: &mut TurretSpec, rand: &mut Rand) -> f32 {
+        match self {
             TurretKind::Small => {
                 spec.min_range = 8.;
                 spec.bullet_shape = BulletShapeKind::Small;
@@ -103,8 +103,8 @@ impl TurretKind {
         }
     }
 
-    fn init_spec_phase2(&self, rank: f32, spec: &mut TurretSpec, rand: &mut Rand) {
-        let params = match *self {
+    fn init_spec_phase2(self, rank: f32, spec: &mut TurretSpec, rand: &mut Rand) {
+        let params = match self {
             TurretKind::Main => {
                 TurretParams {
                     size_offset: 0.42,
@@ -334,11 +334,11 @@ pub struct TurretScore {
 }
 
 impl TurretScore {
-    pub fn score(&self) -> u32 {
+    pub fn score(self) -> u32 {
         self.score
     }
 
-    pub fn multiplier(&self) -> f32 {
+    pub fn multiplier(self) -> f32 {
         self.multiplier
     }
 }
@@ -398,11 +398,13 @@ impl Turret {
         self.pos = pos;
         self.base_angle = angle;
 
-        self.destroyed_count.as_mut().map(|count| *count += 1);
+        if let Some(count) = self.destroyed_count.as_mut() {
+            *count += 1;
+        }
         if let Some(count) = self.destroyed_count {
             let interval = 5 + count / 12;
             if interval < 60 && count % interval == 0 {
-                smokes.get().map(|smoke| {
+                if let Some(smoke) = smokes.get() {
                     smoke.init_2d(
                         self.pos,
                         Vector3::new(0., 0., 0.01 + rand.next_float(0.01)),
@@ -411,7 +413,7 @@ impl Turret {
                         self.spec.size,
                         rand,
                     );
-                });
+                }
             }
 
             return TurretState::Dead;
@@ -500,7 +502,7 @@ impl Turret {
             && ship_dist > self.spec.min_range
         {
             let mut bullet_angle = self.base_angle + self.angle;
-            smokes.get().map(|smoke| {
+            if let Some(smoke) = smokes.get() {
                 let angle_comps: Vector2<f32> = bullet_angle.sin_cos().into();
                 smoke.init_2d(
                     self.pos,
@@ -510,7 +512,7 @@ impl Turret {
                     self.spec.size * 2.,
                     rand,
                 );
-            });
+            }
 
             let nway = if self.spec.nway_change && self.burst_count % 2 == 1 {
                 self.spec.nway - 1
@@ -521,7 +523,7 @@ impl Turret {
             bullet_angle -= Rad(self.spec.nway_angle.0 * (((nway - 1) / 2) as f32));
 
             (0..nway).fold(bullet_angle, |angle, _| {
-                bullets.get().map(|bullet| {
+                if let Some(bullet) = bullets.get() {
                     bullet.init(
                         self.index,
                         self.pos,
@@ -533,7 +535,7 @@ impl Turret {
                         fire_speed,
                         fire_angle,
                     );
-                });
+                }
                 angle + self.spec.nway_angle
             });
 
@@ -933,7 +935,7 @@ impl TurretGroup {
                 } => {
                     let new_data = TurretGroupData::Round {
                         angle: angle + angle_step,
-                        angle_step: angle_step,
+                        angle_step,
                     };
 
                     let angle_comps: Vector2<f32> = angle.sin_cos().into();
@@ -946,7 +948,7 @@ impl TurretGroup {
                     let new_y = y + y_step;
                     let new_data = TurretGroupData::Straight {
                         y: new_y,
-                        y_step: y_step,
+                        y_step,
                     };
 
                     let pos = Vector2::new(self.spec.offset.x, new_y);
@@ -1164,7 +1166,7 @@ impl MovingTurretGroupSpecBuilder {
         velocity: Rad<f32>,
     ) -> &mut Self {
         self.spec.data = MovingTurretData::Roll(RollData {
-            roll_velocity: roll_velocity,
+            roll_velocity,
             roll_amplitude: amplitude,
             roll_amplitude_velocity: velocity,
         });
@@ -1178,7 +1180,7 @@ impl MovingTurretGroupSpecBuilder {
         aiming: bool,
     ) -> &mut Self {
         self.spec.data = MovingTurretData::Swing(SwingData {
-            swing_velocity: swing_velocity,
+            swing_velocity,
             swing_amplitude_velocity: amplitude,
             aim: aiming,
         });
@@ -1334,13 +1336,12 @@ impl MovingTurretGroup {
 
                 let base_angle = if spec_data.aim {
                     let ship_pos = ship.nearest_boat(pos).pos();
-                    let offset_angle = if abagames_util::fast_distance(ship_pos, pos) < 0.1 {
+                    if abagames_util::fast_distance(ship_pos, pos) < 0.1 {
                         Rad(0.)
                     } else {
                         let diff = ship_pos - pos;
                         Rad::atan2(diff.y, diff.x)
-                    };
-                    offset_angle
+                    }
                 } else {
                     step_angle
                 };
@@ -1510,7 +1511,7 @@ where
             .expect("failed to create the sweep pipeline for turret sweep");
 
         let data = pipe::Data {
-            vbuf: vbuf,
+            vbuf,
             turret: factory.create_constant_buffer(1),
             color: factory.create_constant_buffer(1),
             alpha: factory.create_constant_buffer(1),
@@ -1523,13 +1524,13 @@ where
         };
 
         TurretDraw {
-            line_slice: line_slice,
-            sweep_slice: sweep_slice,
+            line_slice,
+            sweep_slice,
 
-            line_pso: line_pso,
-            sweep_pso: sweep_pso,
+            line_pso,
+            sweep_pso,
 
-            data: data,
+            data,
         }
     }
 
@@ -1545,15 +1546,15 @@ where
         C: gfx::CommandBuffer<R>,
     {
         let turret = TurretData {
-            min_range: min_range,
-            max_range: max_range,
+            min_range,
+            max_range,
             pos: pos.into(),
         };
         let color = Color {
             color: [0.9, 0.1, 0.1],
         };
         let alpha = Alpha {
-            alpha: alpha,
+            alpha,
         };
         let angle = SightAngle {
             angle: angle.0,
@@ -1597,12 +1598,12 @@ where
         C: gfx::CommandBuffer<R>,
     {
         let turret = TurretData {
-            min_range: min_range,
-            max_range: max_range,
+            min_range,
+            max_range,
             pos: pos.into(),
         };
         let alpha = Alpha {
-            alpha: alpha,
+            alpha,
         };
         context
             .encoder

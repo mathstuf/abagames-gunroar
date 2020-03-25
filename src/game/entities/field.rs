@@ -128,8 +128,8 @@ pub enum Block {
 }
 
 impl Block {
-    fn factor(&self) -> f32 {
-        match *self {
+    fn factor(self) -> f32 {
+        match self {
             Block::DeepWater => -3.,
             Block::Water => -2.,
             Block::Shore => -1.,
@@ -139,8 +139,8 @@ impl Block {
         }
     }
 
-    fn color_index(&self) -> usize {
-        match *self {
+    fn color_index(self) -> usize {
+        match self {
             Block::DeepWater => 0,
             Block::Water => 1,
             Block::Shore => 2,
@@ -151,8 +151,8 @@ impl Block {
     }
 
     #[rustfmt::skip]
-    pub fn is_dry(&self) -> bool {
-        match *self {
+    pub fn is_dry(self) -> bool {
+        match self {
             Block::DeepWater
             | Block::Water
             | Block::Shore
@@ -163,8 +163,8 @@ impl Block {
     }
 
     #[rustfmt::skip]
-    pub fn is_land(&self) -> bool {
-        match *self {
+    pub fn is_land(self) -> bool {
+        match self {
             Block::DeepWater
             | Block::Water
             | Block::Shore => false,
@@ -257,11 +257,7 @@ impl Platform {
             } else {
                 self.position.y - other.y
             };
-            if x <= 1 && y <= 1 {
-                true
-            } else {
-                false
-            }
+            x <= 1 && y <= 1
         } else {
             false
         }
@@ -523,7 +519,6 @@ impl Field {
     fn platform_angle(&mut self, pos: Vector2<usize>, rand: &mut Rand) -> Option<Rad<f32>> {
         let d = rand.next_int(4) as usize;
         (0..4)
-            .into_iter()
             .filter_map(|i| {
                 let new_i = abagames_util::wrap_inc_by(i, 4, d);
                 let (ox, oy) = (
@@ -749,7 +744,7 @@ where
 
         let sidebar_data = sidebar_pipe::Data {
             vbuf: sidebar_vbuf,
-            instances: sidebar_instance_buffer.clone(),
+            instances: sidebar_instance_buffer,
             screen: context.perspective_screen_buffer.clone(),
             out_color: view.clone(),
         };
@@ -796,7 +791,7 @@ where
         FieldDraw {
             sidebar_bundle: gfx::Bundle::new(sidebar_slice, sidebar_pso, sidebar_data),
             panel_bundle: gfx::Bundle::new(panel_slice, panel_pso, panel_data),
-            panel_instances: panel_instances,
+            panel_instances,
         }
     }
 

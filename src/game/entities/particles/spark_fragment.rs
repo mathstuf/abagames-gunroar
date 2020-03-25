@@ -89,7 +89,7 @@ impl SparkFragment {
 
         self.count += 1;
         if self.has_smoke && self.count % 5 == 0 {
-            smokes.get().map(|smoke| {
+            if let Some(smoke) = smokes.get() {
                 smoke.init(
                     self.pos,
                     [0., 0., 0.].into(),
@@ -98,7 +98,7 @@ impl SparkFragment {
                     self.size * 0.5,
                     rand,
                 );
-            });
+            }
         }
 
         PoolRemoval::Keep
@@ -187,7 +187,7 @@ where
             .expect("failed to create the pipeline for spark");
 
         let data = pipe::Data {
-            vbuf: vbuf,
+            vbuf,
             spark_fragments: factory
                 .create_upload_buffer(MAX_SPARK_FRAGMENT_SIZE)
                 .expect("failed to create the pipeline for spark fragment"),
@@ -197,9 +197,9 @@ where
         };
 
         SparkFragmentDraw {
-            slice: slice,
-            pso: pso,
-            data: data,
+            slice,
+            pso,
+            data,
         }
     }
 

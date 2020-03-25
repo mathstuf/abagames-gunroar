@@ -110,7 +110,9 @@ impl EnemyShapes {
     }
 
     pub fn set_color(&mut self, color: Vector3<f32>) {
-        self.destroyed.as_mut().map(|shape| shape.set_color(color));
+        if let Some(shape) = self.destroyed.as_mut() {
+            shape.set_color(color);
+        }
     }
 
     pub fn collides(&self, hit: Vector2<f32>, collision: Vector2<f32>) -> bool {

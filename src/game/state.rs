@@ -201,7 +201,7 @@ where
 
             letter: entities::letter::Letter::new(factory, view.clone(), context),
             reel: entities::reel::ScoreReel::new(),
-            title: entities::title::Title::new(factory, view.clone(), context),
+            title: entities::title::Title::new(factory, view, context),
         }
     }
 

@@ -23,18 +23,17 @@ pub enum BulletShapeKind {
 }
 
 impl BulletShapeKind {
-    fn outline_color(&self) -> [f32; 3] {
-        match *self {
+    fn outline_color(self) -> [f32; 3] {
+        match self {
             BulletShapeKind::Normal => [1., 1., 0.3],
             BulletShapeKind::Small => [0.6, 0.9, 0.3],
             BulletShapeKind::MovingTurret => [0.7, 0.5, 0.9],
             BulletShapeKind::Destructible => [0.9, 0.9, 0.6],
         }
-        .into()
     }
 
-    fn fill_color(&self) -> [f32; 3] {
-        match *self {
+    fn fill_color(self) -> [f32; 3] {
+        match self {
             BulletShapeKind::Normal => [0.5, 0.2, 0.1],
             BulletShapeKind::Small => [0.2, 0.4, 0.1],
             BulletShapeKind::MovingTurret => [0.2, 0.2, 0.3],
@@ -42,8 +41,8 @@ impl BulletShapeKind {
         }
     }
 
-    pub fn is_destructible(&self) -> bool {
-        *self == BulletShapeKind::Destructible
+    pub fn is_destructible(self) -> bool {
+        self == BulletShapeKind::Destructible
     }
 }
 
@@ -314,7 +313,7 @@ where
             .create_program(&gfx::ShaderSet::Simple(shot_shader, frag_shader.clone()))
             .expect("failed to link the shot shader");
         let crystal_program = factory
-            .create_program(&gfx::ShaderSet::Simple(crystal_shader, frag_shader.clone()))
+            .create_program(&gfx::ShaderSet::Simple(crystal_shader, frag_shader))
             .expect("failed to link the crystal shader");
 
         let pipe2_outline_pso = factory
@@ -435,7 +434,7 @@ where
             out_color: view.clone(),
         };
         let normal_data = pipe3::Data {
-            vbuf: normal_vbuf.clone(),
+            vbuf: normal_vbuf,
             screen: context.perspective_screen_buffer.clone(),
             brightness: context.brightness_buffer.clone(),
             modelmat: modelmat.clone(),
@@ -452,7 +451,7 @@ where
             out_color: view.clone(),
         };
         let small_data = pipe3::Data {
-            vbuf: small_vbuf.clone(),
+            vbuf: small_vbuf,
             screen: context.perspective_screen_buffer.clone(),
             brightness: context.brightness_buffer.clone(),
             modelmat: modelmat.clone(),
@@ -469,7 +468,7 @@ where
             out_color: view.clone(),
         };
         let destructible_data = pipe2::Data {
-            vbuf: destructible_vbuf.clone(),
+            vbuf: destructible_vbuf,
             screen: context.perspective_screen_buffer.clone(),
             brightness: context.brightness_buffer.clone(),
             modelmat: modelmat.clone(),
@@ -478,7 +477,7 @@ where
         };
 
         let shot_data = shot_pipe::Data {
-            vbuf: shot_vbuf.clone(),
+            vbuf: shot_vbuf,
             screen: context.perspective_screen_buffer.clone(),
             brightness: context.brightness_buffer.clone(),
             instances: shot_instances.clone(),
@@ -487,50 +486,50 @@ where
         };
 
         let crystal_data = crystal_pipe::Data {
-            vbuf: crystal_vbuf.clone(),
+            vbuf: crystal_vbuf,
             screen: context.perspective_screen_buffer.clone(),
             brightness: context.brightness_buffer.clone(),
             instances: crystal_instances.clone(),
             color: color.clone(),
-            out_color: view.clone(),
+            out_color: view,
         };
 
         BulletDraw {
-            pipe2_pso: pipe2_pso,
-            pipe2_outline_pso: pipe2_outline_pso,
+            pipe2_pso,
+            pipe2_outline_pso,
 
-            pipe3_pso: pipe3_pso,
-            pipe3_outline_pso: pipe3_outline_pso,
+            pipe3_pso,
+            pipe3_outline_pso,
 
-            outline_slice_a: outline_slice_a,
-            outline_slice_b: outline_slice_b,
-            destructible_outline_slice: destructible_outline_slice,
+            outline_slice_a,
+            outline_slice_b,
+            destructible_outline_slice,
 
-            fill_slice: fill_slice,
-            destructible_fill_slice: destructible_fill_slice,
+            fill_slice,
+            destructible_fill_slice,
 
-            modelmat: modelmat,
-            color: color,
+            modelmat,
+            color,
 
-            normal_outline_data: normal_outline_data,
-            small_outline_data: small_outline_data,
-            destructible_outline_data: destructible_outline_data,
+            normal_outline_data,
+            small_outline_data,
+            destructible_outline_data,
 
-            normal_data: normal_data,
-            small_data: small_data,
-            destructible_data: destructible_data,
+            normal_data,
+            small_data,
+            destructible_data,
 
-            shot_slice_a: shot_slice_a,
-            shot_slice_b: shot_slice_b,
-            shot_slice_c: shot_slice_c,
-            shot_pso: shot_pso,
-            shot_data: shot_data,
-            shot_instances: shot_instances,
+            shot_slice_a,
+            shot_slice_b,
+            shot_slice_c,
+            shot_pso,
+            shot_data,
+            shot_instances,
 
-            crystal_slice: crystal_slice,
-            crystal_pso: crystal_pso,
-            crystal_data: crystal_data,
-            crystal_instances: crystal_instances,
+            crystal_slice,
+            crystal_pso,
+            crystal_data,
+            crystal_instances,
         }
     }
 

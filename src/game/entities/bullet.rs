@@ -1,6 +1,7 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
+use std::cmp::Ordering;
 use std::f32;
 
 use abagames_util::{Pool, PoolRemoval, Rand};
@@ -29,8 +30,8 @@ impl BulletShape {
 
     const fn of_kind(kind: BulletShapeKind, size: f32) -> Self {
         BulletShape {
-            kind: kind,
-            size: size,
+            kind,
+            size,
         }
     }
 }
@@ -110,13 +111,17 @@ impl Bullet {
     ) -> PoolRemoval {
         self.prev_pos = self.pos;
 
-        if self.count < 29 {
-            self.speed += (self.target_speed - self.speed) * 0.066;
-            self.angle +=
-                ((self.target_angle - self.angle).normalize() - Rad::turn_div_2()) * 0.066;
-        } else if self.count == 29 {
-            self.speed = self.target_speed;
-            self.angle = self.target_angle;
+        match self.count.cmp(&29) {
+            Ordering::Greater => (),
+            Ordering::Less => {
+                self.speed += (self.target_speed - self.speed) * 0.066;
+                self.angle +=
+                    ((self.target_angle - self.angle).normalize() - Rad::turn_div_2()) * 0.066;
+            },
+            Ordering::Equal => {
+                self.speed = self.target_speed;
+                self.angle = self.target_angle;
+            },
         }
 
         if field.is_in_outer_field(self.pos) {
@@ -184,7 +189,7 @@ impl Bullet {
     ) -> PoolRemoval {
         let offset = shot.pos() - self.pos();
         if offset.x.abs() + offset.y.abs() < 0.5 {
-            smokes.get().map(|smoke| {
+            if let Some(smoke) = smokes.get() {
                 let angle_comps: Vector2<f32> = self.angle.sin_cos().into();
                 smoke.init_2d(
                     shot.pos(),
@@ -194,15 +199,17 @@ impl Bullet {
                     self.size * 0.5,
                     rand,
                 );
-            });
+            }
             PoolRemoval::Remove
         } else {
             PoolRemoval::Keep
         }
     }
 
-    pub fn into_crystal(&mut self, crystals: &mut Pool<Crystal>) {
-        crystals.get().map(|crystal| crystal.init(self.pos));
+    pub fn crystalize(&mut self, crystals: &mut Pool<Crystal>) {
+        if let Some(crystal) = crystals.get() {
+            crystal.init(self.pos);
+        }
         self.done = true;
     }
 

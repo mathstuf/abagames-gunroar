@@ -35,9 +35,9 @@ impl<'a, 'b> Gunroar<'a, 'b> {
 
         Gunroar {
             global_render: render,
-            state: state,
+            state,
 
-            info: info,
+            info,
 
             backgrounded: false,
 

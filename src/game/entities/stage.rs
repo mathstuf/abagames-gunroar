@@ -54,7 +54,9 @@ impl Appearance {
             if self.next_dist <= 0. {
                 self.next_dist += self.next_dist_interval;
                 if let Some(state) = EnemyState::appear(&spec, self.kind, field, enemies, rand) {
-                    enemies.get().map(|enemy| enemy.init(spec, state));
+                    if let Some(enemy) = enemies.get() {
+                        enemy.init(spec, state);
+                    }
                 }
             }
         }
@@ -120,14 +122,18 @@ impl Stage {
     fn start_boss(&mut self, context: &mut GameStateContext) {
         self.boss_timer = None;
         self.boss_app_count = 2;
-        context.audio.as_mut().map(|audio| audio.fade());
+        if let Some(audio) = context.audio.as_mut() {
+            audio.fade();
+        }
         self.background_timer = 120;
         self.rank_velocity = 0.;
     }
 
     fn reset_boss(&mut self, context: &mut GameStateContext) {
         if self.boss_mode() {
-            context.audio.as_mut().map(|audio| audio.fade());
+            if let Some(audio) = context.audio.as_mut() {
+                audio.fade();
+            }
             self.background_timer = 120;
             self.boss_timer_base += 30 * 1000;
         }

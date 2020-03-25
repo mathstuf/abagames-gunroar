@@ -190,7 +190,7 @@ where
             .expect("failed to create the fill pipeline for letter");
 
         let data = pipe::Data {
-            vbuf: vbuf,
+            vbuf,
             alpha: factory.create_constant_buffer(1),
             modelmat: factory.create_constant_buffer(1),
             screen: context.perspective_screen_buffer.clone(),
@@ -199,13 +199,13 @@ where
         };
 
         FragmentDraw {
-            fan_slice: fan_slice,
-            fan_pso: fan_pso,
+            fan_slice,
+            fan_pso,
 
-            outline_slice: outline_slice,
-            outline_pso: outline_pso,
+            outline_slice,
+            outline_pso,
 
-            data: data,
+            data,
         }
     }
 
