@@ -1,19 +1,18 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-use crates::abagames_util::{self, Pool, Rand};
-use crates::cgmath::Vector2;
-use crates::gfx;
-use crates::rayon::prelude::*;
-
-use game::entities::enemy::{Enemy, EnemyAppearance, EnemySpec, EnemyState, ShipClass};
-use game::entities::field::{Field, NEXT_BLOCK_AREA_SIZE_F32};
-use game::entities::letter::{self, Letter};
-use game::entities::ship::Ship;
-use game::render::EncoderContext;
-use game::state::GameStateContext;
-
 use std::cmp;
+
+use abagames_util::{self, Pool, Rand};
+use cgmath::Vector2;
+use rayon::prelude::*;
+
+use crate::game::entities::enemy::{Enemy, EnemyAppearance, EnemySpec, EnemyState, ShipClass};
+use crate::game::entities::field::{Field, NEXT_BLOCK_AREA_SIZE_F32};
+use crate::game::entities::letter::{self, Letter};
+use crate::game::entities::ship::Ship;
+use crate::game::render::EncoderContext;
+use crate::game::state::GameStateContext;
 
 const RANK_INC_BASE: f32 = 0.0018;
 const BLOCK_DENSITY_MIN: i32 = 0;

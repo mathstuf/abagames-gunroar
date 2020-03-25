@@ -6,6 +6,7 @@ readme = "README.md"
 license = "BSD-2-Clause"
 repository = "https://github.com/mathstuf/abagames-gunroar"
 homepage = "https://github.com/mathstuf/abagames-gunroar/tree/rust"
+edition = "2018"
 
 [dependencies]
 #abagames-util = "~0.1"

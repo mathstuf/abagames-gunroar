@@ -1,18 +1,18 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-use crates::abagames_util::{Pool, PoolRemoval, Rand};
-use crates::cgmath::{Angle, Deg, Matrix4, Rad, Vector2, Vector3};
+use abagames_util::{Pool, PoolRemoval, Rand};
+use cgmath::{Angle, Deg, Matrix4, Rad, Vector2, Vector3};
 
-use game::entities::bullet::Bullet;
-use game::entities::crystal::Crystal;
-use game::entities::enemy::Enemy;
-use game::entities::field::{Field, FIELD_SIZE};
-use game::entities::particles::{Fragment, Smoke, SmokeKind, Spark};
-use game::entities::reel::ScoreReel;
-use game::entities::score_indicator::ScoreIndicator;
-use game::entities::stage::Stage;
-use game::state::GameStateContext;
+use crate::game::entities::bullet::Bullet;
+use crate::game::entities::crystal::Crystal;
+use crate::game::entities::enemy::Enemy;
+use crate::game::entities::field::{Field, FIELD_SIZE};
+use crate::game::entities::particles::{Fragment, Smoke, SmokeKind, Spark};
+use crate::game::entities::reel::ScoreReel;
+use crate::game::entities::score_indicator::ScoreIndicator;
+use crate::game::entities::stage::Stage;
+use crate::game::state::GameStateContext;
 
 pub const SHOT_SPEED: f32 = 0.6;
 const LANCE_SPEED: f32 = 0.5;

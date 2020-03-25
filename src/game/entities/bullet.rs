@@ -1,17 +1,17 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-use crates::abagames_util::{Pool, PoolRemoval, Rand};
-use crates::cgmath::{Angle, Deg, Matrix4, Rad, Vector2, Vector3};
-
-use game::entities::crystal::Crystal;
-use game::entities::field::{Block, Field};
-use game::entities::particles::{Smoke, SmokeKind, Wake, WakeDirection};
-use game::entities::shapes::bullet::BulletShapeKind;
-use game::entities::ship::Ship;
-use game::entities::shot::Shot;
-
 use std::f32;
+
+use abagames_util::{Pool, PoolRemoval, Rand};
+use cgmath::{Angle, Deg, Matrix4, Rad, Vector2, Vector3};
+
+use crate::game::entities::crystal::Crystal;
+use crate::game::entities::field::{Block, Field};
+use crate::game::entities::particles::{Smoke, SmokeKind, Wake, WakeDirection};
+use crate::game::entities::shapes::bullet::BulletShapeKind;
+use crate::game::entities::ship::Ship;
+use crate::game::entities::shot::Shot;
 
 #[derive(Debug, Clone, Copy)]
 pub struct BulletShape {

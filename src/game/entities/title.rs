@@ -1,19 +1,19 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-use crates::abagames_util::{self, TargetFormat};
-use crates::cgmath::{Matrix4, Vector2};
-use crates::gfx;
-use crates::gfx::traits::FactoryExt;
-use crates::image;
-
-pub use game::render::{Brightness, ScreenTransform};
-use game::render::{EncoderContext, RenderContext};
-use game::state::{GameMode, Scores};
-
-use game::entities::letter::{self, Letter};
-
 use std::io::Cursor;
+
+use abagames_util::{self, TargetFormat};
+use cgmath::{Matrix4, Vector2};
+use gfx;
+use gfx::traits::FactoryExt;
+use gfx::*;
+
+pub use crate::game::render::{Brightness, ScreenTransform};
+use crate::game::render::{EncoderContext, RenderContext};
+use crate::game::state::{GameMode, Scores};
+
+use crate::game::entities::letter::{self, Letter};
 
 gfx_defines! {
     vertex LogoVertex {

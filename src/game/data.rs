@@ -1,6 +1,8 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
+use lazy_static::lazy_static;
+
 macro_rules! music {
     ( $name:expr ) => {
         (

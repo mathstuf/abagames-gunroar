@@ -1,21 +1,22 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-use crates::abagames_util::{self, Pool, Rand, TargetFormat};
-use crates::cgmath::{Angle, ElementWise, Rad, Vector2, Vector3};
-use crates::gfx;
-use crates::gfx::traits::FactoryExt;
-use crates::itertools::Itertools;
-use crates::rayon::prelude::*;
-
-use game::entities::enemy::Enemy;
-use game::entities::ship::Ship;
-use game::entities::stage::Stage;
-use game::render::{Brightness, ScreenTransform};
-use game::render::{EncoderContext, RenderContext};
-use game::state::GameStateContext;
-
 use std::f32;
+
+use abagames_util::{self, Pool, Rand, TargetFormat};
+use cgmath::{Angle, ElementWise, Rad, Vector2, Vector3};
+use gfx;
+use gfx::traits::FactoryExt;
+use gfx::*;
+use itertools::Itertools;
+use rayon::prelude::*;
+
+use crate::game::entities::enemy::Enemy;
+use crate::game::entities::ship::Ship;
+use crate::game::entities::stage::Stage;
+use crate::game::render::{Brightness, ScreenTransform};
+use crate::game::render::{EncoderContext, RenderContext};
+use crate::game::state::GameStateContext;
 
 const BLOCK_SIZE_X: usize = 20;
 const BLOCK_SIZE_Y: usize = 64;

@@ -1,12 +1,12 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-use crates::abagames_util::{Event, Game, Input, Resources, SdlInfo, StepResult};
-use crates::sdl2::event::WindowEvent;
-use crates::thiserror::Error;
+use abagames_util::{Event, Game, Input, Resources, SdlInfo, StepResult};
+use sdl2::event::WindowEvent;
+use thiserror::Error;
 
-use game::render::RenderContext;
-use game::state::{GameData, GameState, GameStateContext};
+use crate::game::render::RenderContext;
+use crate::game::state::{GameData, GameState, GameStateContext};
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Error)]
 #[error("Error")]

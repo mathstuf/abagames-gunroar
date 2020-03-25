@@ -9,17 +9,19 @@
 //!
 //! This causes the code to be quite tangled, but the logic is also quite tangled.
 
-use crates::abagames_util::{self, TargetFormat};
-use crates::cgmath::{Angle, Matrix4, Rad, Vector2, Vector3};
-use crates::gfx;
-use crates::gfx::traits::FactoryExt;
-use crates::rayon::prelude::*;
-
-use game::render::{Brightness, ScreenTransform};
-use game::render::{EncoderContext, RenderContext};
-
 use std::collections::hash_map::HashMap;
 use std::ops::Deref;
+
+use abagames_util::{self, TargetFormat};
+use cgmath::{Angle, Matrix4, Rad, Vector2, Vector3};
+use gfx;
+use gfx::traits::FactoryExt;
+use gfx::*;
+use lazy_static::lazy_static;
+use rayon::prelude::*;
+
+use crate::game::render::{Brightness, ScreenTransform};
+use crate::game::render::{EncoderContext, RenderContext};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 /// The kinds of shapes used by other entities in the game.

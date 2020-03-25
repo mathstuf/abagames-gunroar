@@ -1,16 +1,15 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-use crates::abagames_util::{Pool, PoolRemoval, Rand};
-use crates::cgmath::Vector2;
-use crates::gfx;
-use crates::itertools::Itertools;
+use abagames_util::{Pool, PoolRemoval, Rand};
+use cgmath::Vector2;
+use itertools::Itertools;
 
-use game::render::EncoderContext;
-use game::state::GameStateContext;
+use crate::game::render::EncoderContext;
+use crate::game::state::GameStateContext;
 
-use game::entities::letter::{self, Letter};
-use game::entities::reel::ScoreReel;
+use crate::game::entities::letter::{self, Letter};
+use crate::game::entities::reel::ScoreReel;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Indicator {

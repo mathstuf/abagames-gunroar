@@ -1,15 +1,16 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-use crates::abagames_util::{self, TargetFormat};
-use crates::cgmath::{Angle, Matrix4, Rad};
-use crates::gfx;
-use crates::gfx::traits::FactoryExt;
-
-use game::render::{Brightness, ScreenTransform};
-use game::render::{EncoderContext, RenderContext};
-
 use std::iter;
+
+use abagames_util::{self, TargetFormat};
+use cgmath::{Angle, Matrix4, Rad};
+use gfx;
+use gfx::traits::FactoryExt;
+use gfx::*;
+
+use crate::game::render::{Brightness, ScreenTransform};
+use crate::game::render::{EncoderContext, RenderContext};
 
 gfx_defines! {
     constant ModelMat {

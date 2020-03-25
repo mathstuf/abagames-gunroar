@@ -1,12 +1,11 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-use crates::abagames_util::{self, Audio, Input, Pool, Rand, Scancode, StepResult, TargetFormat};
-use crates::cgmath::Vector2;
-use crates::gfx;
+use abagames_util::{self, Audio, Input, Pool, Rand, Scancode, StepResult, TargetFormat};
+use cgmath::Vector2;
 
-use game::entities;
-use game::render::{EncoderContext, RenderContext};
+use crate::game::entities;
+use crate::game::render::{EncoderContext, RenderContext};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum GameMode {

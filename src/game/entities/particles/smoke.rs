@@ -1,17 +1,18 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-use crates::abagames_util::{self, Pool, PoolRemoval, Rand, TargetFormat};
-use crates::cgmath::{Angle, ElementWise, InnerSpace, Rad, Vector2, Vector3, Vector4};
-use crates::gfx;
-use crates::gfx::traits::FactoryExt;
-
-use game::entities::field::{Block, Field};
-use game::entities::particles::{Wake, WakeDirection};
-use game::render::{Brightness, ScreenTransform};
-use game::render::{EncoderContext, RenderContext};
-
 use std::str;
+
+use abagames_util::{self, Pool, PoolRemoval, Rand, TargetFormat};
+use cgmath::{Angle, ElementWise, InnerSpace, Rad, Vector2, Vector3, Vector4};
+use gfx;
+use gfx::traits::FactoryExt;
+use gfx::*;
+
+use crate::game::entities::field::{Block, Field};
+use crate::game::entities::particles::{Wake, WakeDirection};
+use crate::game::render::{Brightness, ScreenTransform};
+use crate::game::render::{EncoderContext, RenderContext};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SmokeKind {

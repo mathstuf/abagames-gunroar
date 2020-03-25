@@ -1,10 +1,10 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-use crates::abagames_util::{self, Pool, PoolRemoval};
-use crates::cgmath::{Angle, Matrix4, Rad, Vector2};
+use abagames_util::{self, Pool, PoolRemoval};
+use cgmath::{Angle, Matrix4, Rad, Vector2};
 
-use game::entities::ship::Ship;
+use crate::game::entities::ship::Ship;
 
 const COUNT: u32 = 60;
 const PULLIN_COUNT: u32 = COUNT * 4 / 5;

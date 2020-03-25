@@ -1,9 +1,10 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-use crates::cgmath::{Vector2, Vector3};
+use cgmath::{Vector2, Vector3};
+use lazy_static::lazy_static;
 
-use game::entities::shapes::{BaseShape, Shape, ShapeKind};
+use crate::game::entities::shapes::{BaseShape, Shape, ShapeKind};
 
 lazy_static! {
     static ref NORMAL: BaseShape =

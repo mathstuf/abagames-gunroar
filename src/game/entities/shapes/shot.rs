@@ -1,18 +1,17 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-use crates::abagames_util::{self, Pool};
-use crates::cgmath::Matrix4;
-use crates::gfx;
-use crates::gfx::traits::FactoryExt;
-use crates::itertools::Itertools;
+use abagames_util::{self, Pool};
+use cgmath::Matrix4;
+use gfx::traits::FactoryExt;
+use itertools::Itertools;
 
-use game::entities::bullet::Bullet;
-use game::entities::field::Field;
-use game::entities::crystal::{Crystal, MAX_CRYSTAL_SIZE};
-use game::entities::shot::{Shot, MAX_SHOT_SIZE};
-use game::render::{EncoderContext, RenderContext};
-use game::render::{Brightness, ScreenTransform};
+use crate::game::entities::bullet::Bullet;
+use crate::game::entities::field::Field;
+use crate::game::entities::crystal::{Crystal, MAX_CRYSTAL_SIZE};
+use crate::game::entities::shot::{Shot, MAX_SHOT_SIZE};
+use crate::game::render::{EncoderContext, RenderContext};
+use crate::game::render::{Brightness, ScreenTransform};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ShotShapeKind {

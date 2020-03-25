@@ -1,34 +1,33 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-use crates::abagames_util::{self, Pool, PoolChainIter, PoolRemoval, Rand};
-use crates::cgmath::{Angle, Matrix4, Rad, Vector2, Vector3};
-use crates::gfx;
-use crates::rayon::prelude::*;
+use std::cmp;
+use std::f32;
+use std::iter;
 
-use game::entities::bullet::Bullet;
-use game::entities::crystal::Crystal;
-use game::entities::field::{Field, FIELD_OUTER_SIZE, FIELD_SIZE};
-use game::entities::letter::{self, Letter};
-use game::entities::particles::{Fragment, Smoke, SmokeKind, Spark, SparkFragment, Wake};
-use game::entities::reel::ScoreReel;
-use game::entities::score_indicator::{FlyingTo, Indicator, ScoreIndicator, ScoreTarget};
-use game::entities::shapes::enemy::EnemyShapes;
-use game::entities::shapes::ShapeDraw;
-use game::entities::ship::Ship;
-use game::entities::shot::{Shot, SHOT_SPEED};
-use game::entities::stage::Stage;
-use game::entities::turret::{
+use abagames_util::{self, Pool, PoolChainIter, PoolRemoval, Rand};
+use cgmath::{Angle, Matrix4, Rad, Vector2, Vector3};
+use rayon::prelude::*;
+
+use crate::game::entities::bullet::Bullet;
+use crate::game::entities::crystal::Crystal;
+use crate::game::entities::field::{Field, FIELD_OUTER_SIZE, FIELD_SIZE};
+use crate::game::entities::letter::{self, Letter};
+use crate::game::entities::particles::{Fragment, Smoke, SmokeKind, Spark, SparkFragment, Wake};
+use crate::game::entities::reel::ScoreReel;
+use crate::game::entities::score_indicator::{FlyingTo, Indicator, ScoreIndicator, ScoreTarget};
+use crate::game::entities::shapes::enemy::EnemyShapes;
+use crate::game::entities::shapes::ShapeDraw;
+use crate::game::entities::ship::Ship;
+use crate::game::entities::shot::{Shot, SHOT_SPEED};
+use crate::game::entities::stage::Stage;
+use crate::game::entities::turret::{
     MovingTurretGroup, MovingTurretGroupSpec, MovingTurretGroupSpecBuilder, TurretDraw,
     TurretGroup, TurretGroupAlignment, TurretGroupSpec, TurretGroupSpecBuilder, TurretKind,
     TurretMovement, TurretState,
 };
-use game::render::EncoderContext;
-use game::state::GameStateContext;
-
-use std::cmp;
-use std::f32;
-use std::iter;
+use crate::game::render::EncoderContext;
+use crate::game::state::GameStateContext;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EnemyKind {

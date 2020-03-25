@@ -1,15 +1,14 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-use crates::abagames_util::{self, Rand};
-use crates::cgmath::{Angle, Deg, Matrix4, Vector2, Vector3};
-use crates::gfx;
-use crates::rayon::prelude::*;
-
-use game::entities::letter::{self, Letter};
-use game::render::EncoderContext;
-
 use std::f32;
+
+use abagames_util::{self, Rand};
+use cgmath::{Angle, Deg, Matrix4, Vector2, Vector3};
+use rayon::prelude::*;
+
+use crate::game::entities::letter::{self, Letter};
+use crate::game::render::EncoderContext;
 
 const MAX_DIGIT: usize = 16;
 

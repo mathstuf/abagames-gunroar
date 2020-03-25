@@ -1,7 +1,7 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
-use crates::cgmath::Vector2;
+use cgmath::Vector2;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CollisionResult {
