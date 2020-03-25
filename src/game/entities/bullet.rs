@@ -1,6 +1,7 @@
 // Distributed under the OSI-approved BSD 2-Clause License.
 // See accompanying LICENSE file for details.
 
+use std::cmp::Ordering;
 use std::f32;
 
 use abagames_util::{Pool, PoolRemoval, Rand};
@@ -110,13 +111,17 @@ impl Bullet {
     ) -> PoolRemoval {
         self.prev_pos = self.pos;
 
-        if self.count < 29 {
-            self.speed += (self.target_speed - self.speed) * 0.066;
-            self.angle +=
-                ((self.target_angle - self.angle).normalize() - Rad::turn_div_2()) * 0.066;
-        } else if self.count == 29 {
-            self.speed = self.target_speed;
-            self.angle = self.target_angle;
+        match self.count.cmp(&29) {
+            Ordering::Greater => (),
+            Ordering::Less => {
+                self.speed += (self.target_speed - self.speed) * 0.066;
+                self.angle +=
+                    ((self.target_angle - self.angle).normalize() - Rad::turn_div_2()) * 0.066;
+            },
+            Ordering::Equal => {
+                self.speed = self.target_speed;
+                self.angle = self.target_angle;
+            },
         }
 
         if field.is_in_outer_field(self.pos) {
