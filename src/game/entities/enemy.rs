@@ -658,7 +658,7 @@ impl EnemySpec {
                         self.spec.add_turret_group(builder.into());
                         self.spec.add_turret_group(mirror.into());
 
-                        if num_front_main_turret * 2 + 1 <= count.main {
+                        if num_front_main_turret * 2 < count.main {
                             let num_rear_main_turret = (count.main - num_front_main_turret * 2) / 2;
                             builder
                                 .init_spec(main_turret_rank, TurretKind::Main, rand)
@@ -747,7 +747,7 @@ impl EnemySpec {
                         self.spec.add_turret_group(builder.into());
                         self.spec.add_turret_group(mirror.into());
 
-                        if (num_front_sub_turret + num_mid_sub_turret) * 2 + 1 <= count.sub {
+                        if (num_front_sub_turret + num_mid_sub_turret) * 2 < count.sub {
                             let num_rear_sub_turret =
                                 (count.sub - (num_front_sub_turret + num_mid_sub_turret) * 2) / 2;
                             let turret_kind = if rand.next_int(2) == 0 {
@@ -834,7 +834,7 @@ impl EnemySpec {
                         self.spec.add_turret_group(builder.into());
                         self.spec.add_turret_group(mirror.into());
 
-                        if num_front_sub_turret * 2 + 1 <= count.sub {
+                        if num_front_sub_turret * 2 < count.sub {
                             let turret_kind = if rand.next_int(2) == 0 {
                                 TurretKind::Sub
                             } else {
