@@ -348,7 +348,7 @@ impl LoopData {
 
                 LoopData {
                     index: i,
-                    angle: angle,
+                    angle,
                     pos: (sx, sy).into(),
                 }
             })
@@ -402,11 +402,11 @@ impl BaseShape {
         color: Vector3<f32>,
     ) -> Self {
         let mut shape = BaseShape {
-            kind: kind,
-            distance_ratio: distance_ratio,
-            spiny_ratio: spiny_ratio,
-            size: size,
-            color: color,
+            kind,
+            distance_ratio,
+            spiny_ratio,
+            size,
+            color,
 
             pillars: None,
 
@@ -442,7 +442,7 @@ impl BaseShape {
                     num_pillars += 1;
                 }
                 shape.points[shape.num_points] = ShapePoint {
-                    pos: pos,
+                    pos,
                     angle: data.angle,
                 };
                 shape.num_points += 1;
@@ -499,10 +499,10 @@ impl Shape {
 
     fn new_impl(base: &'static BaseShape, collision: Collision) -> Self {
         let mut shape = Shape {
-            base: base,
+            base,
             size: base.size,
             color: base.color,
-            collision: collision,
+            collision,
 
             commands: [ShapeCommand::new(); MAX_SHAPE_COMMANDS],
             num_commands: 0,
@@ -594,11 +594,11 @@ impl Shape {
         self.add_command(ShapeCommand {
             category: ShapeCategory::Loop {
                 category: self.base.kind.loop_category(),
-                closure: closure,
+                closure,
             },
-            color: color,
-            size_factor: size_factor,
-            z: z,
+            color,
+            size_factor,
+            z,
         })
     }
 
@@ -612,12 +612,12 @@ impl Shape {
     ) {
         self.add_command(ShapeCommand {
             category: ShapeCategory::SquareLoop {
-                y_ratio: y_ratio,
-                closure: closure,
+                y_ratio,
+                closure,
             },
-            color: color,
-            size_factor: size_factor,
-            z: z,
+            color,
+            size_factor,
+            z,
         })
     }
 
@@ -630,11 +630,11 @@ impl Shape {
     ) {
         self.add_command(ShapeCommand {
             category: ShapeCategory::Pillars {
-                pos: pos,
+                pos,
             },
-            color: color,
-            size_factor: size_factor,
-            z: z,
+            color,
+            size_factor,
+            z,
         })
     }
 
@@ -986,27 +986,27 @@ where
         };
 
         ShapeDraw {
-            loop_outline_pso: loop_outline_pso,
-            loop_fan_pso: loop_fan_pso,
+            loop_outline_pso,
+            loop_fan_pso,
 
-            square_loop_outline_pso: square_loop_outline_pso,
-            square_loop_fan_pso: square_loop_fan_pso,
+            square_loop_outline_pso,
+            square_loop_fan_pso,
 
-            pillar_pso: pillar_pso,
+            pillar_pso,
 
             slice_map: SliceKind::slices(factory),
 
-            modelmat: modelmat,
-            size: size,
-            shape: shape,
-            color: color,
+            modelmat,
+            size,
+            shape,
+            color,
 
-            loop_data: loop_data,
-            square_loop_data: square_loop_data,
-            pillar_data: pillar_data,
-            loop_data_front: loop_data_front,
-            square_loop_data_front: square_loop_data_front,
-            pillar_data_front: pillar_data_front,
+            loop_data,
+            square_loop_data,
+            pillar_data,
+            loop_data_front,
+            square_loop_data_front,
+            pillar_data_front,
         }
     }
 
@@ -1050,7 +1050,7 @@ where
                 closure,
             } => {
                 let square_loop = SquareLoop {
-                    y_ratio: y_ratio,
+                    y_ratio,
                 };
                 encoder.update_constant_buffer(&self.square_loop_data.square_loop, &square_loop);
 

@@ -72,7 +72,7 @@ where
                 };
 
                 Pos {
-                    pos: pos,
+                    pos,
                 }
             })
             .collect::<Vec<_>>();
@@ -155,7 +155,7 @@ where
             outline_bundle: gfx::Bundle::new(outline_slice, outline_pso, outline_data),
             fill_bundle: gfx::Bundle::new(fill_slice, fill_pso, fill_data),
 
-            modelmat: modelmat,
+            modelmat,
         }
     }
 

@@ -496,41 +496,41 @@ where
         };
 
         BulletDraw {
-            pipe2_pso: pipe2_pso,
-            pipe2_outline_pso: pipe2_outline_pso,
+            pipe2_pso,
+            pipe2_outline_pso,
 
-            pipe3_pso: pipe3_pso,
-            pipe3_outline_pso: pipe3_outline_pso,
+            pipe3_pso,
+            pipe3_outline_pso,
 
-            outline_slice_a: outline_slice_a,
-            outline_slice_b: outline_slice_b,
-            destructible_outline_slice: destructible_outline_slice,
+            outline_slice_a,
+            outline_slice_b,
+            destructible_outline_slice,
 
-            fill_slice: fill_slice,
-            destructible_fill_slice: destructible_fill_slice,
+            fill_slice,
+            destructible_fill_slice,
 
-            modelmat: modelmat,
-            color: color,
+            modelmat,
+            color,
 
-            normal_outline_data: normal_outline_data,
-            small_outline_data: small_outline_data,
-            destructible_outline_data: destructible_outline_data,
+            normal_outline_data,
+            small_outline_data,
+            destructible_outline_data,
 
-            normal_data: normal_data,
-            small_data: small_data,
-            destructible_data: destructible_data,
+            normal_data,
+            small_data,
+            destructible_data,
 
-            shot_slice_a: shot_slice_a,
-            shot_slice_b: shot_slice_b,
-            shot_slice_c: shot_slice_c,
-            shot_pso: shot_pso,
-            shot_data: shot_data,
-            shot_instances: shot_instances,
+            shot_slice_a,
+            shot_slice_b,
+            shot_slice_c,
+            shot_pso,
+            shot_data,
+            shot_instances,
 
-            crystal_slice: crystal_slice,
-            crystal_pso: crystal_pso,
-            crystal_data: crystal_data,
-            crystal_instances: crystal_instances,
+            crystal_slice,
+            crystal_pso,
+            crystal_data,
+            crystal_instances,
         }
     }
 

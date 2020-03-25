@@ -488,8 +488,8 @@ pub struct Location {
 impl Location {
     pub const fn new(position: Vector2<f32>, scale: f32) -> Self {
         Location {
-            position: position,
-            scale: scale,
+            position,
+            scale,
             direction: Direction::Right,
             orientation: Orientation::Normal,
             screen: Screen::Orthographic,
@@ -498,8 +498,8 @@ impl Location {
 
     pub const fn new_persp(position: Vector2<f32>, scale: f32) -> Self {
         Location {
-            position: position,
-            scale: scale,
+            position,
+            scale,
             direction: Direction::Right,
             orientation: Orientation::Normal,
             screen: Screen::Perspective,
@@ -666,7 +666,7 @@ where
             out_color: view.clone(),
         };
         let data_persp = pipe::Data {
-            vbuf: vbuf,
+            vbuf,
             color: color_buffer,
             screen: context.perspective_screen_buffer.clone(),
             brightness: context.brightness_buffer.clone(),
@@ -676,14 +676,14 @@ where
         };
 
         Letter {
-            outline_slice: outline_slice,
-            outline_pso: outline_pso,
+            outline_slice,
+            outline_pso,
 
-            fan_slice: fan_slice,
-            fan_pso: fan_pso,
+            fan_slice,
+            fan_pso,
 
-            data_ortho: data_ortho,
-            data_persp: data_persp,
+            data_ortho,
+            data_persp,
         }
     }
 

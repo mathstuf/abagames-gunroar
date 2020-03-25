@@ -140,7 +140,7 @@ where
             .expect("failed to create the pipeline for spark");
 
         let data = pipe::Data {
-            vbuf: vbuf,
+            vbuf,
             sparks: factory
                 .create_upload_buffer(MAX_SPARK_SIZE)
                 .expect("failed to create the pipeline for spark"),
@@ -150,9 +150,9 @@ where
         };
 
         SparkDraw {
-            slice: slice,
-            pso: pso,
-            data: data,
+            slice,
+            pso,
+            data,
         }
     }
 

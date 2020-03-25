@@ -560,12 +560,12 @@ impl EnemySpec {
                 };
 
                 ShipTurretCount {
-                    main: main,
-                    sub: sub,
-                    size: size,
+                    main,
+                    sub,
+                    size,
                     rank: turret_rank,
-                    moving_ratio: moving_ratio,
-                    speed: speed,
+                    moving_ratio,
+                    speed,
                     turn_velocity: turn_vel,
                 }
             },
@@ -581,12 +581,12 @@ impl EnemySpec {
                 let ratio = 0.25 + rand.next_float(0.5);
 
                 ShipTurretCount {
-                    main: main,
-                    sub: sub,
-                    size: size,
+                    main,
+                    sub,
+                    size,
                     rank: rank * (1. - ratio),
                     moving_ratio: 3. * ratio,
-                    speed: speed,
+                    speed,
                     turn_velocity: turn_vel,
                 }
             },
@@ -602,19 +602,19 @@ impl EnemySpec {
                 let ratio = 0.2 + rand.next_float(0.3);
 
                 ShipTurretCount {
-                    main: main,
-                    sub: sub,
-                    size: size,
+                    main,
+                    sub,
+                    size,
                     rank: rank * (1. - ratio),
                     moving_ratio: 2.5 * ratio,
-                    speed: speed,
+                    speed,
                     turn_velocity: turn_vel,
                 }
             },
         };
         self.resize(count.size);
         self.spec_data = EnemySpecData::Ship(ShipData {
-            class: class,
+            class,
             speed: count.speed,
             turn_velocity: count.turn_velocity,
         });
@@ -897,7 +897,7 @@ impl EnemySpec {
                     main: 0,
                     front: (size * (0.5 + rand.next_float_signed(0.2)) + 1.) as u32,
                     side: 2 * ((size * (0.5 + rand.next_float_signed(0.2)) + 1.) as u32),
-                    rank: rank,
+                    rank,
                     moving_ratio: 0.,
                 }
             },
@@ -906,7 +906,7 @@ impl EnemySpec {
                     main: (size * (1. + rand.next_float_signed(0.33)) + 1.) as u32,
                     front: 0,
                     side: 0,
-                    rank: rank,
+                    rank,
                     moving_ratio: 0.,
                 }
             },

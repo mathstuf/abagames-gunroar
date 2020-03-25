@@ -37,7 +37,7 @@ where
         F: gfx::Factory<R>,
     {
         RenderContext {
-            brightness: brightness,
+            brightness,
 
             perspective_screen_buffer: factory.create_constant_buffer(1),
             orthographic_screen_buffer: factory.create_constant_buffer(1),

@@ -933,7 +933,7 @@ impl TurretGroup {
                 } => {
                     let new_data = TurretGroupData::Round {
                         angle: angle + angle_step,
-                        angle_step: angle_step,
+                        angle_step,
                     };
 
                     let angle_comps: Vector2<f32> = angle.sin_cos().into();
@@ -946,7 +946,7 @@ impl TurretGroup {
                     let new_y = y + y_step;
                     let new_data = TurretGroupData::Straight {
                         y: new_y,
-                        y_step: y_step,
+                        y_step,
                     };
 
                     let pos = Vector2::new(self.spec.offset.x, new_y);
@@ -1164,7 +1164,7 @@ impl MovingTurretGroupSpecBuilder {
         velocity: Rad<f32>,
     ) -> &mut Self {
         self.spec.data = MovingTurretData::Roll(RollData {
-            roll_velocity: roll_velocity,
+            roll_velocity,
             roll_amplitude: amplitude,
             roll_amplitude_velocity: velocity,
         });
@@ -1178,7 +1178,7 @@ impl MovingTurretGroupSpecBuilder {
         aiming: bool,
     ) -> &mut Self {
         self.spec.data = MovingTurretData::Swing(SwingData {
-            swing_velocity: swing_velocity,
+            swing_velocity,
             swing_amplitude_velocity: amplitude,
             aim: aiming,
         });
@@ -1510,7 +1510,7 @@ where
             .expect("failed to create the sweep pipeline for turret sweep");
 
         let data = pipe::Data {
-            vbuf: vbuf,
+            vbuf,
             turret: factory.create_constant_buffer(1),
             color: factory.create_constant_buffer(1),
             alpha: factory.create_constant_buffer(1),
@@ -1523,13 +1523,13 @@ where
         };
 
         TurretDraw {
-            line_slice: line_slice,
-            sweep_slice: sweep_slice,
+            line_slice,
+            sweep_slice,
 
-            line_pso: line_pso,
-            sweep_pso: sweep_pso,
+            line_pso,
+            sweep_pso,
 
-            data: data,
+            data,
         }
     }
 
@@ -1545,15 +1545,15 @@ where
         C: gfx::CommandBuffer<R>,
     {
         let turret = TurretData {
-            min_range: min_range,
-            max_range: max_range,
+            min_range,
+            max_range,
             pos: pos.into(),
         };
         let color = Color {
             color: [0.9, 0.1, 0.1],
         };
         let alpha = Alpha {
-            alpha: alpha,
+            alpha,
         };
         let angle = SightAngle {
             angle: angle.0,
@@ -1597,12 +1597,12 @@ where
         C: gfx::CommandBuffer<R>,
     {
         let turret = TurretData {
-            min_range: min_range,
-            max_range: max_range,
+            min_range,
+            max_range,
             pos: pos.into(),
         };
         let alpha = Alpha {
-            alpha: alpha,
+            alpha,
         };
         context
             .encoder

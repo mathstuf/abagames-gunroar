@@ -29,8 +29,8 @@ impl BulletShape {
 
     const fn of_kind(kind: BulletShapeKind, size: f32) -> Self {
         BulletShape {
-            kind: kind,
-            size: size,
+            kind,
+            size,
         }
     }
 }

@@ -796,7 +796,7 @@ where
         FieldDraw {
             sidebar_bundle: gfx::Bundle::new(sidebar_slice, sidebar_pso, sidebar_data),
             panel_bundle: gfx::Bundle::new(panel_slice, panel_pso, panel_data),
-            panel_instances: panel_instances,
+            panel_instances,
         }
     }
 

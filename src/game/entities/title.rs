@@ -240,7 +240,7 @@ where
             count: 0,
             state: TitleState::Replay,
 
-            model_buffer: model_buffer,
+            model_buffer,
 
             logo_bundle: gfx::Bundle::new(logo_slice, logo_pso, logo_data),
             logo_line_bundle: gfx::Bundle::new(logo_line_slice, logo_line_pso, logo_line_data),

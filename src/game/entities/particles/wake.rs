@@ -183,7 +183,7 @@ where
             .expect("failed to create the pipeline for wake");
 
         let data = pipe::Data {
-            vbuf: vbuf,
+            vbuf,
             wakes: factory
                 .create_upload_buffer(MAX_WAKE_SIZE)
                 .expect("failed to create the buffer for wake"),
@@ -193,9 +193,9 @@ where
         };
 
         WakeDraw {
-            slice: slice,
-            pso: pso,
-            data: data,
+            slice,
+            pso,
+            data,
         }
     }
 

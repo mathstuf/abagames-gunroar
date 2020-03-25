@@ -291,7 +291,7 @@ where
             .expect("failed to create the pipeline for smoke");
 
         let data = pipe::Data {
-            vbuf: vbuf,
+            vbuf,
             smokes: factory
                 .create_upload_buffer(MAX_SMOKE_SIZE)
                 .expect("failed to create the buffer for smoke"),
@@ -301,9 +301,9 @@ where
         };
 
         SmokeDraw {
-            slice: slice,
-            pso: pso,
-            data: data,
+            slice,
+            pso,
+            data,
         }
     }
 

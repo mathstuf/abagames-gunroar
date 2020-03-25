@@ -187,7 +187,7 @@ where
             .expect("failed to create the pipeline for spark");
 
         let data = pipe::Data {
-            vbuf: vbuf,
+            vbuf,
             spark_fragments: factory
                 .create_upload_buffer(MAX_SPARK_FRAGMENT_SIZE)
                 .expect("failed to create the pipeline for spark fragment"),
@@ -197,9 +197,9 @@ where
         };
 
         SparkFragmentDraw {
-            slice: slice,
-            pso: pso,
-            data: data,
+            slice,
+            pso,
+            data,
         }
     }
 
