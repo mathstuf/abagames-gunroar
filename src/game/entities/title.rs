@@ -132,7 +132,7 @@ where
             .expect("failed to create the pipeline for title_logo");
 
         let logo_bmp_data = include_bytes!("images/title.bmp");
-        let logo_img = image::load(Cursor::new(&logo_bmp_data[..]), image::BMP)
+        let logo_img = image::load(Cursor::new(&logo_bmp_data[..]), image::ImageFormat::Bmp)
             .expect("failed to load the logo image")
             .to_rgba();
         let (logo_width, logo_height) = logo_img.dimensions();
