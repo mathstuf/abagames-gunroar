@@ -1503,7 +1503,7 @@ where
                 gfx::state::Rasterizer::new_fill(),
                 pipe::new(),
             )
-            .expect("failed to create the sweep pipeline for turret sight");
+            .expect("failed to create the sweep pipeline for turret sweep");
 
         let data = pipe::Data {
             vbuf: vbuf,
