@@ -30,7 +30,6 @@ impl BulletShapeKind {
             BulletShapeKind::MovingTurret => [0.7, 0.5, 0.9],
             BulletShapeKind::Destructible => [0.9, 0.9, 0.6],
         }
-        .into()
     }
 
     fn fill_color(self) -> [f32; 3] {
