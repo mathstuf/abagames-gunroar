@@ -116,7 +116,7 @@ impl SegmentData {
 }
 
 #[rustfmt::skip]
-const LETTER_DATA: [&'static [SegmentData]; 44] = [
+const LETTER_DATA: [&[SegmentData]; 44] = [
     &[
         SegmentData { pos: Vector2::new(0., 1.15), size: Vector2::new(0.65, 0.3), deg: 0., },
         SegmentData { pos: Vector2::new(-0.6, 0.55), size: Vector2::new(0.65, 0.3), deg: 90., },
