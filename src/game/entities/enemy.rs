@@ -1723,12 +1723,10 @@ impl EnemyState {
                         if !self.check_front(false, spec, field, other_enemies) {
                             self.angle += ship.turn_velocity * ship.turn_direction.factor();
                             data.speed *= 0.98;
+                        } else if data.destroyed.is_some() {
+                            data.speed *= 0.98;
                         } else {
-                            if data.destroyed.is_some() {
-                                data.speed *= 0.98;
-                            } else {
-                                data.speed += (spec_data.speed - data.speed) * 0.01;
-                            }
+                            data.speed += (spec_data.speed - data.speed) * 0.01;
                         }
                     },
                 }
