@@ -3,19 +3,14 @@
 
 use crates::abagames_util::{Event, Game, Input, Resources, SdlInfo, StepResult};
 use crates::sdl2::event::WindowEvent;
-
-use std::fmt::{self, Display};
+use crates::thiserror::Error;
 
 use game::render::RenderContext;
 use game::state::{GameData, GameState, GameStateContext};
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Fail)]
-pub struct Error;
-
-impl Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Error")
-    }
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Error)]
+#[error("Error")]
+pub enum Error {
 }
 
 pub struct Gunroar<'a, 'b: 'a> {

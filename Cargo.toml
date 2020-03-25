@@ -11,7 +11,6 @@ homepage = "https://github.com/mathstuf/abagames-gunroar/tree/rust"
 #abagames-util = "~0.1"
 cgmath = "~0.17"
 clap = "^2.20"
-failure = "~0.1"
 gfx = "~0.18"
 image = { version = "~0.19", default-features = false, features = ["bmp"] }
 itertools = "~0.7"
@@ -19,6 +18,7 @@ lazy_static = "^1.0"
 log = "~0.4"
 rayon = "^1.0"
 sdl2 = "~0.32"
+thiserror = "^1.0"
 
 [dependencies.abagames-util]
 git = "https://github.com/mathstuf/rust-abagames-util"

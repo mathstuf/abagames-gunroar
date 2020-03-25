@@ -5,9 +5,6 @@
 extern crate clap;
 
 #[macro_use]
-extern crate failure;
-
-#[macro_use]
 extern crate gfx;
 
 #[macro_use]
@@ -17,18 +14,17 @@ mod crates {
     pub extern crate abagames_util;
     pub extern crate cgmath;
     pub extern crate clap;
-    pub extern crate failure;
     pub extern crate gfx;
     pub extern crate image;
     pub extern crate itertools;
     pub extern crate log;
     pub extern crate rayon;
     pub extern crate sdl2;
+    pub extern crate thiserror;
 }
 
-use crates::abagames_util::SdlBuilder;
+use crates::abagames_util::{SdlBuilder, SdlError};
 use crates::clap::{App, Arg};
-use crates::failure::Error;
 use crates::log::{self, Level, LevelFilter, Log, Metadata, Record};
 
 mod game;
@@ -57,7 +53,7 @@ fn setup_logging() {
     log::set_max_level(LevelFilter::Debug);
 }
 
-fn try_main() -> Result<(), Error> {
+fn try_main() -> Result<(), SdlError> {
     let matches = App::new("gunroar")
         .version(crate_version!())
         .about("360-degree gunboat shooter")
