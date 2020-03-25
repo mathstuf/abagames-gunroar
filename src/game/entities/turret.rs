@@ -1336,13 +1336,12 @@ impl MovingTurretGroup {
 
                 let base_angle = if spec_data.aim {
                     let ship_pos = ship.nearest_boat(pos).pos();
-                    let offset_angle = if abagames_util::fast_distance(ship_pos, pos) < 0.1 {
+                    if abagames_util::fast_distance(ship_pos, pos) < 0.1 {
                         Rad(0.)
                     } else {
                         let diff = ship_pos - pos;
                         Rad::atan2(diff.y, diff.x)
-                    };
-                    offset_angle
+                    }
                 } else {
                     step_angle
                 };
