@@ -5,8 +5,6 @@ use crates::abagames_util::{self, TargetFormat};
 use crates::cgmath::{Deg, ElementWise, Matrix4, Rad, Vector2, Vector3};
 use crates::gfx;
 use crates::gfx::traits::FactoryExt;
-use crates::itertools::FoldWhile::{Continue, Done};
-use crates::itertools::Itertools;
 
 use game::render::{Brightness, ScreenTransform};
 use game::render::{EncoderContext, RenderContext};
@@ -772,8 +770,8 @@ where
         let fp_offset_x = norm_digit_offset * 0.5;
         let fp_offset_y = offset.y * 0.25 * Vector2::unit_y();
 
-        let (loc, _, _) = iter::repeat(())
-            .fold_while(
+        let res = iter::repeat(())
+            .try_fold(
                 (new_loc, num, number_style),
                 |(loc, num, mut number_style), _| {
                     let digit = Self::for_digit(num % 10);
@@ -798,17 +796,19 @@ where
 
                     let new_loc = loc.offset_by(-digit_offset);
                     let ctor = if next_num > 0 || number_style.is_necessary() {
-                        Continue
+                        Ok
                     } else {
-                        Done
+                        Err
                     };
 
                     number_style.with_digits(fd);
 
                     ctor((new_loc, next_num, number_style))
                 },
-            )
-            .into_inner();
+            );
+        let (loc, _, _) = match res {
+            Ok(r) | Err(r) => r,
+        };
 
         if let Some(prefix) = number_style.prefix_char {
             let prefix_offset = loc.scale * LETTER_WIDTH * 0.2;
@@ -837,7 +837,7 @@ where
         let offset_wide = offset * 1.3;
         let offset_quotes = loc.scale * 1.16 * Vector2::unit_x();
 
-        (0..).fold_while((loc, time), |(loc, time), idx| {
+        let _ = (0..).try_fold((loc, time), |(loc, time), idx| {
             let new_time = if idx == 4 {
                 let letter = Self::for_digit(time % 6);
                 self.draw_letter_at(context, letter, style, loc);
@@ -858,9 +858,9 @@ where
             };
 
             if new_time == 0 {
-                Done((loc, new_time))
+                Err((loc, new_time))
             } else {
-                Continue((loc.offset_by(-next_offset), new_time))
+                Ok((loc.offset_by(-next_offset), new_time))
             }
         });
     }
@@ -878,7 +878,7 @@ where
             .iter()
             // Get the constant buffer for the segment.
             .map(SegmentData::constant_buffer)
-            .foreach(|letter_data| {
+            .for_each(|letter_data| {
                 context
                     .encoder
                     .update_constant_buffer(&data.segment, &letter_data);

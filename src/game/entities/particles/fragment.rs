@@ -5,7 +5,6 @@ use crates::abagames_util::{self, Pool, PoolRemoval, Rand, TargetFormat};
 use crates::cgmath::{Angle, Matrix4, Rad, Vector2, Vector3};
 use crates::gfx;
 use crates::gfx::traits::FactoryExt;
-use crates::itertools::Itertools;
 
 use game::entities::field::Field;
 use game::entities::particles::{Smoke, SmokeKind};
@@ -213,7 +212,7 @@ where
     where
         C: gfx::CommandBuffer<R>,
     {
-        fragments.iter().foreach(|fragment| {
+        fragments.iter().for_each(|fragment| {
             let modelmat = ModelMat {
                 modelmat: fragment.modelmat().into(),
             };

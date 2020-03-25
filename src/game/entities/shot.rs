@@ -3,7 +3,6 @@
 
 use crates::abagames_util::{Pool, PoolRemoval, Rand};
 use crates::cgmath::{Angle, Deg, Matrix4, Rad, Vector2, Vector3};
-use crates::itertools::Itertools;
 
 use game::entities::bullet::Bullet;
 use game::entities::crystal::Crystal;
@@ -131,7 +130,7 @@ impl Shot {
 
         if remove {
             if self.lance {
-                (0..10).foreach(|_| {
+                (0..10).for_each(|_| {
                     let angle = self.angle + Rad(rand.next_float_signed(0.1));
                     let angle_comps: Vector2<f32> = angle.sin_cos().into();
                     let speed = rand.next_float(LANCE_SPEED);

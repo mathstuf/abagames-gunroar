@@ -13,7 +13,6 @@ use crates::abagames_util::{self, TargetFormat};
 use crates::cgmath::{Angle, Matrix4, Rad, Vector2, Vector3};
 use crates::gfx;
 use crates::gfx::traits::FactoryExt;
-use crates::itertools::Itertools;
 use crates::rayon::prelude::*;
 
 use game::render::{Brightness, ScreenTransform};
@@ -417,7 +416,7 @@ impl BaseShape {
 
         if shape.kind != ShapeKind::Bridge {
             let category = shape.kind.loop_category();
-            LOOP_DATA.iter().foreach(|data| {
+            LOOP_DATA.iter().for_each(|data| {
                 let i = data.index;
                 if !category.uses_index(data.index) {
                     return;
@@ -1107,7 +1106,7 @@ where
             .commands
             .iter()
             .take(shape.num_commands as usize)
-            .foreach(|command| self.draw_command(context.encoder, command, front))
+            .for_each(|command| self.draw_command(context.encoder, command, front))
     }
 
     pub fn draw<C>(&self, context: &mut EncoderContext<R, C>, shape: &Shape, modelmat: Matrix4<f32>)

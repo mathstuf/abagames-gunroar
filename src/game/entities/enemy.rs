@@ -4,7 +4,6 @@
 use crates::abagames_util::{self, Pool, PoolChainIter, PoolRemoval, Rand};
 use crates::cgmath::{Angle, Matrix4, Rad, Vector2, Vector3};
 use crates::gfx;
-use crates::itertools::{FoldWhile, Itertools};
 use crates::rayon::prelude::*;
 
 use game::entities::bullet::Bullet;
@@ -162,7 +161,7 @@ impl BaseEnemySpec {
             },
         };
 
-        (0..num_moving_turrets).foreach(|_| {
+        (0..num_moving_turrets).for_each(|_| {
             let mut builder = MovingTurretGroupSpecBuilder::default();
             builder.with_radius(radius);
 
@@ -1405,7 +1404,7 @@ impl EnemyState {
             .next();
 
         if let Some(scores) = scores {
-            scores.into_iter().foreach(|score| {
+            scores.into_iter().for_each(|score| {
                 self.multiplier += score.multiplier();
                 self.add_score_indicator(score.score(), 1., stage, indicators, reel, context, rand);
             });
@@ -1529,7 +1528,7 @@ impl EnemyState {
             let pos = points[i].pos * spec.size + self.pos;
             let size = f32::min(1., spec.size * 0.5);
 
-            (0..n).foreach(|i| {
+            (0..n).for_each(|i| {
                 let velocity_factor = rand.next_float(0.5);
                 let angle = points[i].angle + Rad(rand.next_float_signed(0.2));
                 let angle_comps: Vector2<f32> = angle.sin_cos().into();
@@ -1544,7 +1543,7 @@ impl EnemyState {
                     rand,
                 );
 
-                (0..2).foreach(|_| {
+                (0..2).for_each(|_| {
                     let color = (0.5 + rand.next_float(0.5), 0.5 + rand.next_float(0.5), 0.).into();
                     sparks
                         .get_force()
@@ -1795,7 +1794,7 @@ impl EnemyState {
             },
         );
 
-        (0..((particle_count_base * 8.) as usize)).foreach(|_| {
+        (0..((particle_count_base * 8.) as usize)).for_each(|_| {
             let vel_offset = Vector2::new(rand.next_float_signed(0.1), rand.next_float_signed(0.1));
             let vel = (vel_offset + explode_vel).extend(rand.next_float(z_vel));
             smokes.get_force().init_2d(
@@ -1808,7 +1807,7 @@ impl EnemyState {
             );
         });
 
-        (0..((particle_count_base * 36.) as usize)).foreach(|_| {
+        (0..((particle_count_base * 36.) as usize)).for_each(|_| {
             let vel_offset = Vector2::new(rand.next_float_signed(0.8), rand.next_float_signed(0.8));
             let color = Vector3::new(0.5 + rand.next_float(0.5), 0.5 + rand.next_float(0.5), 0.);
             sparks.get_force().init(
@@ -1819,7 +1818,7 @@ impl EnemyState {
             );
         });
 
-        (0..((particle_count_base * 12.) as usize)).foreach(|_| {
+        (0..((particle_count_base * 12.) as usize)).for_each(|_| {
             let vel_offset =
                 Vector2::new(rand.next_float_signed(0.33), rand.next_float_signed(0.33));
             let vel = (vel_offset + explode_vel).extend(0.05 + rand.next_float(0.1));
@@ -2064,27 +2063,29 @@ impl Enemy {
             true
         } else {
             let angle_comps: Vector2<f32> = angle.sin_cos().into();
-            iter::repeat(())
-                .fold_while((0., check_size, true), |(offset, check_size, _), _| {
+            let res = iter::repeat(())
+                .try_fold((0., check_size, true), |(offset, check_size, _), _| {
                     if check_size < 0.2 {
-                        FoldWhile::Done((offset, check_size, false))
+                        Err((offset, check_size, false))
                     } else {
                         let ref_pos = angle_comps * offset;
                         if abagames_util::fast_distance(pos, ref_pos) < check_size
                             || abagames_util::fast_distance(pos, -ref_pos) < check_size
                         {
-                            FoldWhile::Done((offset, check_size, true))
+                            Err((offset, check_size, true))
                         } else {
-                            FoldWhile::Continue((
+                            Ok((
                                 offset + check_size,
                                 check_size * self.spec.distance_ratio(),
                                 true,
                             ))
                         }
                     }
-                })
-                .into_inner()
-                .2
+                });
+
+            match res {
+                Ok(r) | Err(r) => r.2,
+            }
         }
     }
 
@@ -2170,7 +2171,7 @@ impl Enemy {
         self.state
             .turret_groups_mut()
             .iter_mut()
-            .foreach(|group| group.prep_draw(rand));
+            .for_each(|group| group.prep_draw(rand));
     }
 
     pub fn draw<R, C>(
@@ -2216,7 +2217,7 @@ impl Enemy {
         self.state
             .turret_groups()
             .iter()
-            .foreach(|group| group.draw(context, shape_draw, turret_draw));
+            .for_each(|group| group.draw(context, shape_draw, turret_draw));
 
         if self.state.multiplier > 1. {
             let offset_x = if self.state.multiplier < 10. {

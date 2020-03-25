@@ -5,7 +5,6 @@ use crates::abagames_util::{self, Pool, TargetFormat};
 use crates::cgmath::Matrix4;
 use crates::gfx;
 use crates::gfx::traits::FactoryExt;
-use crates::itertools::Itertools;
 
 use game::entities::bullet::Bullet;
 use game::entities::crystal::{Crystal, MAX_CRYSTAL_SIZE};
@@ -610,7 +609,7 @@ where
         bullets
             .iter()
             .filter(|bullet| field.is_in_outer_field(bullet.pos()))
-            .foreach(|bullet| {
+            .for_each(|bullet| {
                 let modelmat = ModelMat {
                     modelmat: bullet.modelmat().into(),
                 };

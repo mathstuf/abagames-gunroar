@@ -535,7 +535,7 @@ impl<R> BulletDraw<R>
     {
         bullets.iter()
             .filter(|bullet| field.is_in_outer_field(bullet.pos()))
-            .foreach(|bullet| {
+            .for_each(|bullet| {
                 let modelmat = ModelMat {
                     modelmat: bullet.modelmat().into(),
                 };

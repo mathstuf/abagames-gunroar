@@ -5,7 +5,6 @@ use crates::abagames_util::{self, TargetFormat};
 use crates::cgmath::{Angle, Deg, InnerSpace, Matrix4, MetricSpace, Rad, Vector2, Vector3};
 use crates::gfx;
 use crates::gfx::traits::FactoryExt;
-use crates::itertools::Itertools;
 use crates::rayon::prelude::*;
 
 use game::entities::shapes::shield::ShieldDraw;
@@ -536,7 +535,7 @@ where
     {
         ship.boats[0..ship.num_boats]
             .iter()
-            .foreach(|boat| self.draw_boat(context, shape_draw, shield_draw, boat));
+            .for_each(|boat| self.draw_boat(context, shape_draw, shield_draw, boat));
 
         if /*ship.mode.uses_two_ships() &&*/ !ship.boats[0].is_in_reset() {
             let start_pos = ship.boats[0].pos;

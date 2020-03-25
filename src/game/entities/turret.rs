@@ -5,7 +5,6 @@ use crates::abagames_util::{self, Pool, Rand, TargetFormat};
 use crates::cgmath::{Angle, ElementWise, Matrix4, MetricSpace, Rad, Vector2, Vector3};
 use crates::gfx;
 use crates::gfx::traits::FactoryExt;
-use crates::itertools::Itertools;
 use crates::rayon::prelude::*;
 
 use game::entities::bullet::Bullet;
@@ -578,7 +577,7 @@ impl Turret {
         context.audio.as_mut().map(|audio| audio.mark_sfx("turret_destroyed"));
         self.destroyed_count = Some(0);
 
-        (0..6).foreach(|_| {
+        (0..6).for_each(|_| {
             let vel = Vector3::new(
                 rand.next_float_signed(0.1),
                 rand.next_float_signed(0.1),
@@ -594,7 +593,7 @@ impl Turret {
             );
         });
 
-        (0..32).foreach(|_| {
+        (0..32).for_each(|_| {
             let vel = Vector2::new(rand.next_float_signed(0.5), rand.next_float_signed(0.5));
             let color = Vector3::new(0.5 + rand.next_float(0.5), 0.5 + rand.next_float(0.5), 0.);
             sparks
@@ -602,7 +601,7 @@ impl Turret {
                 .init(self.pos, vel, color, 30 + rand.next_int(30));
         });
 
-        (0..7).foreach(|_| {
+        (0..7).for_each(|_| {
             let vel = Vector3::new(
                 rand.next_float_signed(0.25),
                 rand.next_float_signed(0.25),
@@ -1005,7 +1004,7 @@ impl TurretGroup {
     pub fn prep_draw(&mut self, rand: &mut Rand) {
         self.turrets_mut()
             .iter_mut()
-            .foreach(|turret| turret.prep_draw(rand))
+            .for_each(|turret| turret.prep_draw(rand))
     }
 
     pub fn draw<R, C>(
@@ -1019,7 +1018,7 @@ impl TurretGroup {
     {
         self.turrets()
             .iter()
-            .foreach(|turret| turret.draw(context, shape_draw, turret_draw))
+            .for_each(|turret| turret.draw(context, shape_draw, turret_draw))
     }
 }
 

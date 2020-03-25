@@ -4,7 +4,6 @@
 use crates::abagames_util::{self, Rand};
 use crates::cgmath::{Angle, Deg, Matrix4, Vector2, Vector3};
 use crates::gfx;
-use crates::itertools::Itertools;
 use crates::rayon::prelude::*;
 
 use game::entities::letter::{self, Letter};
@@ -69,7 +68,7 @@ impl ScoreReel {
             .iter_mut()
             .take(self.digits)
             .enumerate()
-            .foreach(|(idx, reel)| {
+            .for_each(|(idx, reel)| {
                 reel.draw(
                     context,
                     letter,

@@ -313,7 +313,7 @@ impl Field {
 
         (0..BLOCK_SIZE_Y)
             .cartesian_product(0..BLOCK_SIZE_X)
-            .foreach(|(y, x)| {
+            .for_each(|(y, x)| {
                 self.blocks[x][y] = Block::DeepWater;
 
                 self.create_panel(x, y, rand);
@@ -461,20 +461,20 @@ impl Field {
         // Clear out the blocks in the current strip.
         indices
             .iter()
-            .foreach(|&(y, x)| self.blocks[x][y] = Block::DeepWater);
+            .for_each(|&(y, x)| self.blocks[x][y] = Block::DeepWater);
 
         // Add ground.
         let ground_type = rand.next_int(3).into();
-        (0..density).foreach(|_| self.add_ground(ground_type, rand));
+        (0..density).for_each(|_| self.add_ground(ground_type, rand));
 
         // Clear out the blocks at the edges of the current strip.
         indices
             .iter()
             .filter(|&&(y, _)| y == nby || y == nby + NEXT_BLOCK_AREA_SIZE - 1)
-            .foreach(|&(y, x)| self.blocks[x][y] = Block::DeepWater);
+            .for_each(|&(y, x)| self.blocks[x][y] = Block::DeepWater);
 
         self.num_platforms = 0;
-        rows.into_iter().foreach(|y| {
+        rows.into_iter().for_each(|y| {
             for x in 0..BLOCK_SIZE_X {
                 if self.blocks[x][y] == Block::Beach
                     && self.count_around_block(x, y, Block::Beach) <= 1
@@ -490,7 +490,7 @@ impl Field {
                 }
             }
 
-            (0..BLOCK_SIZE_X).foreach(|x| {
+            (0..BLOCK_SIZE_X).for_each(|x| {
                 let count = self.count_around_block(x, y, Block::Beach);
                 let new_block = self.blocks[x][y].transform_for_count(count);
 
@@ -505,7 +505,7 @@ impl Field {
             })
         });
 
-        indices.iter().foreach(|&(y, x)| {
+        indices.iter().for_each(|&(y, x)| {
             if self.blocks[x][y] == Block::DeepWater
                 && self.count_around_block(x, y, Block::Shore) > 0
             {
@@ -597,7 +597,7 @@ impl Field {
                     .into_iter()
                     .all(|&b| b)
             })
-            .foreach(|(y, x)| {
+            .for_each(|(y, x)| {
                 // Determine if there should be an island seeded at this location.
                 let island_choice = {
                     let mut hw_rand = || (rand.next_float(0.2) + 0.2, rand.next_float(0.3) + 0.4);
@@ -831,7 +831,7 @@ where
 
         y_info
             .cartesian_product(x_info)
-            .foreach(|((block_y, offset_y), (block_x, offset_x))| {
+            .for_each(|((block_y, offset_y), (block_x, offset_x))| {
                 let panel = &field.panels[block_x][block_y];
 
                 let base_color = &colors[panel.color_index];

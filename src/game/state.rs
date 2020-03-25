@@ -4,7 +4,6 @@
 use crates::abagames_util::{self, Audio, Input, Pool, Rand, Scancode, StepResult, TargetFormat};
 use crates::cgmath::Vector2;
 use crates::gfx;
-use crates::itertools::Itertools;
 
 use game::entities;
 use game::render::{EncoderContext, RenderContext};
@@ -439,7 +438,7 @@ where
         self.bullet_draw.prep_draw_crystals(factory, &self.crystals);
         {
             let (enemies, rand) = (&mut self.enemies, &mut self.rand);
-            enemies.iter_mut().foreach(|enemy| enemy.prep_draw(rand))
+            enemies.iter_mut().for_each(|enemy| enemy.prep_draw(rand))
         }
         self.bullet_draw.prep_draw_shots(factory, &self.shots);
         self.ship_draw.prep_draw(factory, None, &self.ship);
@@ -469,7 +468,7 @@ where
         self.fragments_draw.draw(encoder, &self.fragments);
         self.spark_fragments_draw.draw(encoder);
         self.bullet_draw.draw_crystals(encoder);
-        self.enemies.iter().foreach(|enemy| {
+        self.enemies.iter().for_each(|enemy| {
             enemy.draw(encoder, &self.shape_draw, &self.turret_draw, &self.letter)
         });
         self.bullet_draw.draw_shots(encoder);
@@ -490,7 +489,7 @@ where
         self.fragments_draw.draw(encoder, &self.fragments);
         self.spark_fragments_draw.draw(encoder);
         self.bullet_draw.draw_crystals(encoder);
-        self.enemies.iter().foreach(|enemy| {
+        self.enemies.iter().for_each(|enemy| {
             enemy.draw(encoder, &self.shape_draw, &self.turret_draw, &self.letter)
         });
         self.bullet_draw.draw_shots(encoder);
@@ -554,7 +553,7 @@ where
 
         indicators
             .iter_mut()
-            .foreach(|indicator| indicator.draw(encoder, letter))
+            .for_each(|indicator| indicator.draw(encoder, letter))
     }
 
     pub fn draw_ortho<C>(&self, encoder: &mut EncoderContext<R, C>)

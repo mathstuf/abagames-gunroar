@@ -4,7 +4,6 @@
 use crates::abagames_util::{self, Pool, Rand};
 use crates::cgmath::Vector2;
 use crates::gfx;
-use crates::itertools::Itertools;
 use crates::rayon::prelude::*;
 
 use game::entities::enemy::{Enemy, EnemyAppearance, EnemySpec, EnemyState, ShipClass};
@@ -162,7 +161,7 @@ impl Stage {
         self.appearances
             .iter_mut()
             .filter(|appear| appear.spec.is_some())
-            .foreach(|appearances| appearances.step(field, enemies, rand))
+            .for_each(|appearances| appearances.step(field, enemies, rand))
     }
 
     fn boss_step(&mut self, enemies: &Pool<Enemy>, context: &mut GameStateContext) {
