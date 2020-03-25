@@ -257,11 +257,7 @@ impl Platform {
             } else {
                 self.position.y - other.y
             };
-            if x <= 1 && y <= 1 {
-                true
-            } else {
-                false
-            }
+            x <= 1 && y <= 1
         } else {
             false
         }
