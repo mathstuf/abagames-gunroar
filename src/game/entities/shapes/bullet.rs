@@ -314,7 +314,7 @@ where
             .create_program(&gfx::ShaderSet::Simple(shot_shader, frag_shader.clone()))
             .expect("failed to link the shot shader");
         let crystal_program = factory
-            .create_program(&gfx::ShaderSet::Simple(crystal_shader, frag_shader.clone()))
+            .create_program(&gfx::ShaderSet::Simple(crystal_shader, frag_shader))
             .expect("failed to link the crystal shader");
 
         let pipe2_outline_pso = factory
@@ -435,7 +435,7 @@ where
             out_color: view.clone(),
         };
         let normal_data = pipe3::Data {
-            vbuf: normal_vbuf.clone(),
+            vbuf: normal_vbuf,
             screen: context.perspective_screen_buffer.clone(),
             brightness: context.brightness_buffer.clone(),
             modelmat: modelmat.clone(),
@@ -452,7 +452,7 @@ where
             out_color: view.clone(),
         };
         let small_data = pipe3::Data {
-            vbuf: small_vbuf.clone(),
+            vbuf: small_vbuf,
             screen: context.perspective_screen_buffer.clone(),
             brightness: context.brightness_buffer.clone(),
             modelmat: modelmat.clone(),
@@ -469,7 +469,7 @@ where
             out_color: view.clone(),
         };
         let destructible_data = pipe2::Data {
-            vbuf: destructible_vbuf.clone(),
+            vbuf: destructible_vbuf,
             screen: context.perspective_screen_buffer.clone(),
             brightness: context.brightness_buffer.clone(),
             modelmat: modelmat.clone(),
@@ -478,7 +478,7 @@ where
         };
 
         let shot_data = shot_pipe::Data {
-            vbuf: shot_vbuf.clone(),
+            vbuf: shot_vbuf,
             screen: context.perspective_screen_buffer.clone(),
             brightness: context.brightness_buffer.clone(),
             instances: shot_instances.clone(),
@@ -487,12 +487,12 @@ where
         };
 
         let crystal_data = crystal_pipe::Data {
-            vbuf: crystal_vbuf.clone(),
+            vbuf: crystal_vbuf,
             screen: context.perspective_screen_buffer.clone(),
             brightness: context.brightness_buffer.clone(),
             instances: crystal_instances.clone(),
             color: color.clone(),
-            out_color: view.clone(),
+            out_color: view,
         };
 
         BulletDraw {

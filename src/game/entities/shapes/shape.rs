@@ -902,7 +902,7 @@ where
             .create_shader_vertex(include_bytes!("shader/pillar.glslv"))
             .expect("failed to compile the pillar shader for base shapes");
         let pillar_program = factory
-            .create_program(&gfx::ShaderSet::Simple(pillar_shader, frag_shader.clone()))
+            .create_program(&gfx::ShaderSet::Simple(pillar_shader, frag_shader))
             .expect("failed to link the pillar shader");
         let pillar_pso = factory
             .create_pipeline_from_program(
@@ -958,7 +958,7 @@ where
             modelmat: modelmat.clone(),
             size: size.clone(),
             shape: shape.clone(),
-            loop_: loop_.clone(),
+            loop_,
             color: color.clone(),
             out_color: view.clone(),
         };

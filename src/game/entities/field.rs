@@ -748,7 +748,7 @@ where
 
         let sidebar_data = sidebar_pipe::Data {
             vbuf: sidebar_vbuf,
-            instances: sidebar_instance_buffer.clone(),
+            instances: sidebar_instance_buffer,
             screen: context.perspective_screen_buffer.clone(),
             out_color: view.clone(),
         };

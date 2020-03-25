@@ -349,7 +349,7 @@ where
             .create_program(&gfx::ShaderSet::Simple(line_shader, frag_shader.clone()))
             .expect("failed to link the line shader");
         let sight_program = factory
-            .create_program(&gfx::ShaderSet::Simple(sight_shader, frag_shader.clone()))
+            .create_program(&gfx::ShaderSet::Simple(sight_shader, frag_shader))
             .expect("failed to link the sight shader");
 
         let ship_pso = factory
