@@ -404,9 +404,9 @@ impl SegmentData {
     fn segment_data_for(ch: char) -> &'static [SegmentData] {
         let ch_u8 = ch as u8;
         let idx = match ch {
-            '0'...'9' => ch_u8 - b'0',
-            'A'...'Z' => ch_u8 - b'A' + 10,
-            'a'...'z' => ch_u8 - b'a' + 10,
+            '0'..='9' => ch_u8 - b'0',
+            'A'..='Z' => ch_u8 - b'A' + 10,
+            'a'..='z' => ch_u8 - b'a' + 10,
             '.' => 36,
             '_' => 37,
             '-' => 38,

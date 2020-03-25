@@ -594,7 +594,7 @@ impl Field {
             .map(|(y, x)| (y as isize, x as isize))
             .filter(|&(y, x)| {
                 [cx <= x, x < (cx + width), cy <= y, y < (cy + height)]
-                    .into_iter()
+                    .iter()
                     .all(|&b| b)
             })
             .for_each(|(y, x)| {
@@ -603,8 +603,8 @@ impl Field {
                     let mut hw_rand = || (rand.next_float(0.2) + 0.2, rand.next_float(0.3) + 0.4);
 
                     [y - cy, cy + height - 1 - y]
-                        .into_iter()
-                        .cartesian_product([x - cx, cx + width - 1 - x].into_iter())
+                        .iter()
+                        .cartesian_product([x - cx, cx + width - 1 - x].iter())
                         .map(|(&dy, &dx)| (dy as f32, dx as f32))
                         .map(|(dy, dx)| {
                             let (width_rand, height_rand) = hw_rand();
@@ -628,7 +628,7 @@ impl Field {
             self.check_block(x32, y32 + 1, threshold).unwrap_or(false),
             self.check_block(x32 - 1, y32, threshold).unwrap_or(false),
         ]
-        .into_iter()
+        .iter()
         .filter(|&&b| b)
         .count()
     }

@@ -204,7 +204,7 @@ impl SliceKind {
         ];
 
         slice_kinds
-            .into_iter()
+            .iter()
             .map(|&kind| {
                 let closure = kind.closure();
 
