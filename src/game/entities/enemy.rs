@@ -1473,9 +1473,7 @@ impl EnemyState {
             enemies
                 .clone()
                 .filter_map(|enemy| {
-                    if !enemy.spec.is_large() {
-                        None
-                    } else if enemy.state.is_destroyed() {
+                    if !enemy.spec.is_large() || enemy.state.is_destroyed() {
                         None
                     } else {
                         Some(enemy.collides(pos - enemy.state.pos, enemy.state.angle, 1.))
